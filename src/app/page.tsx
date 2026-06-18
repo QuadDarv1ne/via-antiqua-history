@@ -25,13 +25,37 @@ import {
 } from '@/components/site/bookmarks'
 import { greece, rome, mesopotamia, kuban } from '@/lib/history-data'
 
+// JSON-LD structured data for SEO
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "История Древнего Пути",
+  "description": "Интерактивная историческая энциклопедия античного мира",
+  "url": "https://via-antiqua-history.vercel.app",
+  "applicationCategory": "EducationalApplication",
+  "operatingSystem": "Web",
+  "author": {
+    "@type": "Person",
+    "name": "Дуплей Максим Игоревич"
+  },
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "RUB"
+  }
+};
+
 export default function Home() {
   return (
     <BookmarksProvider>
       <div className="min-h-screen flex flex-col bg-background font-body">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
         <ReadingProgress />
         <Navbar />
-        <main className="flex-1">
+        <main id="main-content" className="flex-1">
           <Hero />
 
           {/* Раздел: Древняя Греция */}

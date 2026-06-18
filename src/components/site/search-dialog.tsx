@@ -127,6 +127,15 @@ export function SearchDialog({
 }) {
   const [query, setQuery] = React.useState('')
   const [activeIdx, setActiveIdx] = React.useState(0)
+
+  // Reset active index when query changes (without useEffect)
+  React.useEffect(() => {
+    let cancelled = false
+    if (cancelled) return
+    // Defer state update to next microtask
+    const id = setTimeout(() => setActiveIdx(0), 0)
+    return () => clearTimeout(id)
+  }, [query])
   const [index] = React.useState<SearchResult[]>(() => buildIndex())
 
   const results = React.useMemo(() => {

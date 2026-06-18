@@ -49,29 +49,25 @@ export function useBookmarks() {
 }
 
 export function BookmarksProvider({ children }: { children: React.ReactNode }) {
-  const [bookmarks, setBookmarks] = React.useState<BookmarkItem[]>([])
-  const [mounted, setMounted] = React.useState(false)
-
-  React.useEffect(() => {
-    setMounted(true)
+  const [bookmarks, setBookmarks] = React.useState<BookmarkItem[]>(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY)
       if (raw) {
-        setBookmarks(JSON.parse(raw))
+        return JSON.parse(raw)
       }
     } catch {
       // ignore
     }
-  }, [])
+    return []
+  })
 
   React.useEffect(() => {
-    if (!mounted) return
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(bookmarks))
     } catch {
       // ignore
     }
-  }, [bookmarks, mounted])
+  }, [bookmarks])
 
   const isBookmarked = React.useCallback(
     (id: string) => bookmarks.some((b) => b.id === id),

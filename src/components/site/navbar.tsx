@@ -29,14 +29,27 @@ export function Navbar() {
   const [open, setOpen] = React.useState(false)
   const [scrolled, setScrolled] = React.useState(false)
   const [searchOpen, setSearchOpen] = React.useState(false)
+  const [activeSection, setActiveSection] = React.useState('')
   const { theme, setTheme } = useTheme()
-  const [mounted, setMounted] = React.useState(false)
-
-  React.useEffect(() => setMounted(true), [])
+  const [mounted] = React.useState(true)
 
   React.useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24)
-    window.addEventListener('scroll', onScroll)
+    const onScroll = () => {
+      setScrolled(window.scrollY > 24)
+      
+      // Determine active section based on scroll position
+      const sections = navItems.map(item => item.href.substring(1))
+      const scrollPosition = window.scrollY + 100
+      
+      for (let i = sections.length - 1; i >= 0; i--) {
+        const section = document.getElementById(sections[i])
+        if (section && section.offsetTop <= scrollPosition) {
+          setActiveSection(sections[i])
+          break
+        }
+      }
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
@@ -54,6 +67,11 @@ export function Navbar() {
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [])
+
+  const isActive = (href: string) => {
+    const section = href.substring(1)
+    return activeSection === section
+  }
 
   return (
     <header
@@ -80,7 +98,12 @@ export function Navbar() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="px-3 py-2 text-sm font-medium text-foreground/80 hover:text-foreground hover:bg-accent/10 rounded-md transition-colors whitespace-nowrap"
+                className={cn(
+                  "px-3 py-2 text-sm font-medium rounded-md transition-colors whitespace-nowrap",
+                  isActive(item.href)
+                    ? "text-foreground bg-accent/10 font-semibold"
+                    : "text-foreground/80 hover:text-foreground hover:bg-accent/10"
+                )}
               >
                 {item.label}
               </Link>

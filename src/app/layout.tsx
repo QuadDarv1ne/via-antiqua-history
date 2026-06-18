@@ -17,28 +17,61 @@ const bodyFont = EB_Garamond({
 });
 
 export const metadata: Metadata = {
-  title: "Исторический Лабиринт: От Эллады до Римских Пределов",
+  title: {
+    default: "История Древнего Пути — Интерактивный исторический лабиринт",
+    template: "%s | История Древнего Пути"
+  },
   description:
-    "Образовательный ресурс о цивилизациях Древней Греции, Рима, Месопотамии и Кубани. Авторский исторический анализ единого античного пространства. Автор: Дуплей Максим Игоревич.",
+    "Интерактивная историческая энциклопедия античного мира — Древняя Греция, Римская империя, Месопотамия и Кубань как единое культурное пространство. 18 городов, 32+ памятников, 12 персоналий, 7 чудес света.",
   keywords: [
     "Древняя Греция",
-    "Римская империя",
+    "Римская империя", 
     "Месопотамия",
     "Кубань",
     "Боспорское царство",
     "Акрополь",
+    "Парфенон",
     "история античности",
+    "античные цивилизации",
+    "Чудеса света",
     "Дуплей Максим Игоревич",
+    "исторический лабиринт",
+    "via antiqua",
+    "эллинизм",
+    "Pax Romana",
   ],
   authors: [{ name: "Дуплей Максим Игоревич" }],
-  icons: {
-    icon: "https://z-cdn.chatglm.cn/z-ai/static/logo.svg",
+  creator: "Дуплей Максим Игоревич",
+  publisher: "Дуплей Максим Игоревич",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
   },
   openGraph: {
-    title: "Исторический Лабиринт: От Эллады до Римских Пределов",
+    title: "История Древнего Пути — Интерактивный исторический лабиринт",
     description:
       "Интерактивная историческая энциклопедия античного мира — Греция, Рим, Междуречье и Кубань как единое культурное пространство.",
     type: "website",
+    locale: "ru_RU",
+    siteName: "История Древнего Пути",
+  },
+  verification: {
+    // Можно добавить Яндекс/Google верификацию
+  },
+  category: "education",
+  alternates: {
+    canonical: "/",
+  },
+  icons: {
+    icon: "/logo.svg",
+    apple: "/logo.svg",
   },
 };
 
@@ -52,6 +85,9 @@ export default function RootLayout({
       <body
         className={`${displayFont.variable} ${bodyFont.variable} font-body antialiased bg-background text-foreground`}
       >
+        <a href="#main-content" className="skip-link">
+          Перейти к основному содержанию
+        </a>
         <ThemeProvider
           attribute="class"
           defaultTheme="light"

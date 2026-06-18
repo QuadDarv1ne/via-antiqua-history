@@ -30,6 +30,14 @@ export function QuizSection() {
   )
   const [finished, setFinished] = React.useState(false)
 
+  // Calculate correct answers count
+  const correctCount = React.useMemo(() => {
+    return answers.reduce(
+      (acc, answer, index) => acc + (answer === quizQuestions[index].correct ? 1 : 0),
+      0
+    )
+  }, [answers])
+
   const q = quizQuestions[current]
   const isAnswered = selected !== null
   const isCorrect = selected === q.correct
@@ -93,9 +101,6 @@ export function QuizSection() {
     setFinished(false)
   }
 
-  const correctCount = answers.filter(
-    (a, i) => a === quizQuestions[i].correct
-  ).length
   const progress = ((current + (isAnswered ? 1 : 0)) / quizQuestions.length) * 100
 
   if (finished) {
@@ -328,6 +333,45 @@ export function QuizSection() {
               </Button>
             </div>
           </motion.div>
+
+          {/* Results screen */}
+          {finished && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-center py-10"
+            >
+              <Trophy className="h-16 w-16 mx-auto mb-4 text-primary" />
+              <h3 className="font-display text-3xl font-bold mb-4">
+                Квиз завершён!
+              </h3>
+              <div className="text-5xl font-display font-bold gold-text mb-2">
+                {correctCount}/{quizQuestions.length}
+              </div>
+              <p className="text-muted-foreground mb-6">
+                {correctCount === quizQuestions.length
+                  ? 'Превосходно! Вы ответили на все вопросы верно!'
+                  : correctCount >= quizQuestions.length * 0.8
+                    ? 'Отличный результат! Вы хорошо знаете историю античности.'
+                    : correctCount >= quizQuestions.length * 0.6
+                      ? 'Хороший результат! Есть куда расти.'
+                      : 'Рекомендуем перечитать материалы и попробовать снова.'}
+              </p>
+              <Button
+                onClick={() => {
+                  setFinished(false)
+                  setCurrent(0)
+                  setSelected(null)
+                  setAnswers(Array(quizQuestions.length).fill(null))
+                  localStorage.removeItem('quiz-progress')
+                }}
+                className="gap-2"
+              >
+                <RotateCcw className="h-4 w-4" />
+                Пройти заново
+              </Button>
+            </motion.div>
+          )}
         </AnimatePresence>
       </div>
     </section>

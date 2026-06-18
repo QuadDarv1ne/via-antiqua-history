@@ -1,5 +1,16 @@
+# robots.txt для Исторический Лабиринт
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://via-antiqua-history.vercel.app/sitemap.xml
+
+# Crawling rules
 User-agent: Googlebot
 Allow: /
+max-image-preview: large
+max-snippet: -1
+max-video-preview: -1
 
 User-agent: Bingbot
 Allow: /
@@ -8,7 +19,4 @@ User-agent: Twitterbot
 Allow: /
 
 User-agent: facebookexternalhit
-Allow: /
-
-User-agent: *
 Allow: /
