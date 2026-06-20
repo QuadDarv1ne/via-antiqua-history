@@ -5,20 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { MapPin, X, Info } from 'lucide-react'
 import { mapRegions } from '@/lib/history-data'
 import { cn } from '@/lib/utils'
-
-const regionColors: Record<string, string> = {
-  greece: 'oklch(0.55 0.13 70)',
-  rome: 'oklch(0.55 0.13 35)',
-  mesopotamia: 'oklch(0.55 0.13 50)',
-  kuban: 'oklch(0.5 0.11 145)',
-}
-
-const regionLabels: Record<string, string> = {
-  greece: 'Греция',
-  rome: 'Рим',
-  mesopotamia: 'Месопотамия',
-  kuban: 'Кубань',
-}
+import { REGION_COLORS, REGION_LABELS } from '@/lib/constants'
 
 type FilterKey = 'all' | 'greece' | 'rome' | 'mesopotamia' | 'kuban'
 
@@ -89,18 +76,18 @@ export function MapSection() {
               )}
               style={
                 filter === key
-                  ? { backgroundColor: regionColors[key] }
-                  : { color: regionColors[key] }
+                  ? { backgroundColor: REGION_COLORS[key] }
+                  : { color: REGION_COLORS[key] }
               }
             >
               <span
                 className="inline-block h-2 w-2 rounded-full"
                 style={{
                   backgroundColor:
-                    filter === key ? 'white' : regionColors[key],
+                    filter === key ? 'white' : REGION_COLORS[key],
                 }}
               />
-              {regionLabels[key]}
+              {REGION_LABELS[key]}
             </button>
           ))}
         </div>
@@ -195,7 +182,7 @@ export function MapSection() {
               {visibleRegions.map((r) => {
                 const isSelected = selected === r.id
                 const isHovered = hovered === r.id
-                const color = regionColors[r.region]
+                const color = REGION_COLORS[r.region]
                 return (
                   <button
                     key={r.id}
@@ -284,16 +271,16 @@ export function MapSection() {
                         className="inline-block h-3 w-3 rounded-full"
                         style={{
                           backgroundColor:
-                            regionColors[selectedRegion.region],
+                            REGION_COLORS[selectedRegion.region],
                         }}
                       />
                       <span
                         className="text-xs uppercase tracking-widest font-medium"
                         style={{
-                          color: regionColors[selectedRegion.region],
+                          color: REGION_COLORS[selectedRegion.region],
                         }}
                       >
-                        {regionLabels[selectedRegion.region]}
+                        {REGION_LABELS[selectedRegion.region]}
                       </span>
                     </div>
                     <h3 className="font-display text-2xl font-semibold mb-2">

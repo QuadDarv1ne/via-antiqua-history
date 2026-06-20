@@ -7,23 +7,16 @@ import { glossary } from '@/lib/history-data'
 import { cn } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
 import { BookmarkButton } from '@/components/site/bookmarks'
+import { REGION_COLORS, REGION_LABELS, FILTER_LABELS } from '@/lib/constants'
 
-const originMeta: Record<string, { label: string; color: string }> = {
-  greece: { label: 'Греция', color: 'oklch(0.55 0.13 70)' },
-  rome: { label: 'Рим', color: 'oklch(0.55 0.13 35)' },
-  mesopotamia: { label: 'Месопотамия', color: 'oklch(0.55 0.13 50)' },
-  kuban: { label: 'Кубань', color: 'oklch(0.5 0.11 145)' },
-  general: { label: 'Общее', color: 'oklch(0.5 0.05 60)' },
+const filterOptions = Object.entries(FILTER_LABELS).map(([key, label]) => ({
+  key,
+  label,
+}))
+
+function getOriginMeta(origin: string) {
+  return { label: REGION_LABELS[origin] ?? origin, color: REGION_COLORS[origin] ?? REGION_COLORS.general }
 }
-
-const filterOptions: { key: string; label: string }[] = [
-  { key: 'all', label: 'Все' },
-  { key: 'greece', label: 'Греция' },
-  { key: 'rome', label: 'Рим' },
-  { key: 'mesopotamia', label: 'Месопотамия' },
-  { key: 'kuban', label: 'Кубань' },
-  { key: 'general', label: 'Общее' },
-]
 
 export function GlossarySection() {
   const [filter, setFilter] = React.useState('all')
@@ -109,7 +102,7 @@ export function GlossarySection() {
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filtered.map((term, idx) => {
-              const meta = originMeta[term.origin]
+              const meta = getOriginMeta(term.origin)
               return (
                 <motion.div
                   key={term.term}

@@ -6,12 +6,13 @@ import { ChevronDown, BookOpen, Map as MapIcon, Sparkles, Landmark, Building2, C
 import Link from 'next/link'
 import { allRegions, timeline, glossary, persons } from '@/lib/history-data'
 import { useAnimatedCounter } from '@/hooks/use-animated-counter'
+import { REGION_COLORS } from '@/lib/constants'
 
 const regionChips = [
-  { label: 'Греция', color: 'oklch(0.55 0.13 70)' },
-  { label: 'Рим', color: 'oklch(0.55 0.13 35)' },
-  { label: 'Месопотамия', color: 'oklch(0.55 0.13 50)' },
-  { label: 'Кубань', color: 'oklch(0.5 0.11 145)' },
+  { label: 'Греция', color: REGION_COLORS.greece },
+  { label: 'Рим', color: REGION_COLORS.rome },
+  { label: 'Месопотамия', color: REGION_COLORS.mesopotamia },
+  { label: 'Кубань', color: REGION_COLORS.kuban },
 ]
 
 export function Hero() {

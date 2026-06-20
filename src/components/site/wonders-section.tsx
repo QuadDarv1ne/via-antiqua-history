@@ -15,22 +15,10 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { BookmarkButton } from '@/components/site/bookmarks'
+import { REGION_COLORS, REGION_LABELS } from '@/lib/constants'
 
-const regionColors: Record<string, string> = {
-  greece: 'oklch(0.55 0.13 70)',
-  rome: 'oklch(0.55 0.13 35)',
-  mesopotamia: 'oklch(0.55 0.13 50)',
-  kuban: 'oklch(0.5 0.11 145)',
-  egypt: 'oklch(0.6 0.1 60)',
-}
-
-const regionLabels: Record<string, string> = {
-  greece: 'Греция',
-  rome: 'Рим',
-  mesopotamia: 'Месопотамия',
-  kuban: 'Кубань',
-  egypt: 'Египет',
-}
+const regionColors = REGION_COLORS
+const regionLabels = REGION_LABELS
 
 export function WondersSection() {
   const [active, setActive] = React.useState<Wonder | null>(null)

@@ -5,20 +5,10 @@ import { motion } from 'framer-motion'
 import { Hourglass } from 'lucide-react'
 import { epochs } from '@/lib/history-data'
 import { cn } from '@/lib/utils'
+import { REGION_COLORS, REGION_LABELS } from '@/lib/constants'
 
-const regionColors: Record<string, string> = {
-  greece: 'oklch(0.55 0.13 70)',
-  rome: 'oklch(0.55 0.13 35)',
-  mesopotamia: 'oklch(0.55 0.13 50)',
-  kuban: 'oklch(0.5 0.11 145)',
-}
-
-const regionLabels: Record<string, string> = {
-  greece: 'Греция',
-  rome: 'Рим',
-  mesopotamia: 'Месопотамия',
-  kuban: 'Кубань',
-}
+const regionColors = REGION_COLORS
+const regionLabels = REGION_LABELS
 
 export function EpochsSection() {
   return (

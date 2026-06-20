@@ -6,25 +6,12 @@ import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react'
 import { timeline, additionalTimelineEvents } from '@/lib/history-data'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import { REGION_COLORS, REGION_LABELS, REGION_SHORT } from '@/lib/constants'
 
 // Объединяем и сортируем события по году
 const allTimeline = [...timeline, ...additionalTimelineEvents].sort(
   (a, b) => a.year - b.year
 )
-
-const regionMeta: Record<
-  string,
-  { label: string; color: string; short: string }
-> = {
-  greece: { label: 'Греция', color: 'oklch(0.55 0.13 70)', short: 'ГР' },
-  rome: { label: 'Рим', color: 'oklch(0.55 0.13 35)', short: 'РИ' },
-  mesopotamia: {
-    label: 'Месопотамия',
-    color: 'oklch(0.55 0.13 50)',
-    short: 'МЕ',
-  },
-  kuban: { label: 'Кубань', color: 'oklch(0.5 0.11 145)', short: 'КУ' },
-}
 
 export function TimelineSection() {
   const [activeIdx, setActiveIdx] = React.useState(0)
@@ -204,7 +191,11 @@ export function TimelineSection() {
               {(['greece', 'rome', 'mesopotamia', 'kuban'] as const).map(
                 (regionKey) => {
                   const text = event[regionKey]
-                  const meta = regionMeta[regionKey]
+                  const meta = {
+                    label: REGION_LABELS[regionKey] ?? regionKey,
+                    color: REGION_COLORS[regionKey] ?? REGION_COLORS.general,
+                    short: REGION_SHORT[regionKey] ?? regionKey.toUpperCase(),
+                  }
                   return (
                     <div
                       key={regionKey}

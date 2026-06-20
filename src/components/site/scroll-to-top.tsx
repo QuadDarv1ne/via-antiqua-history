@@ -2,24 +2,23 @@
 
 import * as React from 'react'
 import { ArrowUp } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion'
 
 export function ScrollToTop() {
+  const { scrollYProgress } = useScroll()
   const [visible, setVisible] = React.useState(false)
-  const [progress, setProgress] = React.useState(0)
+
+  const scaleX = useSpring(scrollYProgress, {
+    stiffness: 100,
+    damping: 30,
+    restDelta: 0.001,
+  })
 
   React.useEffect(() => {
-    const onScroll = () => {
-      const scrollTop = window.scrollY
-      const docHeight = document.documentElement.scrollHeight - window.innerHeight
-      const scrollPercent = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0
-      setProgress(scrollPercent)
-      setVisible(scrollTop > 600)
-    }
-    window.addEventListener('scroll', onScroll, { passive: true })
-    onScroll()
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
+    return scrollYProgress.on('change', (latest) => {
+      setVisible(latest > 0.15)
+    })
+  }, [scrollYProgress])
 
   return (
     <AnimatePresence>
@@ -37,7 +36,7 @@ export function ScrollToTop() {
         >
           {/* Progress ring */}
           <svg
-            className="absolute inset-0 w-full h-full -rotate-90"
+            className="absolute inset-0 w-full h-full -rotate-90 pointer-events-none"
             viewBox="0 0 48 48"
           >
             <circle
@@ -48,9 +47,9 @@ export function ScrollToTop() {
               stroke="currentColor"
               strokeWidth="2"
               strokeDasharray={`${2 * Math.PI * 22}`}
-              strokeDashoffset={`${2 * Math.PI * 22 * (1 - progress / 100)}`}
+              strokeDashoffset={`${2 * Math.PI * 22 * (1 - scrollYProgress.get() * 100)}`}
               strokeLinecap="round"
-              className="opacity-30 transition-all duration-150"
+              className="opacity-30"
               style={{ color: 'inherit' }}
             />
           </svg>

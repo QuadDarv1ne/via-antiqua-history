@@ -7,20 +7,7 @@ import { quizQuestions } from '@/lib/history-data'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
-
-const regionColors: Record<string, string> = {
-  greece: 'oklch(0.55 0.13 70)',
-  rome: 'oklch(0.55 0.13 35)',
-  mesopotamia: 'oklch(0.55 0.13 50)',
-  kuban: 'oklch(0.5 0.11 145)',
-}
-
-const regionLabels: Record<string, string> = {
-  greece: 'Греция',
-  rome: 'Рим',
-  mesopotamia: 'Месопотамия',
-  kuban: 'Кубань',
-}
+import { REGION_COLORS, REGION_LABELS } from '@/lib/constants'
 
 export function QuizSection() {
   const [current, setCurrent] = React.useState(0)
@@ -55,14 +42,14 @@ export function QuizSection() {
       setFinished(true)
     } else {
       setCurrent((c) => c + 1)
-      setSelected(answers[current + 1])
+      setSelected(answers[current + 1] ?? null)
     }
   }
 
   const prev = () => {
     if (current > 0) {
       setCurrent((c) => c - 1)
-      setSelected(answers[current - 1])
+      setSelected(answers[current - 1] ?? null)
     }
   }
 
@@ -145,14 +132,14 @@ export function QuizSection() {
                       key={key}
                       className="rounded-lg border border-border p-3"
                       style={{
-                        backgroundColor: `${regionColors[key].replace(')', ' / 0.08)')}`,
+                        backgroundColor: `${REGION_COLORS[key].replace(')', ' / 0.08)')}`,
                       }}
                     >
                       <div
                         className="text-xs font-medium mb-1"
-                        style={{ color: regionColors[key] }}
+                        style={{ color: REGION_COLORS[key] }}
                       >
-                        {regionLabels[key]}
+                        {REGION_LABELS[key]}
                       </div>
                       <div className="text-lg font-bold">
                         {correct}/{qs.length}
@@ -231,11 +218,11 @@ export function QuizSection() {
               <span
                 className="text-xs uppercase tracking-widest font-medium px-2 py-1 rounded-full"
                 style={{
-                  backgroundColor: `${regionColors[q.region].replace(')', ' / 0.12)')}`,
-                  color: regionColors[q.region],
+                  backgroundColor: `${REGION_COLORS[q.region].replace(')', ' / 0.12)')}`,
+                  color: REGION_COLORS[q.region],
                 }}
               >
-                {regionLabels[q.region]}
+                {REGION_LABELS[q.region]}
               </span>
             </div>
 

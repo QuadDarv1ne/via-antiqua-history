@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dialog'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Button } from '@/components/ui/button'
+import { REGION_COLORS, REGION_LABELS } from '@/lib/constants'
 
 export type BookmarkItem = {
   id: string // уникальный ключ — например "city:athens" или "landmark:parthenon"
@@ -115,14 +116,7 @@ const typeLabels: Record<BookmarkItem['type'], string> = {
   event: 'Событие',
 }
 
-const regionColors: Record<string, string> = {
-  greece: 'oklch(0.55 0.13 70)',
-  rome: 'oklch(0.55 0.13 35)',
-  mesopotamia: 'oklch(0.55 0.13 50)',
-  kuban: 'oklch(0.5 0.11 145)',
-  egypt: 'oklch(0.6 0.1 60)',
-  general: 'oklch(0.5 0.05 60)',
-}
+const getRegionColor = (region: string) => REGION_COLORS[region] || REGION_COLORS.general
 
 // Кнопка-переключатель закладки
 export function BookmarkButton({ item }: { item: BookmarkItem }) {
@@ -241,9 +235,9 @@ export function BookmarksDialog({
                 </p>
               </div>
             ) : (
-              <div className="space-y-1">
+                <div className="space-y-1">
                 {bookmarks.map((b) => {
-                  const color = regionColors[b.region] || regionColors.general
+                  const color = getRegionColor(b.region)
                   return (
                     <div
                       key={b.id}
