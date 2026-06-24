@@ -149,8 +149,6 @@ This project is the intellectual property of Dupley Maxim Igorevich. Terms of us
 
 <div align="center">
 
-**История Древнего Пути** — © 2025 Дуплей Максим Игоревич / Dupley Maxim Igorevich
-
 ![дуплей_игорь_викторович](img/дуплей_игорь_викторович.png)
 
 *Per aspera ad astra* - *В память о моём отце: Дуплей Игоре Викторовиче*
