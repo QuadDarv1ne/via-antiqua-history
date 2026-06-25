@@ -26,28 +26,9 @@ export function ScrollToTop() {
             window.scrollTo({ top: 0, behavior: 'smooth' })
           }
           aria-label="Наверх"
-          className="fixed bottom-6 right-6 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 transition-colors group relative"
+          className="fixed bottom-6 right-6 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 transition-colors"
         >
-          {/* Progress ring */}
-          <svg
-            className="absolute inset-0 w-full h-full -rotate-90 pointer-events-none"
-            viewBox="0 0 48 48"
-          >
-            <circle
-              cx="24"
-              cy="24"
-              r="22"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeDasharray={`${2 * Math.PI * 22}`}
-              strokeDashoffset={`${2 * Math.PI * 22 * (1 - scrollYProgress.get() * 100)}`}
-              strokeLinecap="round"
-              className="opacity-30"
-              style={{ color: 'inherit' }}
-            />
-          </svg>
-          <ArrowUp className="h-5 w-5 relative z-10" />
+          <ArrowUp className="h-5 w-5" />
         </motion.button>
       )}
     </AnimatePresence>

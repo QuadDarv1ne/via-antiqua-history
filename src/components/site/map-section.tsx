@@ -110,6 +110,7 @@ export function MapSection() {
                 className="absolute inset-0 w-full h-full"
                 viewBox="0 0 100 75"
                 preserveAspectRatio="none"
+                aria-hidden="true"
               >
                 {/* Сухопутные «пятна» — очень условная схема Средиземноморья */}
                 <path
