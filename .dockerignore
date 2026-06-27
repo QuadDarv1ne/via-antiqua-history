@@ -1,0 +1,13 @@
+.git
+.gitignore
+README.md
+README_EN.md
+README_RU.md
+.vscode
+.idea
+node_modules
+.env
+.env.local
+*.log
+dev.log
+server.log

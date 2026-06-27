@@ -1,0 +1,33 @@
+{
+  "services": [
+    {
+      "name": "via-antiqua-history",
+      "type": "nodejs",
+      "runtime": "nodejs_22",
+      "buildCommand": "npm ci && npm run build",
+      "startCommand": "node .next/standalone/server.js",
+      "port": 3000,
+      "instances": 1,
+      "minInstances": 1,
+      "maxInstances": 3,
+      "memory": "1Gi",
+      "cpu": "500m",
+      "healthCheck": {
+        "path": "/",
+        "interval": 30,
+        "timeout": 10,
+        "unhealthyThreshold": 3,
+        "healthyThreshold": 2
+      },
+      "routes": [
+        {
+          "path": "/",
+          "target": "via-antiqua-history"
+        }
+      ],
+      "env": {
+        "NODE_ENV": "production"
+      }
+    }
+  ]
+}
