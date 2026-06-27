@@ -1,7 +1,8 @@
 meta:
-  name: via-antiqua-history
-  runtime: nodejs
-  version: "22"
+  environment: node
+  toolchain:
+    name: npm
+    version: "22"
 
 services:
   - name: via-antiqua-history
