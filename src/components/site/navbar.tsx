@@ -85,7 +85,7 @@ export function Navbar() {
       )}
     >
       <div className="container mx-auto max-w-7xl px-3 sm:px-4">
-        <nav className="flex h-14 sm:h-16 items-center justify-between gap-1 sm:gap-2">
+        <nav className="flex min-h-14 sm:min-h-16 items-center justify-between gap-1 sm:gap-2 py-1.5">
           <Link href="#top" className="flex items-center gap-1.5 sm:gap-2 group shrink-0">
             <span className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-primary text-primary-foreground transition-transform group-hover:rotate-12 shrink-0">
               <Landmark className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -95,13 +95,13 @@ export function Navbar() {
             </span>
           </Link>
 
-          <div className="hidden lg:flex items-center gap-0.5 flex-1 justify-center">
+          <div className="hidden lg:flex items-center gap-x-0.5 gap-y-0.5 flex-wrap flex-1 justify-center">
             {SITE_NAV.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "px-2 xl:px-3 py-2 text-xs xl:text-sm font-medium rounded-md transition-colors whitespace-nowrap",
+                  "px-2 xl:px-3 py-1.5 text-xs xl:text-sm font-medium rounded-md transition-colors whitespace-nowrap",
                   isActive(item.href)
                     ? "text-foreground bg-accent/10 font-semibold"
                     : "text-foreground/80 hover:text-foreground hover:bg-accent/10"
@@ -184,7 +184,14 @@ export function Navbar() {
                 variant="ghost"
                 size="sm"
                 className="justify-start gap-2"
-                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              onClick={() => {
+                if (theme === 'system') {
+                  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+                  setTheme(prefersDark ? 'light' : 'dark')
+                } else {
+                  setTheme(theme === 'dark' ? 'light' : 'dark')
+                }
+              }}
               >
                 {mounted && (theme === 'dark' ? <><Sun className="h-4 w-4" /> Светлая тема</> : <><Moon className="h-4 w-4" /> Тёмная тема</>)}
               </Button>

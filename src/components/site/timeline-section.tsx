@@ -94,6 +94,7 @@ export function TimelineSection() {
                   type="button"
                   key={i}
                   onClick={() => setActiveIdx(i)}
+                  aria-label={`Событие: ${ev.yearLabel}`}
                   className={cn(
                     'group relative flex flex-col items-stretch transition-all',
                     'min-w-[100px] sm:min-w-[140px] md:min-w-[180px]'
