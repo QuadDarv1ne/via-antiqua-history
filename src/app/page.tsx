@@ -19,7 +19,6 @@ import { Footer } from '@/components/site/footer'
 import { ScrollToTop } from '@/components/site/scroll-to-top'
 import { ReadingProgress } from '@/components/site/reading-progress'
 import {
-  BookmarksProvider,
   BookmarksFloatingButton,
   BookmarksDialog,
 } from '@/components/site/bookmarks'
@@ -87,7 +86,7 @@ const jsonLd = {
 
 export default function Home() {
   return (
-    <BookmarksProvider>
+    <>
       <div className="min-h-screen flex flex-col bg-background font-body">
         <script
           type="application/ld+json"
@@ -147,7 +146,7 @@ export default function Home() {
         <ScrollToTop />
         <BookmarksFloatingButtonWithDialog />
       </div>
-    </BookmarksProvider>
+    </>
   )
 }
 

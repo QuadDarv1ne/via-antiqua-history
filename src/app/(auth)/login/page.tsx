@@ -16,7 +16,6 @@ export default function LoginPage() {
   const [error, setError] = React.useState('')
   const [loading, setLoading] = React.useState(false)
   const [require2fa, setRequire2fa] = React.useState(false)
-  const [userId, setUserId] = React.useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

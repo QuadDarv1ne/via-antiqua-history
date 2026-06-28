@@ -12,6 +12,7 @@ export default function RegisterPage() {
   const [name, setName] = React.useState('')
   const [email, setEmail] = React.useState('')
   const [password, setPassword] = React.useState('')
+  const [confirmPassword, setConfirmPassword] = React.useState('')
   const [showPassword, setShowPassword] = React.useState(false)
   const [error, setError] = React.useState('')
   const [loading, setLoading] = React.useState(false)
@@ -22,6 +23,11 @@ export default function RegisterPage() {
 
     if (password.length < 8) {
       setError('Пароль должен быть не менее 8 символов')
+      return
+    }
+
+    if (password !== confirmPassword) {
+      setError('Пароли не совпадают')
       return
     }
 
@@ -111,6 +117,20 @@ export default function RegisterPage() {
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
+          </div>
+
+          <div>
+            <label htmlFor="confirmPassword" className="block text-sm font-medium mb-1.5">Подтверждение пароля</label>
+            <input
+              id="confirmPassword"
+              type={showPassword ? 'text' : 'password'}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Повторите пароль"
+              required
+              autoComplete="new-password"
+              className="w-full h-11 px-4 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
+            />
           </div>
 
           <button
