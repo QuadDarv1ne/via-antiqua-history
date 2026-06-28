@@ -8,6 +8,7 @@ build:
   additionalCommands: |
     npm run build
     cp -r .next/static .next/standalone/.next/static
+    cp -r public .next/standalone/public
 
 run:
   command: HOST=0.0.0.0 node .next/standalone/server.js
