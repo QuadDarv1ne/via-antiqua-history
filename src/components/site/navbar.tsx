@@ -80,18 +80,18 @@ export function Navbar() {
       className={cn(
         'fixed top-0 inset-x-0 z-50 transition-all duration-300',
         scrolled
-          ? 'bg-background/85 backdrop-blur-md border-b border-border shadow-sm'
-          : 'bg-transparent'
+          ? 'bg-background/90 backdrop-blur-md border-b border-border shadow-sm'
+          : 'bg-background/60 backdrop-blur-sm'
       )}
     >
       <div className="container mx-auto max-w-7xl px-3 sm:px-4">
         {/* Row 1: Logo + Actions */}
-        <nav className="flex h-14 sm:h-16 items-center justify-between gap-2">
+        <div className="flex h-12 sm:h-14 items-center justify-between gap-2">
           <Link href="#top" className="flex items-center gap-1.5 sm:gap-2 group shrink-0">
-            <span className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-primary text-primary-foreground transition-transform group-hover:rotate-12 shrink-0">
-              <Landmark className="h-4 w-4 sm:h-5 sm:w-5" />
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground transition-transform group-hover:rotate-12 shrink-0">
+              <Landmark className="h-4 w-4" />
             </span>
-            <span className="font-display text-base lg:text-xl font-semibold tracking-wide truncate hidden sm:inline">
+            <span className="font-display text-base lg:text-lg font-semibold tracking-wide truncate hidden sm:inline">
               Исторический Лабиринт
             </span>
           </Link>
@@ -100,16 +100,16 @@ export function Navbar() {
             <Button
               variant="ghost"
               size="icon"
-              className="hidden sm:inline-flex h-8 w-8 sm:h-9 sm:w-9"
+              className="hidden sm:inline-flex h-8 w-8"
               onClick={() => setSearchOpen(true)}
               aria-label="Поиск"
             >
-              <Search className="h-4 w-4 sm:h-5 sm:w-5" />
+              <Search className="h-4 w-4" />
             </Button>
             <Button
               variant="ghost"
               size="icon"
-              className="hidden sm:inline-flex h-8 w-8 sm:h-9 sm:w-9"
+              className="hidden sm:inline-flex h-8 w-8"
               onClick={() => {
                 if (theme === 'system') {
                   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -122,42 +122,42 @@ export function Navbar() {
             >
               {mounted &&
                 (theme === 'dark' ? (
-                  <Sun className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <Sun className="h-4 w-4" />
                 ) : (
-                  <Moon className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <Moon className="h-4 w-4" />
                 ))}
             </Button>
             <Link
               href={user ? '/profile' : '/login'}
-              className="inline-flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-accent/10 transition-colors"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-accent/10 transition-colors"
               aria-label={user ? 'Профиль' : 'Войти'}
             >
-              <User className="h-4 w-4 sm:h-5 sm:w-5" />
+              <User className="h-4 w-4" />
             </Link>
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 sm:h-9 sm:w-9 lg:hidden"
+              className="h-8 w-8 lg:hidden"
               onClick={() => setOpen((v) => !v)}
               aria-label="Меню"
               aria-expanded={open}
             >
-              {open ? <X className="h-4 w-4 sm:h-5 sm:w-5" /> : <Menu className="h-4 w-4 sm:h-5 sm:w-5" />}
+              {open ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
             </Button>
           </div>
-        </nav>
+        </div>
 
         {/* Row 2: Navigation (desktop only, wraps into rows) */}
-        <div className="hidden lg:flex items-center gap-x-1 gap-y-1 flex-wrap justify-center -mt-1 pb-1">
+        <div className="hidden lg:flex items-center gap-x-0.5 gap-y-0.5 flex-wrap justify-center pb-2 pt-0.5">
           {SITE_NAV.map((item) => (
             <Link
               key={item.href}
               href={item.href}
               className={cn(
-                "px-2.5 py-1 text-xs font-medium rounded-md transition-colors whitespace-nowrap",
+                "px-2 py-1 text-[11px] font-medium rounded transition-colors whitespace-nowrap",
                 isActive(item.href)
                   ? "text-foreground bg-accent/10 font-semibold"
-                  : "text-foreground/70 hover:text-foreground hover:bg-accent/10"
+                  : "text-foreground/60 hover:text-foreground hover:bg-accent/10"
               )}
             >
               {item.label}
