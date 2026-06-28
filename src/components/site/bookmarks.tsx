@@ -160,6 +160,7 @@ export function BookmarkButton({ item }: { item: BookmarkItem }) {
 
   return (
     <motion.button
+      type="button"
       whileTap={{ scale: 0.85 }}
       onClick={(e) => {
         e.preventDefault()
@@ -193,7 +194,7 @@ export function BookmarksFloatingButton({
   const count = bookmarks.length
 
   return (
-    <motion.button
+    <motion.button type="button"
       initial={{ opacity: 0, scale: 0.5 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay: 1, duration: 0.3 }}
@@ -280,6 +281,7 @@ export function BookmarksDialog({
                       className="group flex items-start gap-3 p-3 rounded-md hover:bg-accent/5 transition-colors"
                     >
                       <button
+                        type="button"
                         onClick={() => handleNavigate(b.href)}
                         className="flex items-start gap-3 flex-1 min-w-0 text-left"
                       >
@@ -310,6 +312,7 @@ export function BookmarksDialog({
                         </span>
                       </button>
                       <button
+                        type="button"
                         onClick={() => remove(b.id)}
                         aria-label="Удалить"
                         className="shrink-0 p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity"

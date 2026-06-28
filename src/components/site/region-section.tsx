@@ -81,6 +81,7 @@ export function RegionSection({ region }: { region: Region }) {
               </span>
               {region.cities.map((city) => (
                 <button
+                  type="button"
                   key={city.id}
                   onClick={() => setActiveCityId(city.id)}
                   className={cn(

@@ -91,6 +91,7 @@ export function TimelineSection() {
             <div className="flex items-stretch gap-0 min-w-max px-2">
               {allTimeline.map((ev, i) => (
                 <button
+                  type="button"
                   key={i}
                   onClick={() => setActiveIdx(i)}
                   className={cn(

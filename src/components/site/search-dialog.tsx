@@ -189,6 +189,7 @@ export function SearchDialog({
                 <div className="mt-6 flex flex-wrap justify-center gap-2 text-xs">
                   {['Парфенон', 'Александр', 'Боспор', 'Хаммурапи', 'Зиккурат', 'Колизей'].map((s) => (
                     <button
+                      type="button"
                       key={s}
                       onClick={() => setQuery(s)}
                       className="px-3 py-1.5 rounded-full border border-border hover:border-primary/40 hover:bg-accent/5 transition-colors"
@@ -214,6 +215,7 @@ export function SearchDialog({
                   const color = REGION_COLORS[r.region] || REGION_COLORS.general
                   return (
                     <button
+                      type="button"
                       key={i}
                       onClick={() => handleSelect(r)}
                       onMouseEnter={() => setActiveIdx(i)}

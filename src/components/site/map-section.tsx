@@ -54,6 +54,7 @@ export function MapSection() {
         {/* Фильтры */}
         <div className="flex flex-wrap gap-2 justify-center mb-6">
           <button
+            type="button"
             onClick={() => setFilter('all')}
             className={cn(
               'px-4 py-2 rounded-full text-sm font-medium border transition-all',
@@ -66,6 +67,7 @@ export function MapSection() {
           </button>
           {(['greece', 'rome', 'mesopotamia', 'kuban'] as const).map((key) => (
             <button
+              type="button"
               key={key}
               onClick={() => setFilter(key)}
               className={cn(
@@ -186,6 +188,7 @@ export function MapSection() {
                 const color = REGION_COLORS[r.region]
                 return (
                   <button
+                    type="button"
                     key={r.id}
                     onClick={() => setSelected(r.id)}
                     onMouseEnter={() => setHovered(r.id)}
@@ -283,6 +286,7 @@ export function MapSection() {
                       {selectedRegion.description}
                     </p>
                     <button
+                      type="button"
                       onClick={() => setSelected(null)}
                       className="mt-4 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
                     >

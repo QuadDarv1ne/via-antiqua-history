@@ -68,6 +68,7 @@ export function PersonsSection() {
         <div className="mb-8 flex flex-wrap gap-2 justify-center">
           {filters.map((f) => (
             <button
+              type="button"
               key={f.key}
               onClick={() => setFilter(f.key)}
               className={cn(

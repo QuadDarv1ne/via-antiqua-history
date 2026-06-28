@@ -226,6 +226,7 @@ export function QuizSection() {
               const isCorrect_q = a !== null && a === quizQuestions[i].correct
               return (
                 <button
+                  type="button"
                   key={i}
                   onClick={() => {
                     if (answers[i] !== null || i < current) {

@@ -79,6 +79,7 @@ export function GlossarySection() {
           <div className="flex flex-wrap gap-2">
             {filterOptions.map((opt) => (
               <button
+                type="button"
                 key={opt.key}
                 onClick={() => setFilter(opt.key)}
                 className={cn(
