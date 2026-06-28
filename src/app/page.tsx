@@ -15,6 +15,7 @@ import { OrdersSection } from '@/components/site/orders-section'
 import { EpochsSection } from '@/components/site/epochs-section'
 import { QuizSection } from '@/components/site/quiz-section'
 import { SourcesSection } from '@/components/site/sources-section'
+import { ContentGate } from '@/components/site/content-gate'
 import { Footer } from '@/components/site/footer'
 import { ScrollToTop } from '@/components/site/scroll-to-top'
 import { ReadingProgress } from '@/components/site/reading-progress'
@@ -101,46 +102,68 @@ export default function Home() {
           <RegionSection region={greece} />
 
           {/* Раздел: Римская империя */}
-          <RegionSection region={rome} />
+          <ContentGate title="Римская империя" subtitle="От основания города до падения Западной Римской империи — более тысячи лет величия, завоеваний и культурного наследия.">
+            <RegionSection region={rome} />
+          </ContentGate>
 
           {/* Раздел: Месопотамия */}
-          <RegionSection region={mesopotamia} />
+          <ContentGate title="Месопотамия" subtitle="Колыбель цивилизации — от шумерских городов-государств до Вавилонского царства и Ассирийской империи.">
+            <RegionSection region={mesopotamia} />
+          </ContentGate>
 
           {/* Раздел: Кубань */}
           <RegionSection region={kuban} />
 
           {/* Ключевые персоналии */}
-          <PersonsSection />
+          <ContentGate title="Ключевые персоналии" subtitle="Полководцы, философы, поэты и правители, чьи деяния определили ход истории античного мира.">
+            <PersonsSection />
+          </ContentGate>
 
           {/* Семь чудес света */}
-          <WondersSection />
+          <ContentGate title="Семь чудес света" subtitle="Величайшие сооружения древности — от Колизея до Висячих садов Семирамиды.">
+            <WondersSection />
+          </ContentGate>
 
           {/* Архитектурные ордера */}
-          <OrdersSection />
+          <ContentGate title="Архитектурные ордера" subtitle="Дорийский, ионический и коринфский — система пропорций, определившая облик античной архитектуры.">
+            <OrdersSection />
+          </ContentGate>
 
           {/* Исторические эпохи */}
-          <EpochsSection />
+          <ContentGate title="Исторические эпохи" subtitle="Восемь ключевых эпох — от шумерских городов до падения Константинополя.">
+            <EpochsSection />
+          </ContentGate>
 
           {/* Интерактивная лента времени */}
           <TimelineSection />
 
           {/* Интерактивная карта */}
-          <MapSection />
+          <ContentGate title="Интерактивная карта" subtitle="Нажмите на город, чтобы узнать о нём больше. Используйте фильтры для подсветки регионов.">
+            <MapSection />
+          </ContentGate>
 
           {/* Сравнительная таблица цивилизаций */}
-          <ComparisonSection />
+          <ContentGate title="Сравнение цивилизаций" subtitle="Сопоставление Древней Греции, Рима, Месопотамии и Кубани по восьми ключевым параметрам.">
+            <ComparisonSection />
+          </ContentGate>
 
           {/* Авторский раздел: исторический анализ */}
-          <AnalysisSection />
+          <ContentGate title="Исторический анализ" subtitle="Авторские размышления о связях между цивилизациями и их влиянии на современный мир.">
+            <AnalysisSection />
+          </ContentGate>
 
           {/* Глоссарий ключевых терминов */}
-          <GlossarySection />
+          <ContentGate title="Глоссарий" subtitle="Основные понятия античного мира — от архитектурных ордеров до политических институтов.">
+            <GlossarySection />
+          </ContentGate>
 
           {/* Интерактивный квиз */}
           <QuizSection />
 
           {/* Источники и ссылки */}
-          <SourcesSection />
+          <ContentGate title="Источники и ссылки" subtitle="Литература, первоисточники и музеи, использованные при подготовке материалов.">
+            <SourcesSection />
+          </ContentGate>
         </main>
         <Footer />
         <ScrollToTop />

@@ -8,7 +8,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { SearchDialog } from '@/components/site/search-dialog'
-import { SITE_NAV } from '@/lib/constants'
+import { SITE_NAV, PUBLIC_NAV, PROTECTED_NAV } from '@/lib/constants'
 
 export function Navbar() {
   const [open, setOpen] = React.useState(false)
@@ -148,7 +148,7 @@ export function Navbar() {
 
         {/* Row 2: Navigation (desktop only, wraps into rows) */}
         <div className="hidden lg:flex items-center gap-x-0.5 gap-y-0.5 flex-wrap justify-center pb-2 pt-0.5">
-          {SITE_NAV.map((item) => (
+          {(user ? SITE_NAV : PUBLIC_NAV).map((item) => (
             <Link
               key={item.href}
               href={item.href}
@@ -162,13 +162,42 @@ export function Navbar() {
               {item.label}
             </Link>
           ))}
+          {!user && (
+            <Link
+              href="/login"
+              className="px-2 py-1 text-[11px] font-medium rounded transition-colors whitespace-nowrap text-primary hover:bg-primary/10"
+            >
+              Войти →
+            </Link>
+          )}
         </div>
       </div>
 
       {open && (
           <div className="lg:hidden border-t border-border bg-background/95 backdrop-blur-md">
           <div className="container mx-auto max-w-7xl px-4 py-3 flex flex-col gap-1">
-            {SITE_NAV.map((item) => (
+            {PUBLIC_NAV.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setOpen(false)}
+                className="px-3 py-2 text-sm font-medium hover:bg-accent/10 rounded-md"
+              >
+                {item.label}
+              </Link>
+            ))}
+            {!user && PROTECTED_NAV.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setOpen(false)}
+                className="px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent/10 rounded-md flex items-center gap-2"
+              >
+                {item.label}
+                <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">🔒</span>
+              </Link>
+            ))}
+            {user && PROTECTED_NAV.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
