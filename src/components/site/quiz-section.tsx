@@ -264,6 +264,11 @@ export function QuizSection() {
               >
                 {REGION_LABELS[q.region]}
               </span>
+              {!isAnswered && (
+                <span className="hidden sm:inline text-[11px] text-muted-foreground italic">
+                  1–{q.options.length} — ответ, Enter — далее
+                </span>
+              )}
             </div>
 
             <h3 className="font-display text-xl md:text-2xl font-semibold mb-6 leading-snug">

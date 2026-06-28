@@ -74,7 +74,8 @@ export function RegionSection({ region }: { region: Region }) {
         <div className="grid lg:grid-cols-12 gap-8 lg:gap-12">
           {/* Левая колонка: переключение городов */}
           <div className="lg:col-span-3">
-            <div className="lg:sticky lg:top-24 flex lg:flex-col gap-2 overflow-x-auto lg:overflow-visible custom-scroll pb-2 lg:pb-0">
+            <div className="lg:sticky lg:top-24 relative flex lg:flex-col gap-2 overflow-x-auto lg:overflow-visible custom-scroll pb-2 lg:pb-0">
+              <div className="pointer-events-none absolute right-0 top-0 bottom-2 w-8 bg-gradient-to-l from-background to-transparent lg:hidden" />
               <span className="hidden lg:block text-xs uppercase tracking-widest text-muted-foreground mb-3">
                 Города и памятники
               </span>

@@ -23,6 +23,7 @@ export default function Error({
           Произошла непредвиденная ошибка. Пожалуйста, попробуйте снова.
         </p>
         <button
+          type="button"
           onClick={reset}
           className="px-6 py-2.5 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
         >

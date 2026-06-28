@@ -43,7 +43,7 @@ export function Hero() {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 0.6, scale: 1 }}
           transition={{ duration: 1.6 }}
-          className="absolute -top-32 -left-32 h-96 w-96 rounded-full"
+          className="absolute -top-32 -left-32 h-48 w-48 sm:h-64 sm:w-64 md:h-96 md:w-96 rounded-full"
           style={{
             background:
               'radial-gradient(circle, oklch(0.7 0.13 60 / 0.22) 0%, transparent 70%)',
@@ -53,7 +53,7 @@ export function Hero() {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 0.6, scale: 1 }}
           transition={{ duration: 1.6, delay: 0.2 }}
-          className="absolute -bottom-32 -right-32 h-96 w-96 rounded-full"
+          className="absolute -bottom-32 -right-32 h-48 w-48 sm:h-64 sm:w-64 md:h-96 md:w-96 rounded-full"
           style={{
             background:
               'radial-gradient(circle, oklch(0.5 0.12 145 / 0.18) 0%, transparent 70%)',
