@@ -5,7 +5,7 @@ meta:
     version: "22"
 
 build:
-  additionalCommands: npm run build && node -e "require('fs').cpSync('.next/static','.next/standalone/.next/static',{recursive:true,force:true});require('fs').cpSync('public','.next/standalone/public',{recursive:true,force:true})"
+  additionalCommands: npm run build && bash scripts/copy-assets.sh
 
 run:
   command: HOST=0.0.0.0 node .next/standalone/server.js
