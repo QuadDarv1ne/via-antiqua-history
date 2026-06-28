@@ -8,6 +8,6 @@ build:
   additionalCommands: npm run build
 
 run:
-  command: node .next/standalone/server.js
-  containerPort: 80
+  command: HOST=0.0.0.0 node .next/standalone/server.js
+  containerPort: 3000
   persistenceMount: /data
