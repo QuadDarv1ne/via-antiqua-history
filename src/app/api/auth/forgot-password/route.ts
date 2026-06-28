@@ -28,9 +28,14 @@ export async function POST(req: NextRequest) {
 
     await sendPasswordResetEmail(email.toLowerCase(), code)
 
+    const testMode = process.env.NODE_ENV !== 'production' || process.env.EMAIL_TEST_MODE === 'true'
+
     return NextResponse.json<ApiResponse>({
       ok: true,
-      data: { message: 'Если пользователь с таким email существует, код отправлен' },
+      data: {
+        message: 'Если пользователь с таким email существует, код отправлен',
+        ...(testMode ? { testCode: code } : {}),
+      },
     })
   } catch (err) {
     console.error('Forgot password error:', err)

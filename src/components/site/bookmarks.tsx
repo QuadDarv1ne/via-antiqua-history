@@ -12,9 +12,10 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Button } from '@/components/ui/button'
 import { REGION_COLORS } from '@/lib/constants'
+import { useAuth } from '@/contexts/AuthContext'
 
 export type BookmarkItem = {
-  id: string // уникальный ключ — например "city:athens" или "landmark:parthenon"
+  id: string
   type: 'city' | 'landmark' | 'person' | 'term' | 'wonder' | 'epoch' | 'event'
   title: string
   subtitle: string
@@ -37,7 +38,6 @@ const BookmarksContext = React.createContext<BookmarksContextType | null>(null)
 export function useBookmarks() {
   const ctx = React.useContext(BookmarksContext)
   if (!ctx) {
-    // Возвращаем безопасные заглушки если контекст не доступен
     return {
       bookmarks: [] as BookmarkItem[],
       isBookmarked: () => false,
@@ -49,9 +49,50 @@ export function useBookmarks() {
   return ctx
 }
 
+const serverToItem = (row: { id: string; type: string; title: string; subtitle: string; href: string; region: string }): BookmarkItem => ({
+  id: row.id,
+  type: row.type as BookmarkItem['type'],
+  title: row.title,
+  subtitle: row.subtitle,
+  href: row.href,
+  region: row.region,
+})
+
 export function BookmarksProvider({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth()
   const [bookmarks, setBookmarks] = React.useState<BookmarkItem[]>([])
   const [hydrated, setHydrated] = React.useState(false)
+  const syncRef = React.useRef(false)
+
+  React.useEffect(() => {
+    if (!hydrated) return
+    if (!user) return
+    const sync = async () => {
+      try {
+        const res = await fetch('/api/bookmarks')
+        const json = await res.json()
+        if (json.ok && Array.isArray(json.data)) {
+          const server = json.data.map(serverToItem)
+          syncRef.current = true
+          setBookmarks((local) => {
+            const localIds = new Map(local.map((b) => [b.id, b]))
+            for (const s of server) {
+              if (!localIds.has(s.id)) {
+                localIds.set(s.id, s)
+              }
+            }
+            const merged = [...localIds.values()]
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(merged))
+            return merged
+          })
+          setTimeout(() => { syncRef.current = false }, 100)
+        }
+      } catch {
+        console.warn('Failed to sync bookmarks from server')
+      }
+    }
+    sync()
+  }, [user, hydrated])
 
   React.useEffect(() => {
     try {
@@ -76,6 +117,22 @@ export function BookmarksProvider({ children }: { children: React.ReactNode }) {
       console.warn('Failed to save bookmarks to localStorage')
     }
   }, [bookmarks, hydrated])
+
+  React.useEffect(() => {
+    if (!hydrated || syncRef.current || !user) return
+    const timer = setTimeout(async () => {
+      try {
+        await fetch('/api/bookmarks', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ bookmarks }),
+        })
+      } catch {
+        console.warn('Failed to sync bookmarks to server')
+      }
+    }, 1500)
+    return () => clearTimeout(timer)
+  }, [bookmarks, hydrated, user])
 
   const isBookmarked = React.useCallback(
     (id: string) => bookmarks.some((b) => b.id === id),

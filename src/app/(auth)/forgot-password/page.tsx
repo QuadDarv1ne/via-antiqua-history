@@ -6,6 +6,7 @@ import { Landmark, Loader2, AlertCircle, MailCheck } from 'lucide-react'
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = React.useState('')
+  const [code, setCode] = React.useState('')
   const [sent, setSent] = React.useState(false)
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState('')
@@ -23,6 +24,7 @@ export default function ForgotPasswordPage() {
       })
       const json = await res.json()
       if (json.ok) {
+        setCode(json.data?.testCode || '')
         setSent(true)
       } else {
         setError(json.error || 'Ошибка')
@@ -48,6 +50,12 @@ export default function ForgotPasswordPage() {
             Если пользователь с email <strong className="text-foreground">{email}</strong> существует,
             мы отправили на него код для восстановления пароля. Проверьте почту.
           </p>
+          {code && (
+            <div className="mb-6 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-center">
+              <p className="text-xs text-muted-foreground mb-1">Режим разработки — код сброса:</p>
+              <p className="text-2xl font-bold tracking-widest text-primary">{code}</p>
+            </div>
+          )}
           <Link
             href="/reset-password"
             className="inline-flex items-center justify-center h-11 px-6 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
