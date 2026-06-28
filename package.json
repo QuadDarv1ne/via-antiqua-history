@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev -p 3000",
     "build": "next build",
+    "postbuild": "node -e \"const fs=require('fs'); const path=require('path'); function copy(src,dst){if(!fs.existsSync(dst))fs.mkdirSync(dst,{recursive:true}); for(const f of fs.readdirSync(src)){const s=path.join(src,f); const d=path.join(dst,f); fs.cpSync(s,d,{recursive:true,force:true})} } copy('.next/static','.next/standalone/.next/static'); copy('public','.next/standalone/public');\"",
     "start": "node .next/standalone/server.js",
     "lint": "eslint ."
   },
