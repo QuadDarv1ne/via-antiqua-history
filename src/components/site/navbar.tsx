@@ -85,32 +85,16 @@ export function Navbar() {
       )}
     >
       <div className="container mx-auto max-w-7xl px-3 sm:px-4">
-        <nav className="flex min-h-14 sm:min-h-16 items-center justify-between gap-1 sm:gap-2 py-1.5">
+        {/* Row 1: Logo + Actions */}
+        <nav className="flex h-14 sm:h-16 items-center justify-between gap-2">
           <Link href="#top" className="flex items-center gap-1.5 sm:gap-2 group shrink-0">
             <span className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-primary text-primary-foreground transition-transform group-hover:rotate-12 shrink-0">
               <Landmark className="h-4 w-4 sm:h-5 sm:w-5" />
             </span>
-            <span className="font-display text-base lg:text-xl font-semibold tracking-wide truncate hidden lg:inline">
+            <span className="font-display text-base lg:text-xl font-semibold tracking-wide truncate hidden sm:inline">
               Исторический Лабиринт
             </span>
           </Link>
-
-          <div className="hidden lg:flex items-center gap-x-0.5 gap-y-0.5 flex-wrap flex-1 justify-center">
-            {SITE_NAV.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "px-2 xl:px-3 py-1.5 text-xs xl:text-sm font-medium rounded-md transition-colors whitespace-nowrap",
-                  isActive(item.href)
-                    ? "text-foreground bg-accent/10 font-semibold"
-                    : "text-foreground/80 hover:text-foreground hover:bg-accent/10"
-                )}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </div>
 
           <div className="flex items-center gap-0.5 shrink-0">
             <Button
@@ -126,7 +110,14 @@ export function Navbar() {
               variant="ghost"
               size="icon"
               className="hidden sm:inline-flex h-8 w-8 sm:h-9 sm:w-9"
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              onClick={() => {
+                if (theme === 'system') {
+                  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+                  setTheme(prefersDark ? 'light' : 'dark')
+                } else {
+                  setTheme(theme === 'dark' ? 'light' : 'dark')
+                }
+              }}
               aria-label="Переключить тему"
             >
               {mounted &&
@@ -155,6 +146,24 @@ export function Navbar() {
             </Button>
           </div>
         </nav>
+
+        {/* Row 2: Navigation (desktop only, wraps into rows) */}
+        <div className="hidden lg:flex items-center gap-x-1 gap-y-1 flex-wrap justify-center -mt-1 pb-1">
+          {SITE_NAV.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                "px-2.5 py-1 text-xs font-medium rounded-md transition-colors whitespace-nowrap",
+                isActive(item.href)
+                  ? "text-foreground bg-accent/10 font-semibold"
+                  : "text-foreground/70 hover:text-foreground hover:bg-accent/10"
+              )}
+            >
+              {item.label}
+            </Link>
+          ))}
+        </div>
       </div>
 
       {open && (
