@@ -149,15 +149,13 @@ export function BookmarksProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const toggle = React.useCallback((item: BookmarkItem) => {
+    let wasAdded = false
     setBookmarks((cur) => {
       const exists = cur.some((b) => b.id === item.id)
-      if (exists) {
-        showToast(item.title, false)
-        return cur.filter((b) => b.id !== item.id)
-      }
-      showToast(item.title, true)
-      return [item, ...cur]
+      wasAdded = !exists
+      return exists ? cur.filter((b) => b.id !== item.id) : [item, ...cur]
     })
+    showToast(item.title, wasAdded)
   }, [showToast])
 
   const remove = React.useCallback((id: string) => {

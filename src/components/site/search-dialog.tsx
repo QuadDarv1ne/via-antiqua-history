@@ -35,8 +35,10 @@ const typeLabels: Record<SearchResult['type'], string> = {
   'map-city': 'На карте',
 }
 
-// Build index once at module level
-const searchIndex: SearchResult[] = (() => {
+// Build index lazily on first access
+let _searchIndex: SearchResult[] | null = null
+function getSearchIndex(): SearchResult[] {
+  if (_searchIndex) return _searchIndex
   const items: SearchResult[] = []
 
   allRegions.forEach((r) => {
@@ -95,8 +97,9 @@ const searchIndex: SearchResult[] = (() => {
     })
   })
 
+  _searchIndex = items
   return items
-})()
+}
 
 const iconMap: Record<SearchResult['iconType'], React.ComponentType<{ className: string }>> = {
   MapPin: MapPin,
@@ -115,7 +118,7 @@ export function SearchDialog({
   const [query, setQuery] = React.useState('')
   const [activeIdx, setActiveIdx] = React.useState(0)
 
-  const index = searchIndex
+  const index = getSearchIndex()
 
   const results = React.useMemo(() => {
     if (!query.trim()) return []

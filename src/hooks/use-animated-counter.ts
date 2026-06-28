@@ -17,10 +17,7 @@ export function useAnimatedCounter(target: number, duration = 1200) {
   }, [])
 
   React.useEffect(() => {
-    if (!mounted || target <= 0) {
-      if (target <= 0) setValue(0)
-      return
-    }
+    if (!mounted || target <= 0) return
 
     const tick = (now: number) => {
       if (startRef.current === null) startRef.current = now

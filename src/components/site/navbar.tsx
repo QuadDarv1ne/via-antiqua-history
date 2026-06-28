@@ -26,16 +26,15 @@ export function Navbar() {
   React.useEffect(() => {
     let rafId: number | null = null
     let ticking = false
+    const sections = SITE_NAV.map(item => item.href.substring(1))
 
     const onScroll = () => {
       if (!ticking) {
         rafId = requestAnimationFrame(() => {
           setScrolled(window.scrollY > 24)
-          
-          // Determine active section based on scroll position
-          const sections = SITE_NAV.map(item => item.href.substring(1))
+
           const scrollPosition = window.scrollY + 100
-          
+
           for (let i = sections.length - 1; i >= 0; i--) {
             const section = document.getElementById(sections[i])
             if (section && section.offsetTop <= scrollPosition) {
