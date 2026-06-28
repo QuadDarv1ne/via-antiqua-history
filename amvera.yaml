@@ -8,6 +8,6 @@ build:
   additionalCommands: npm run build
 
 run:
-  command: HOST=0.0.0.0 npm run start
+  command: node start.js
   containerPort: 3000
   persistenceMount: /data
