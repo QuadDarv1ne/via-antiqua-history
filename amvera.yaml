@@ -5,9 +5,9 @@ meta:
     version: "22"
 
 build:
-  additionalCommands: npm run build
+  additionalCommands: npm run build && node -e "require('fs').cpSync('.next/static','.next/standalone/.next/static',{recursive:true,force:true});require('fs').cpSync('public','.next/standalone/public',{recursive:true,force:true})"
 
 run:
-  command: node start.js
+  command: HOST=0.0.0.0 node .next/standalone/server.js
   containerPort: 3000
   persistenceMount: /data
