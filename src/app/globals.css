@@ -149,8 +149,8 @@ html {
   transform: translateX(-50%);
   z-index: 100;
   padding: 0.75rem 1.5rem;
-  background: oklch(var(--primary));
-  color: oklch(var(--primary-foreground));
+  background: var(--primary);
+  color: var(--primary-foreground);
   border-radius: 0 0 8px 8px;
   font-weight: 600;
   transition: top 0.2s;

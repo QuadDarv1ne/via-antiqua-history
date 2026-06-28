@@ -16,9 +16,6 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { BookmarkButton } from '@/components/site/bookmarks'
 import { REGION_COLORS, REGION_LABELS } from '@/lib/constants'
 
-const regionColors = REGION_COLORS
-const regionLabels = REGION_LABELS
-
 export function WondersSection() {
   const [active, setActive] = React.useState<Wonder | null>(null)
 
@@ -56,7 +53,7 @@ export function WondersSection() {
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {wonders.map((w, idx) => {
-            const color = regionColors[w.region] || regionColors.greece
+            const color = REGION_COLORS[w.region] || REGION_COLORS.greece
             return (
               <motion.button
                 key={w.id}
@@ -102,7 +99,7 @@ export function WondersSection() {
                         color,
                       }}
                     >
-                      {regionLabels[w.region]}
+                      {REGION_LABELS[w.region]}
                     </Badge>
                     <Badge variant="outline" className="text-[10px]">
                       {w.built}
@@ -126,11 +123,11 @@ export function WondersSection() {
                     variant="secondary"
                     className="mb-2"
                     style={{
-                      backgroundColor: `oklch(from ${regionColors[active.region]} l c h / 0.15)`,
-                      color: regionColors[active.region],
+                      backgroundColor: `oklch(from ${REGION_COLORS[active.region]} l c h / 0.15)`,
+                      color: REGION_COLORS[active.region],
                     }}
                   >
-                    {regionLabels[active.region]} · {active.built}
+                    {REGION_LABELS[active.region]} · {active.built}
                   </Badge>
                 )}
                 <DialogTitle className="font-display text-2xl md:text-3xl">
