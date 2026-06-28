@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import Link from 'next/link'
-import { Lock } from 'lucide-react'
+import { Lock, BookOpen } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 
 export function ContentGate({
@@ -24,7 +24,7 @@ export function ContentGate({
             <h2 className="font-display text-3xl md:text-5xl font-semibold mb-4">{title}</h2>
             <p className="text-lg text-muted-foreground max-w-2xl">{subtitle}</p>
           </div>
-          <div className="h-48 rounded-xl bg-muted/30 animate-pulse" />
+          <div className="h-64 rounded-xl bg-muted/30 animate-pulse" />
         </div>
       </section>
     )
@@ -42,27 +42,36 @@ export function ContentGate({
           <p className="text-lg text-muted-foreground max-w-2xl">{subtitle}</p>
         </div>
 
-        <div className="relative rounded-xl border border-border bg-card overflow-hidden">
-          <div className="blur-sm opacity-40 pointer-events-none h-48 overflow-hidden">
+        <div className="relative rounded-xl border border-border bg-card overflow-hidden min-h-[420px] md:min-h-[480px]">
+          <div className="blur-sm opacity-30 pointer-events-none overflow-hidden">
             {children}
           </div>
 
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-card/80 backdrop-blur-sm">
-            <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 mb-4">
-              <Lock className="h-6 w-6 text-primary" />
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-b from-card/70 via-card/85 to-card/95 backdrop-blur-[2px]">
+            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 mb-5">
+              <Lock className="h-7 w-7 text-primary" />
             </span>
-            <p className="font-display text-xl font-semibold mb-2">
-              Доступ только для авторизованных
+            <p className="font-display text-2xl md:text-3xl font-semibold mb-3 text-center px-4">
+              {title}
             </p>
-            <p className="text-sm text-muted-foreground mb-4">
-              Войдите или зарегистрируйтесь, чтобы читать раздел «{title}»
+            <p className="text-sm md:text-base text-muted-foreground mb-6 max-w-md text-center px-4">
+              Войдите или зарегистрируйтесь, чтобы получить полный доступ к этому разделу
             </p>
-            <Link
-              href="/login"
-              className="inline-flex items-center justify-center gap-2 h-10 px-6 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
-            >
-              Войти
-            </Link>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Link
+                href="/login"
+                className="inline-flex items-center justify-center gap-2 h-11 px-7 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
+              >
+                <BookOpen className="h-4 w-4" />
+                Войти
+              </Link>
+              <Link
+                href="/register"
+                className="inline-flex items-center justify-center gap-2 h-11 px-7 rounded-lg border border-border bg-card/60 font-medium hover:bg-accent/10 transition-colors"
+              >
+                Зарегистрироваться
+              </Link>
+            </div>
           </div>
         </div>
       </div>

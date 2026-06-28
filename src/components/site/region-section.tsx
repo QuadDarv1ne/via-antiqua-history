@@ -75,11 +75,11 @@ export function RegionSection({ region, restricted }: { region: Region; restrict
         </motion.div>
 
         {restricted && !user ? (
-          <div className="relative rounded-xl border border-border bg-card overflow-hidden">
-            <div className="blur-sm opacity-40 pointer-events-none h-32 overflow-hidden">
-              <div className="grid lg:grid-cols-12 gap-8">
+          <div className="relative rounded-xl border border-border bg-card overflow-hidden min-h-[420px] md:min-h-[480px]">
+            <div className="blur-sm opacity-30 pointer-events-none overflow-hidden">
+              <div className="grid lg:grid-cols-12 gap-8 p-8">
                 <div className="lg:col-span-3">
-                  {region.cities.slice(0, 2).map((city) => (
+                  {region.cities.slice(0, 3).map((city) => (
                     <div key={city.id} className="px-4 py-3 rounded-lg border border-border bg-card/50 mb-2">
                       <div className="font-display text-base font-semibold">{city.name}</div>
                       <div className="text-xs text-muted-foreground mt-0.5">{city.era}</div>
@@ -88,29 +88,42 @@ export function RegionSection({ region, restricted }: { region: Region; restrict
                 </div>
                 <div className="lg:col-span-9">
                   <div className="rounded-xl border border-border bg-card p-6">
-                    <div className="h-6 w-48 bg-muted/50 rounded mb-3" />
+                    <div className="h-7 w-56 bg-muted/50 rounded mb-4" />
                     <div className="h-4 w-full bg-muted/30 rounded mb-2" />
-                    <div className="h-4 w-3/4 bg-muted/30 rounded" />
+                    <div className="h-4 w-5/6 bg-muted/30 rounded mb-2" />
+                    <div className="h-4 w-3/4 bg-muted/30 rounded mb-6" />
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="h-24 bg-muted/20 rounded-lg" />
+                      <div className="h-24 bg-muted/20 rounded-lg" />
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-card/80 backdrop-blur-sm">
-              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 mb-4">
-                <Lock className="h-6 w-6 text-primary" />
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-b from-card/70 via-card/85 to-card/95 backdrop-blur-[2px]">
+              <span className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 mb-5">
+                <Lock className="h-7 w-7 text-primary" />
               </span>
-              <p className="font-display text-xl font-semibold mb-2">
-                Полный доступ — после входа
+              <p className="font-display text-2xl md:text-3xl font-semibold mb-3 text-center px-4">
+                {region.name}
               </p>
-              <p className="text-sm text-muted-foreground mb-4">
+              <p className="text-sm md:text-base text-muted-foreground mb-6 max-w-md text-center px-4">
                 Города, памятники и исторический контекст доступны авторизованным пользователям
               </p>
-              <Link
-                href="/login"
-                className="inline-flex items-center justify-center gap-2 h-10 px-6 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
-              >
-                Войти
-              </Link>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Link
+                  href="/login"
+                  className="inline-flex items-center justify-center gap-2 h-11 px-7 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
+                >
+                  Войти
+                </Link>
+                <Link
+                  href="/register"
+                  className="inline-flex items-center justify-center gap-2 h-11 px-7 rounded-lg border border-border bg-card/60 font-medium hover:bg-accent/10 transition-colors"
+                >
+                  Зарегистрироваться
+                </Link>
+              </div>
             </div>
           </div>
         ) : (
