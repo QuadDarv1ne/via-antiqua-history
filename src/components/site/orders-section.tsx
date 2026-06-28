@@ -130,7 +130,7 @@ export function OrdersSection() {
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {architecturalOrders.map((order, idx) => {
             const accentColor = ['oklch(0.55 0.13 35)', 'oklch(0.55 0.13 70)', 'oklch(0.6 0.1 50)'][idx]
             return (
@@ -188,7 +188,7 @@ export function OrdersSection() {
 
       {/* Модальное окно с деталями ордера */}
       <Dialog open={!!active} onOpenChange={(o) => !o && setActive(null)}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden">
+        <DialogContent className="max-w-2xl max-h-[90vh]">
           <DialogHeader>
             <div className="flex items-start justify-between gap-3 pr-8">
               <div>
