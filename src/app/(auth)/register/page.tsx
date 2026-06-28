@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Landmark, Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
+import { cn } from '@/lib/utils'
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -16,6 +17,23 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = React.useState(false)
   const [error, setError] = React.useState('')
   const [loading, setLoading] = React.useState(false)
+
+  const passwordStrength = React.useMemo(() => {
+    if (!password) return { score: 0, label: '', color: '' }
+    let score = 0
+    if (password.length >= 8) score++
+    if (password.length >= 12) score++
+    if (/[A-Z]/.test(password)) score++
+    if (/[0-9]/.test(password)) score++
+    if (/[^A-Za-z0-9]/.test(password)) score++
+    if (score <= 1) return { score, label: 'Слабый', color: 'bg-red-500' }
+    if (score <= 2) return { score, label: 'Средний', color: 'bg-amber-500' }
+    if (score <= 3) return { score, label: 'Хороший', color: 'bg-blue-500' }
+    return { score, label: 'Отличный', color: 'bg-green-500' }
+  }, [password])
+
+  const passwordsMatch = confirmPassword.length > 0 && password === confirmPassword
+  const passwordsMismatch = confirmPassword.length > 0 && password !== confirmPassword
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -117,6 +135,19 @@ export default function RegisterPage() {
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
+            {password && (
+              <div className="mt-2">
+                <div className="flex gap-1 mb-1">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <div
+                      key={i}
+                      className={`h-1 flex-1 rounded-full transition-colors ${i <= passwordStrength.score ? passwordStrength.color : 'bg-muted'}`}
+                    />
+                  ))}
+                </div>
+                <p className="text-[11px] text-muted-foreground">{passwordStrength.label}</p>
+              </div>
+            )}
           </div>
 
           <div>
@@ -129,8 +160,17 @@ export default function RegisterPage() {
               placeholder="Повторите пароль"
               required
               autoComplete="new-password"
-              className="w-full h-11 px-4 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
+              className={cn(
+                'w-full h-11 px-4 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors',
+                passwordsMismatch ? 'border-destructive' : passwordsMatch ? 'border-green-500' : 'border-border'
+              )}
             />
+            {passwordsMismatch && (
+              <p className="text-[11px] text-destructive mt-1">Пароли не совпадают</p>
+            )}
+            {passwordsMatch && (
+              <p className="text-[11px] text-green-600 dark:text-green-400 mt-1">Пароли совпадают</p>
+            )}
           </div>
 
           <button
