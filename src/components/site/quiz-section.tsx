@@ -98,6 +98,15 @@ export function QuizSection() {
   if (finished) {
     const percent = Math.round((correctCount / quizQuestions.length) * 100)
 
+    const tier =
+      percent === 100
+        ? { label: 'Идеально!', emoji: '🏛️', color: 'text-amber-500' }
+        : percent >= 80
+          ? { label: 'Отлично!', emoji: '🌟', color: 'text-yellow-500' }
+          : percent >= 60
+            ? { label: 'Хорошо!', emoji: '📖', color: 'text-sky-500' }
+            : { label: 'Попробуйте ещё', emoji: '🕯️', color: 'text-muted-foreground' }
+
     // Precompute region stats in a single pass
     const regionStats: Record<string, { total: number; correct: number }> = {}
     quizQuestions.forEach((q, index) => {
@@ -121,32 +130,79 @@ export function QuizSection() {
       >
         <div className="container mx-auto max-w-2xl px-4">
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
+            initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.5, ease: 'easeOut' }}
             className="rounded-xl border border-border bg-card p-6 sm:p-8 md:p-10 lg:p-12 text-center"
           >
-            <Trophy className="h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 mx-auto mb-3 sm:mb-4 text-primary" />
-            <h3 className="font-display text-xl sm:text-2xl md:text-3xl font-semibold mb-2 sm:mb-3">
+            <motion.div
+              initial={{ scale: 0, rotate: -20 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ type: 'spring', stiffness: 200, damping: 12, delay: 0.1 }}
+            >
+              <Trophy className="h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 mx-auto mb-1 text-primary" />
+            </motion.div>
+            <motion.span
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="block text-2xl sm:text-3xl mb-2"
+            >
+              {tier.emoji}
+            </motion.span>
+            <motion.h3
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35 }}
+              className="font-display text-xl sm:text-2xl md:text-3xl font-semibold mb-1"
+            >
               Квиз пройден!
-            </h3>
-            <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6">
-              Вы ответили правильно на
-            </p>
-            <div className="font-display text-4xl sm:text-5xl md:text-6xl font-bold gold-text mb-1 sm:mb-2">
+            </motion.h3>
+            <motion.p
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6"
+            >
+              Правильных ответов:
+            </motion.p>
+            <motion.div
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: 'spring', stiffness: 150, damping: 14, delay: 0.5 }}
+              className="font-display text-4xl sm:text-5xl md:text-6xl font-bold gold-text mb-1 sm:mb-2"
+            >
               {correctCount} / {quizQuestions.length}
-            </div>
-            <p className="text-xl sm:text-2xl font-semibold mb-6 sm:mb-8">{percent}%</p>
+            </motion.div>
+            <motion.p
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+              className={cn('text-xl sm:text-2xl font-semibold mb-6 sm:mb-8', tier.color)}
+            >
+              {percent}% — {tier.label}
+            </motion.p>
 
             {/* Статистика по регионам */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-6 sm:mb-8">
+            <motion.div
+              initial="hidden"
+              animate="visible"
+              variants={{
+                visible: { transition: { staggerChildren: 0.08, delayChildren: 0.7 } },
+              }}
+              className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-6 sm:mb-8"
+            >
               {(['greece', 'rome', 'mesopotamia', 'kuban'] as const).map(
                 (key) => {
                   const total = regionStats[key].total
                   const correct = regionStats[key].correct
                   return (
-                    <div
+                    <motion.div
                       key={key}
+                      variants={{
+                        hidden: { opacity: 0, y: 12 },
+                        visible: { opacity: 1, y: 0 },
+                      }}
                       className="rounded-lg border border-border p-2.5 sm:p-3"
                       style={{
                         backgroundColor: withAlpha(REGION_COLORS[key], 0.08),
@@ -161,16 +217,22 @@ export function QuizSection() {
                       <div className="text-base sm:text-lg font-bold">
                         {correct}/{total}
                       </div>
-                    </div>
+                    </motion.div>
                   )
                 }
               )}
-            </div>
+            </motion.div>
 
-            <Button onClick={reset} size="lg">
-              <RotateCcw className="h-4 w-4 mr-2" />
-              Пройти заново
-            </Button>
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.0 }}
+            >
+              <Button onClick={reset} size="lg">
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Пройти заново
+              </Button>
+            </motion.div>
           </motion.div>
         </div>
       </section>

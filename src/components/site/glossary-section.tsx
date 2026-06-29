@@ -1,8 +1,8 @@
 'use client'
 
 import * as React from 'react'
-import { motion } from 'framer-motion'
-import { BookMarked, Search } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { BookMarked, Search, X } from 'lucide-react'
 import { glossary } from '@/lib/history-data'
 import { cn, withAlpha } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
@@ -72,9 +72,24 @@ export function GlossarySection() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Поиск термина…"
-              className="pl-10 h-10 sm:h-11 text-sm"
+              className="pl-10 pr-10 h-10 sm:h-11 text-sm"
               aria-label="Поиск по глоссарию"
             />
+            <AnimatePresence>
+              {query && (
+                <motion.button
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  type="button"
+                  onClick={() => setQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 flex items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                  aria-label="Очистить поиск"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </motion.button>
+              )}
+            </AnimatePresence>
           </div>
           <div className="flex flex-wrap gap-1.5 sm:gap-2">
             {filterOptions.map((opt) => (
@@ -148,9 +163,18 @@ export function GlossarySection() {
           </div>
         )}
 
-        <div className="mt-6 text-xs text-muted-foreground text-center">
-          Найдено терминов: {filtered.length} из {glossary.length}
-        </div>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={filtered.length}
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 4 }}
+            transition={{ duration: 0.15 }}
+            className="mt-6 text-xs text-muted-foreground text-center"
+          >
+            Найдено терминов: {filtered.length} из {glossary.length}
+          </motion.div>
+        </AnimatePresence>
       </div>
     </section>
   )
