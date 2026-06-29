@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { motion } from 'framer-motion'
+import { motion, useScroll, useTransform } from 'framer-motion'
 import { ChevronDown, BookOpen, Map as MapIcon, Landmark, Building2, Calendar, Users } from 'lucide-react'
 import Link from 'next/link'
 import { allRegions, timeline, persons } from '@/lib/history-data'
@@ -16,6 +16,12 @@ const regionChips = [
 ]
 
 export function Hero() {
+  const { scrollY } = useScroll()
+  const parallaxY1 = useTransform(scrollY, [0, 500], [0, -80])
+  const parallaxY2 = useTransform(scrollY, [0, 500], [0, 60])
+  const parallaxY3 = useTransform(scrollY, [0, 500], [0, -40])
+  const opacity1 = useTransform(scrollY, [0, 300], [1, 0.6])
+
   const citiesCount = allRegions.reduce(
     (acc, r) => acc + r.cities.length,
     0
@@ -37,33 +43,38 @@ export function Hero() {
       id="top"
       className="relative overflow-hidden parchment-bg"
     >
-      {/* Бэкграунд-декорации */}
+      {/* Бэкграунд-декорации с параллаксом */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         {/* Основное свечение слева вверху */}
         <motion.div
           initial={{ opacity: 0, scale: 0.92 }}
           animate={{ opacity: 0.35, scale: 1 }}
           transition={{ duration: 1.8 }}
-          className="absolute -top-48 -left-48 h-[30rem] w-[30rem] rounded-full blur-3xl"
           style={{
-            background:
-              'radial-gradient(circle, oklch(0.7 0.13 60 / 0.18) 0%, transparent 70%)',
+            y: parallaxY1,
+            opacity: opacity1,
+            background: 'radial-gradient(circle, oklch(0.7 0.13 60 / 0.18) 0%, transparent 70%)',
           }}
+          className="absolute -top-48 -left-48 h-[30rem] w-[30rem] rounded-full blur-3xl"
         />
         {/* Дополнительное свечение справа снизу */}
         <motion.div
           initial={{ opacity: 0, scale: 0.92 }}
           animate={{ opacity: 0.3, scale: 1 }}
           transition={{ duration: 1.8, delay: 0.25 }}
-          className="absolute -bottom-48 -right-48 h-[26rem] w-[26rem] rounded-full blur-3xl"
           style={{
-            background:
-              'radial-gradient(circle, oklch(0.5 0.12 145 / 0.12) 0%, transparent 70%)',
+            y: parallaxY2,
+            background: 'radial-gradient(circle, oklch(0.5 0.12 145 / 0.12) 0%, transparent 70%)',
           }}
+          className="absolute -bottom-48 -right-48 h-[26rem] w-[26rem] rounded-full blur-3xl"
         />
         {/* Центральное мягкое свечение */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[20rem] w-[20rem] rounded-full blur-2xl opacity-[0.06]"
-          style={{ background: 'radial-gradient(circle, oklch(0.6 0.1 80) 0%, transparent 70%)' }}
+        <motion.div
+          style={{
+            y: parallaxY3,
+            background: 'radial-gradient(circle, oklch(0.6 0.1 80) 0%, transparent 70%)',
+          }}
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[20rem] w-[20rem] rounded-full blur-2xl opacity-[0.06]"
         />
         {/* Декоративные колонны (очень тонкие) */}
         <div className="absolute right-[8%] top-[15%] h-40 w-px bg-gradient-to-b from-transparent via-primary/5 to-transparent hidden md:block" />

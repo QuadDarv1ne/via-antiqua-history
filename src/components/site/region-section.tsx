@@ -239,26 +239,28 @@ export function RegionSection({ region, restricted }: { region: Region; restrict
                 </div>
 
                 {/* Достопримечательности */}
-                <div className="mt-8">
-                  <h4 className="font-display text-xl md:text-2xl font-semibold mb-4 flex items-center gap-2">
+                <div className="mt-10 sm:mt-12">
+                  <div className="flex items-center gap-3 sm:gap-4 mb-5 sm:mb-6">
                     <span
-                      className="inline-block h-1 w-8 rounded-full"
+                      className="inline-block h-[3px] w-6 sm:w-8 rounded-full"
                       style={{ backgroundColor: region.color }}
                     />
-                    Главные достопримечательности
-                  </h4>
+                    <h4 className="font-display text-lg sm:text-xl md:text-2xl font-semibold">
+                      Главные достопримечательности
+                    </h4>
+                  </div>
 
                   <div className="grid sm:grid-cols-2 gap-3 sm:gap-4">
                     {activeCity.landmarks.map((lm, i) => (
                       <motion.button
                         key={lm.id}
-                        initial={{ opacity: 0, y: 10 }}
+                        initial={{ opacity: 0, y: 12 }}
                         whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.4, delay: i * 0.05 }}
+                        viewport={{ once: true, margin: '-30px' }}
+                        transition={{ duration: 0.35, delay: i * 0.06 }}
                         whileHover={{ y: -3, scale: 1.01 }}
                         onClick={() => setActiveLandmark(lm)}
-                        className="group text-left p-4 sm:p-5 rounded-lg border border-border/80 bg-card hover:border-primary/50 hover:shadow-lg transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1"
+                        className="group text-left p-4 sm:p-5 rounded-lg border border-border/70 bg-card hover:border-primary/40 hover:shadow-lg transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1"
                       >
                         <div className="flex items-start justify-between gap-2 sm:gap-3 mb-2">
                           <h5 className="font-display text-base sm:text-lg font-semibold leading-tight group-hover:text-primary transition-colors duration-200">
