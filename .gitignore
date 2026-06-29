@@ -62,3 +62,4 @@ data/
 *.db-wal
 *.db-shm
 .env
+.mimocode
