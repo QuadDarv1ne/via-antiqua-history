@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 import { Landmark, Eye, EyeOff, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { passwordStrength } from '@/lib/utils'
 
 function ResetPasswordForm() {
   const searchParams = useSearchParams()
@@ -16,19 +17,7 @@ function ResetPasswordForm() {
   const [error, setError] = React.useState('')
   const [loading, setLoading] = React.useState(false)
 
-  const passwordStrength = React.useMemo(() => {
-    if (!password) return { score: 0, label: '', color: '' }
-    let score = 0
-    if (password.length >= 8) score++
-    if (password.length >= 12) score++
-    if (/[A-Z]/.test(password)) score++
-    if (/[0-9]/.test(password)) score++
-    if (/[^A-Za-z0-9]/.test(password)) score++
-    if (score <= 1) return { score, label: 'Слабый', color: 'bg-red-500' }
-    if (score <= 2) return { score, label: 'Средний', color: 'bg-amber-500' }
-    if (score <= 3) return { score, label: 'Хороший', color: 'bg-blue-500' }
-    return { score, label: 'Отличный', color: 'bg-green-500' }
-  }, [password])
+  const strength = React.useMemo(() => passwordStrength(password), [password])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -159,11 +148,11 @@ function ResetPasswordForm() {
                   {[1, 2, 3, 4, 5].map((i) => (
                     <div
                       key={i}
-                      className={`h-1 flex-1 rounded-full transition-colors ${i <= passwordStrength.score ? passwordStrength.color : 'bg-muted'}`}
+                      className={`h-1 flex-1 rounded-full transition-colors ${i <= strength.score ? strength.color : 'bg-muted'}`}
                     />
                   ))}
                 </div>
-                <p className="text-[11px] text-muted-foreground">{passwordStrength.label}</p>
+                <p className="text-[11px] text-muted-foreground">{strength.label}</p>
               </div>
             )}
           </div>

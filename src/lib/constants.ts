@@ -57,11 +57,8 @@ export const PROTECTED_NAV = [
 
 export const SITE_NAV = [...PUBLIC_NAV, ...PROTECTED_NAV] as const
 
-// Полный список навигации для footer
-export const FOOTER_NAV = [
-  ...SITE_NAV,
-  { href: '#sources', label: 'Источники' },
-] as const
+// Полный список навигации для footer (SITE_NAV уже содержит #sources через PUBLIC_NAV)
+export const FOOTER_NAV = [...SITE_NAV] as const
 
 export const SOCIAL_LINKS = [
   { href: 'https://rutube.ru/channel/4218729/', label: 'Rutube', title: 'Хижина программиста' },

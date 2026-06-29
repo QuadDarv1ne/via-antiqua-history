@@ -10,14 +10,9 @@ export function useAnimatedCounter(target: number, duration = 1200) {
   const [value, setValue] = React.useState(0)
   const rafRef = React.useRef<number | null>(null)
   const startRef = React.useRef<number | null>(null)
-  const [mounted, setMounted] = React.useState(false)
 
   React.useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  React.useEffect(() => {
-    if (!mounted || target <= 0) return
+    if (target <= 0) return
 
     const tick = (now: number) => {
       if (startRef.current === null) startRef.current = now
@@ -36,7 +31,7 @@ export function useAnimatedCounter(target: number, duration = 1200) {
       if (rafRef.current) cancelAnimationFrame(rafRef.current)
       startRef.current = null
     }
-  }, [target, duration, mounted])
+  }, [target, duration])
 
   return value
 }
