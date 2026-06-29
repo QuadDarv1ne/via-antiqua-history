@@ -48,8 +48,12 @@ export function RegionSection({ region, restricted }: { region: Region; restrict
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-100px' }}
           transition={{ duration: 0.6 }}
-          className="mb-6 sm:mb-8 md:mb-10 md:mb-14"
+          className="mb-8 sm:mb-10 md:mb-14"
         >
+          <div
+            className="h-0.5 w-12 rounded-full mb-4 sm:mb-5"
+            style={{ backgroundColor: region.color }}
+          />
           <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
             <span
               className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-lg border border-border bg-card shrink-0"
@@ -142,12 +146,20 @@ export function RegionSection({ region, restricted }: { region: Region; restrict
                   key={city.id}
                   onClick={() => setActiveCityId(city.id)}
                   className={cn(
-                    'text-left whitespace-nowrap lg:whitespace-normal px-4 py-3 rounded-lg border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 shrink-0 lg:shrink',
+                    'text-left whitespace-nowrap lg:whitespace-normal pl-4 pr-3 py-3 rounded-lg border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 shrink-0 lg:shrink relative overflow-hidden',
                     activeCityId === city.id
                       ? 'bg-card border-primary shadow-sm'
                       : 'bg-card/50 border-border hover:bg-card hover:border-primary/40'
                   )}
                 >
+                  {activeCityId === city.id && (
+                    <motion.span
+                      layoutId={`activeCity-${region.id}`}
+                      className="absolute left-0 top-1 bottom-1 w-0.5 rounded-full"
+                      style={{ backgroundColor: region.color }}
+                      transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                    />
+                  )}
                   <div className="font-display text-base font-semibold">
                     {city.name}
                   </div>
@@ -236,17 +248,17 @@ export function RegionSection({ region, restricted }: { region: Region; restrict
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.4, delay: i * 0.05 }}
-                        whileHover={{ y: -3 }}
+                        whileHover={{ y: -3, scale: 1.01 }}
                         onClick={() => setActiveLandmark(lm)}
-                        className="text-left p-4 sm:p-5 rounded-lg border border-border bg-card hover:border-primary hover:shadow-md transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1"
+                        className="group text-left p-4 sm:p-5 rounded-lg border border-border/80 bg-card hover:border-primary/50 hover:shadow-lg transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1"
                       >
                         <div className="flex items-start justify-between gap-2 sm:gap-3 mb-2">
-                          <h5 className="font-display text-base sm:text-lg font-semibold leading-tight">
+                          <h5 className="font-display text-base sm:text-lg font-semibold leading-tight group-hover:text-primary transition-colors duration-200">
                             {lm.name}
                           </h5>
                           <Badge
                             variant="secondary"
-                            className="shrink-0 text-[10px] sm:text-xs"
+                            className="shrink-0 text-[10px] sm:text-xs transition-colors duration-200"
                             style={{
                               backgroundColor: withAlpha(region.color, 0.15),
                               color: region.color,
@@ -258,7 +270,7 @@ export function RegionSection({ region, restricted }: { region: Region; restrict
                         <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed line-clamp-2">
                           {lm.shortDesc}
                         </p>
-                        <span className="mt-2 sm:mt-3 inline-flex items-center gap-1 text-xs font-medium text-primary">
+                        <span className="mt-2 sm:mt-3 inline-flex items-center gap-1 text-xs font-medium text-primary opacity-70 group-hover:opacity-100 transition-opacity duration-200">
                           Подробнее →
                         </span>
                       </motion.button>
@@ -276,8 +288,12 @@ export function RegionSection({ region, restricted }: { region: Region; restrict
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="mt-10 sm:mt-12 md:mt-16 prose prose-sm md:prose-lg max-w-none"
+          className="mt-10 sm:mt-12 md:mt-16"
         >
+          <div
+            className="h-px w-16 mb-4 sm:mb-5 rounded-full"
+            style={{ backgroundColor: region.color }}
+          />
           <h4 className="font-display text-lg sm:text-xl md:text-2xl font-semibold mb-3 sm:mb-4">
             Исторический контекст
           </h4>

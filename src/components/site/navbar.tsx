@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useTheme } from 'next-themes'
 import { Menu, X, Sun, Moon, Landmark, Search, User } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
@@ -55,7 +55,6 @@ export function Navbar() {
     }
   }, [])
 
-  // Global hotkeys: Ctrl/Cmd+K → search; Esc → close
   React.useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
@@ -80,26 +79,23 @@ export function Navbar() {
       className={cn(
         'fixed top-0 inset-x-0 z-50 transition-all duration-300',
         scrolled
-          ? 'bg-background/95 backdrop-blur-md border-b border-border shadow-sm'
-          : 'bg-background backdrop-blur-md'
+          ? 'bg-background/90 backdrop-blur-xl border-b border-border/50 shadow-[0_1px_3px_rgba(0,0,0,0.04)]'
+          : 'bg-background/60 backdrop-blur-md'
       )}
     >
-      <div className={cn(
-        'container mx-auto max-w-7xl px-3 sm:px-4 transition-all duration-300',
-        scrolled ? 'border-t-0' : ''
-      )}>
+      <div className="container mx-auto max-w-7xl px-3 sm:px-4">
         {/* Row 1: Logo + Actions */}
         <div className="flex h-12 sm:h-14 items-center justify-between gap-2">
-          <Link href="#top" className="flex items-center gap-1.5 sm:gap-2 group shrink-0">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground transition-transform group-hover:rotate-12 shrink-0">
-              <Landmark className="h-4 w-4" />
+          <Link href="#top" className="flex items-center gap-2 group shrink-0">
+            <span className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-all duration-200 group-hover:scale-105 shrink-0">
+              <Landmark className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </span>
-            <span className="font-display text-base lg:text-lg font-semibold tracking-wide truncate hidden sm:inline">
+            <span className="font-display text-sm sm:text-base lg:text-lg font-semibold tracking-wide truncate hidden sm:inline">
               Исторический Лабиринт
             </span>
           </Link>
 
-          <div className="flex items-center gap-0.5 shrink-0">
+          <div className="flex items-center gap-px shrink-0">
             <Button
               variant="ghost"
               size="icon"
@@ -132,7 +128,7 @@ export function Navbar() {
             </Button>
             <Link
               href={user ? '/profile' : '/login'}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-accent/10 transition-colors shrink-0"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/8 transition-colors shrink-0"
               aria-label={user ? 'Профиль' : 'Войти'}
             >
               <User className="h-4 w-4" />
@@ -151,16 +147,16 @@ export function Navbar() {
         </div>
 
         {/* Row 2: Navigation (desktop only) */}
-        <div className="hidden lg:flex items-center gap-x-0.5 flex-wrap justify-center pb-2 pt-0.5">
+        <div className="hidden lg:flex items-center gap-x-0 flex-wrap justify-center pb-1.5 pt-px border-t border-border/30">
           {(user ? SITE_NAV : PUBLIC_NAV).map((item) => (
             <Link
               key={item.href}
               href={item.href}
               className={cn(
-                "px-2 py-1 text-[11px] font-medium rounded transition-colors whitespace-nowrap",
+                "px-2.5 py-1 text-[11px] font-medium rounded-md transition-all duration-150 whitespace-nowrap",
                 isActive(item.href)
                   ? "text-foreground bg-accent/10 font-semibold"
-                  : "text-foreground/70 hover:text-foreground hover:bg-accent/10"
+                  : "text-foreground/60 hover:text-foreground/85 hover:bg-accent/6"
               )}
             >
               {item.label}
@@ -169,7 +165,7 @@ export function Navbar() {
           {!user && (
             <Link
               href="/login"
-              className="px-2 py-1 text-[11px] font-medium rounded transition-colors whitespace-nowrap text-primary hover:bg-primary/10"
+              className="px-2.5 py-1 text-[11px] font-medium rounded-md transition-all duration-150 whitespace-nowrap text-primary/80 hover:text-primary hover:bg-primary/5"
             >
               Войти →
             </Link>
@@ -177,89 +173,91 @@ export function Navbar() {
         </div>
       </div>
 
-      {open && (
-        <motion.div
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -8 }}
-          transition={{ duration: 0.2 }}
-          className="lg:hidden border-t border-border bg-background/95 backdrop-blur-md shadow-lg"
-        >
-          <div className="container mx-auto max-w-7xl px-3 py-3 flex flex-col gap-0.5">
-            {PUBLIC_NAV.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setOpen(false)}
-                className={cn(
-                  "px-3 py-2.5 text-sm font-medium rounded-md transition-colors",
-                  isActive(item.href)
-                    ? "bg-accent/10 text-foreground font-semibold"
-                    : "hover:bg-accent/5 text-foreground/80"
-                )}
-              >
-                {item.label}
-              </Link>
-            ))}
-            {!user && PROTECTED_NAV.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setOpen(false)}
-                className="px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-accent/5 rounded-md flex items-center justify-between"
-              >
-                <span>{item.label}</span>
-                <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">🔒</span>
-              </Link>
-            ))}
-            {user && PROTECTED_NAV.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setOpen(false)}
-                className="px-3 py-2.5 text-sm font-medium hover:bg-accent/5 rounded-md"
-              >
-                {item.label}
-              </Link>
-            ))}
-            {user && (
-              <Link
-                href="/profile"
-                onClick={() => setOpen(false)}
-                className="px-3 py-2.5 text-sm font-medium hover:bg-accent/5 rounded-md"
-              >
-                Профиль
-              </Link>
-            )}
-            <div className="my-2 border-t border-border" />
-            <div className="grid grid-cols-2 gap-1.5 px-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="justify-start gap-2 h-9 text-sm"
-                onClick={() => { setSearchOpen(true); setOpen(false) }}
-              >
-                <Search className="h-4 w-4" /> Поиск
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="justify-start gap-2 h-9 text-sm"
-                onClick={() => {
-                  if (theme === 'system') {
-                    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-                    setTheme(prefersDark ? 'light' : 'dark')
-                  } else {
-                    setTheme(theme === 'dark' ? 'light' : 'dark')
-                  }
-                }}
-              >
-                {mounted && (theme === 'dark' ? <><Sun className="h-4 w-4" /> Свет</> : <><Moon className="h-4 w-4" /> Тёмный</>)}
-              </Button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2, ease: 'easeInOut' }}
+            className="lg:hidden border-t border-border/50 bg-background/95 backdrop-blur-xl overflow-hidden"
+          >
+            <div className="container mx-auto max-w-7xl px-3 py-3 flex flex-col gap-px">
+              {PUBLIC_NAV.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setOpen(false)}
+                  className={cn(
+                    "px-3 py-2.5 text-sm font-medium rounded-lg transition-colors",
+                    isActive(item.href)
+                      ? "bg-accent/10 text-foreground font-semibold"
+                      : "hover:bg-accent/5 text-foreground/75"
+                  )}
+                >
+                  {item.label}
+                </Link>
+              ))}
+              {!user && PROTECTED_NAV.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setOpen(false)}
+                  className="px-3 py-2.5 text-sm font-medium text-muted-foreground/70 hover:bg-accent/5 rounded-lg flex items-center justify-between"
+                >
+                  <span>{item.label}</span>
+                  <span className="text-[10px] bg-primary/8 text-primary/70 px-1.5 py-0.5 rounded-full">🔒</span>
+                </Link>
+              ))}
+              {user && PROTECTED_NAV.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setOpen(false)}
+                  className="px-3 py-2.5 text-sm font-medium hover:bg-accent/5 rounded-lg"
+                >
+                  {item.label}
+                </Link>
+              ))}
+              {user && (
+                <Link
+                  href="/profile"
+                  onClick={() => setOpen(false)}
+                  className="px-3 py-2.5 text-sm font-medium hover:bg-accent/5 rounded-lg"
+                >
+                  Профиль
+                </Link>
+              )}
+              <div className="my-2 border-t border-border/40" />
+              <div className="grid grid-cols-2 gap-1.5 px-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="justify-start gap-2 h-9 text-sm"
+                  onClick={() => { setSearchOpen(true); setOpen(false) }}
+                >
+                  <Search className="h-4 w-4" /> Поиск
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="justify-start gap-2 h-9 text-sm"
+                  onClick={() => {
+                    if (theme === 'system') {
+                      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+                      setTheme(prefersDark ? 'light' : 'dark')
+                    } else {
+                      setTheme(theme === 'dark' ? 'light' : 'dark')
+                    }
+                  }}
+                >
+                  {mounted && (theme === 'dark' ? <><Sun className="h-4 w-4" /> Свет</> : <><Moon className="h-4 w-4" /> Тёмный</>)}
+                </Button>
+              </div>
             </div>
-          </div>
-        </motion.div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
     </header>
