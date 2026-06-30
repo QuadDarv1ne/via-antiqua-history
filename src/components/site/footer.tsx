@@ -1,13 +1,32 @@
+'use client'
+
+import { motion } from 'framer-motion'
 import { Landmark, Feather, BookOpen, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
 import { FOOTER_NAV, SOCIAL_LINKS } from '@/lib/constants'
+
+const containerVariants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.12, delayChildren: 0.1 } },
+}
+
+const colVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+}
 
 export function Footer() {
   return (
     <footer className="mt-auto border-t border-border bg-card/50">
       <div className="container mx-auto max-w-7xl px-4 py-8 sm:py-10">
-        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8">
-          <div>
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: '-60px' }}
+          variants={containerVariants}
+          className="grid sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8"
+        >
+          <motion.div variants={colVariants}>
             <div className="flex items-center gap-2 mb-3">
               <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground">
                 <Landmark className="h-5 w-5" />
@@ -21,9 +40,9 @@ export function Footer() {
               Месопотамии и Кубани. Интерактивная хронология, карта и авторский
               анализ единого античного пространства.
             </p>
-          </div>
+          </motion.div>
 
-          <div>
+          <motion.div variants={colVariants}>
             <h4 className="font-display text-sm font-semibold mb-3 flex items-center gap-2">
               <BookOpen className="h-4 w-4" /> Разделы
             </h4>
@@ -39,9 +58,9 @@ export function Footer() {
                 </li>
               ))}
             </ul>
-          </div>
+          </motion.div>
 
-          <div>
+          <motion.div variants={colVariants}>
             <h4 className="font-display text-xs sm:text-sm font-semibold mb-3 flex items-center gap-2">
               <Feather className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> Авторство
             </h4>
@@ -72,10 +91,16 @@ export function Footer() {
               классических исторических источниках. Цитирование — с указанием
               автора.
             </p>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
-        <div className="mt-6 sm:mt-8 pt-5 sm:pt-6 border-t border-border flex flex-col md:flex-row items-center justify-between gap-3">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.45 }}
+          className="mt-6 sm:mt-8 pt-5 sm:pt-6 border-t border-border flex flex-col md:flex-row items-center justify-between gap-3"
+        >
           <p className="text-[11px] sm:text-xs text-muted-foreground text-center md:text-left">
             © {new Date().getFullYear()} «Исторический Лабиринт». Все права
             защищены.
@@ -95,7 +120,7 @@ export function Footer() {
               </a>
             ))}
           </div>
-        </div>
+        </motion.div>
       </div>
     </footer>
   )

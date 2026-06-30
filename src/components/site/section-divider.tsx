@@ -1,3 +1,7 @@
+'use client'
+
+import { motion } from 'framer-motion'
+
 export function SectionDivider() {
   return (
     <div className="relative h-16 sm:h-20 md:h-24 overflow-hidden bg-background" aria-hidden="true">
@@ -6,12 +10,17 @@ export function SectionDivider() {
       </div>
       <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex items-center justify-center gap-3 sm:gap-4 px-4">
         <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border/20 to-transparent" />
-        <span className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full border border-border/50 bg-background shadow-sm">
+        <motion.span
+          initial={{ scale: 0 }}
+          whileInView={{ scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+          className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full border border-border/50 bg-background shadow-sm"
+        >
           <span className="h-2 w-2 rounded-full bg-primary/30" />
-        </span>
+        </motion.span>
         <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border/20 to-transparent" />
       </div>
-      {/* Меандроподобная полоска внизу */}
       <div className="absolute bottom-0 left-0 right-0 h-[3px] opacity-[0.07] dark:opacity-[0.05]"
         style={{
           backgroundImage: `repeating-linear-gradient(
