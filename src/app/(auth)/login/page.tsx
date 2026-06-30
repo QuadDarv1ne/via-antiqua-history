@@ -7,6 +7,8 @@ import { motion } from 'framer-motion'
 import { Landmark, Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
 export default function LoginPage() {
   const router = useRouter()
   const { login } = useAuth()
@@ -17,8 +19,6 @@ export default function LoginPage() {
   const [error, setError] = React.useState('')
   const [loading, setLoading] = React.useState(false)
   const [require2fa, setRequire2fa] = React.useState(false)
-
-  const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -81,7 +81,7 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            <div role="alert" className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
               <AlertCircle className="h-4 w-4 shrink-0" />
               {error}
             </div>
@@ -123,7 +123,6 @@ export default function LoginPage() {
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    tabIndex={-1}
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>

@@ -39,21 +39,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [refresh])
 
   const login = React.useCallback(async (email: string, password: string, totpCode?: string) => {
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, totpCode }),
-    })
-    const json = await res.json()
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, totpCode }),
+      })
+      const json = await res.json()
 
-    if (json.ok && json.data) {
-      if (json.data.require2fa) {
+      if (!json.ok) {
+        return { ok: false, error: json.error || 'Ошибка входа' }
+      }
+
+      if (json.data?.require2fa) {
         return { ok: true, require2fa: true }
       }
-      setUser(json.data as User)
-    }
 
-    return { ok: json.ok, error: json.error, require2fa: json.data?.require2fa }
+      if (json.data) {
+        setUser(json.data as User)
+      }
+
+      return { ok: true }
+    } catch {
+      return { ok: false, error: 'Ошибка сети. Проверьте подключение.' }
+    }
   }, [])
 
   const register = React.useCallback(async (email: string, password: string, name: string) => {
@@ -72,8 +81,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const logout = React.useCallback(async () => {
-    await fetch('/api/auth/logout', { method: 'POST' })
-    setUser(null)
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' })
+    } finally {
+      setUser(null)
+    }
   }, [])
 
   return (

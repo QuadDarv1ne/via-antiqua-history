@@ -105,14 +105,22 @@ export default function ProfilePage() {
 
   const handleLogout = async () => {
     setLoggingOut(true)
-    await logout()
-    router.push('/')
+    try {
+      await logout()
+    } finally {
+      setLoggingOut(false)
+      router.push('/')
+    }
   }
 
-  const copyCode = (code: string, idx: number) => {
-    navigator.clipboard.writeText(code)
-    setCopiedIdx(idx)
-    setTimeout(() => setCopiedIdx(-1), 2000)
+  const copyCode = async (code: string, idx: number) => {
+    try {
+      await navigator.clipboard.writeText(code)
+      setCopiedIdx(idx)
+      setTimeout(() => setCopiedIdx(-1), 2000)
+    } catch {
+      // Clipboard access denied or unavailable
+    }
   }
 
   return (

@@ -92,6 +92,12 @@ function CorinthianCapital() {
   )
 }
 
+const accentColorMap: Record<string, string> = {
+  doric: 'oklch(0.55 0.13 35)',
+  ionic: 'oklch(0.55 0.13 70)',
+  corinthian: 'oklch(0.6 0.1 50)',
+}
+
 const capitalMap: Record<string, React.FC> = {
   doric: DoricCapital,
   ionic: IonicCapital,
@@ -137,7 +143,7 @@ export function OrdersSection() {
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {architecturalOrders.map((order, idx) => {
-            const accentColor = ['oklch(0.55 0.13 35)', 'oklch(0.55 0.13 70)', 'oklch(0.6 0.1 50)'][idx]
+            const accentColor = accentColorMap[order.id] ?? 'oklch(0.5 0.12 50)'
             return (
               <motion.button
                 key={order.id}

@@ -95,7 +95,7 @@ export function ComparisonSection() {
                       idx % 2 === 0 ? 'bg-card/50' : 'bg-card'
                     )}
                   >
-                    <td className="p-3 sm:p-4 font-medium sticky left-0 bg-inherit z-10 text-xs sm:text-sm">
+                    <td className="p-3 sm:p-4 font-medium sticky left-0 bg-card z-10 text-xs sm:text-sm">
                       {row.criterion}
                     </td>
                     {columns.map((col) => (

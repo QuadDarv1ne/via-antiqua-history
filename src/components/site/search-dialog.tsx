@@ -174,6 +174,11 @@ export function SearchDialog({
             onKeyDown={onKeyDown}
             placeholder="Поиск по городам, памятникам, терминам…"
             className="border-0 focus-visible:ring-0 h-12 sm:h-14 text-sm sm:text-base"
+            role="combobox"
+            aria-expanded={query.trim().length > 0 && results.length > 0}
+            aria-controls="search-results-list"
+            aria-activedescendant={results.length > 0 ? `search-result-${activeIdx}` : undefined}
+            aria-label="Поиск по сайту"
           />
           <kbd className="hidden sm:inline-flex items-center gap-1 px-2 py-1 text-xs rounded border border-border bg-muted/40 text-muted-foreground shrink-0">
             ESC
@@ -214,12 +219,16 @@ export function SearchDialog({
                 <div className="px-3 py-2 text-xs text-muted-foreground">
                   Найдено результатов: {results.length}
                 </div>
-                {results.map((r, i) => {
+                <div id="search-results-list" role="listbox" aria-label="Результаты поиска">
+                  {results.map((r, i) => {
                   const color = REGION_COLORS[r.region] || REGION_COLORS.general
                   return (
                     <button
                       type="button"
                       key={i}
+                      id={`search-result-${i}`}
+                      role="option"
+                      aria-selected={activeIdx === i}
                       onClick={() => handleSelect(r)}
                       onMouseEnter={() => setActiveIdx(i)}
                       className={cn(
@@ -255,6 +264,7 @@ export function SearchDialog({
                     </button>
                   )
                 })}
+                </div>
               </>
             )}
           </div>

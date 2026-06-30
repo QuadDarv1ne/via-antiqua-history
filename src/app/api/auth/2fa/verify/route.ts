@@ -31,7 +31,12 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const recoveryCodes = JSON.parse((user.recovery_codes as string) || '[]') as string[]
+    let recoveryCodes: string[] = []
+    try {
+      recoveryCodes = JSON.parse((user.recovery_codes as string) || '[]')
+    } catch {
+      return NextResponse.json<ApiResponse>({ ok: false, error: 'Неверный код' }, { status: 401 })
+    }
     const idx = recoveryCodes.indexOf(code)
     if (idx !== -1) {
       recoveryCodes.splice(idx, 1)
@@ -48,7 +53,6 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE() {
   try {
-    const { getSession } = await import('@/lib/auth/utils')
     const session = await getSession()
     if (!session) {
       return NextResponse.json<ApiResponse>({ ok: false, error: 'Не авторизован' }, { status: 401 })

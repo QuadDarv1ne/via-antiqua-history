@@ -13,6 +13,7 @@ import {
   BookmarksFloatingButton,
   BookmarksDialog,
 } from '@/components/site/bookmarks'
+import { ErrorBoundary } from '@/components/ui/error-boundary'
 import { greece, rome, mesopotamia, kuban } from '@/lib/history-data'
 
 const PersonsSection = dynamic(() =>
@@ -56,64 +57,69 @@ export default function Home() {
         <ReadingProgress />
         <Navbar />
         <main id="main-content" role="main" className="flex-1">
-          <Hero />
-          <SectionDivider />
+          <ErrorBoundary>
+            <Hero />
+            <SectionDivider />
 
-          {/* Раздел: Древняя Греция */}
-          <RegionSection region={greece} />
-          <SectionDivider />
+            {/* Раздел: Древняя Греция */}
+            <RegionSection region={greece} />
+            <SectionDivider />
 
-          {/* Раздел: Римская империя */}
-          <RegionSection region={rome} restricted />
+            {/* Раздел: Римская империя */}
+            <RegionSection region={rome} restricted />
+            <SectionDivider />
 
-          {/* Раздел: Месопотамия */}
-          <RegionSection region={mesopotamia} restricted />
+            {/* Раздел: Месопотамия */}
+            <RegionSection region={mesopotamia} restricted />
+            <SectionDivider />
 
-          {/* Раздел: Кубань */}
-          <RegionSection region={kuban} />
+            {/* Раздел: Кубань */}
+            <RegionSection region={kuban} />
+            <SectionDivider />
 
-          {/* Ключевые персоналии */}
-          <PersonsSection />
+            {/* Ключевые персоналии */}
+            <PersonsSection />
 
-          {/* Семь чудес света */}
-          <WondersSection />
+            {/* Семь чудес света */}
+            <WondersSection />
 
-          {/* Архитектурные ордера */}
-          <ContentGate title="Архитектурные ордера" subtitle="Дорийский, ионический и коринфский — система пропорций, определившая облик античной архитектуры.">
-            <OrdersSection />
-          </ContentGate>
+            {/* Архитектурные ордера */}
+            <ContentGate title="Архитектурные ордера" subtitle="Дорийский, ионический и коринфский — система пропорций, определившая облик античной архитектуры.">
+              <OrdersSection />
+            </ContentGate>
 
-          {/* Исторические эпохи */}
-          <ContentGate title="Исторические эпохи" subtitle="Восемь ключевых эпох — от шумерских городов до падения Константинополя.">
-            <EpochsSection />
-          </ContentGate>
+            {/* Исторические эпохи */}
+            <ContentGate title="Исторические эпохи" subtitle="Восемь ключевых эпох — от шумерских городов до падения Константинополя.">
+              <EpochsSection />
+            </ContentGate>
 
-          {/* Интерактивная лента времени */}
-          <TimelineSection />
+            {/* Интерактивная лента времени */}
+            <TimelineSection />
 
-          {/* Интерактивная карта */}
-          <ContentGate title="Интерактивная карта" subtitle="Нажмите на город, чтобы узнать о нём больше. Используйте фильтры для подсветки регионов.">
-            <MapSection />
-          </ContentGate>
+            {/* Интерактивная карта */}
+            <ContentGate title="Интерактивная карта" subtitle="Нажмите на город, чтобы узнать о нём больше. Используйте фильтры для подсветки регионов.">
+              <MapSection />
+            </ContentGate>
 
-          {/* Сравнительная таблица цивилизаций */}
-          <ContentGate title="Сравнение цивилизаций" subtitle="Сопоставление Древней Греции, Рима, Месопотамии и Кубани по восьми ключевым параметрам.">
-            <ComparisonSection />
-          </ContentGate>
+            {/* Сравнительная таблица цивилизаций */}
+            <ContentGate title="Сравнение цивилизаций" subtitle="Сопоставление Древней Греции, Рима, Месопотамии и Кубани по восьми ключевым параметрам.">
+              <ComparisonSection />
+            </ContentGate>
 
-          {/* Авторский раздел: исторический анализ */}
-          <ContentGate title="Исторический анализ" subtitle="Авторские размышления о связях между цивилизациями и их влиянии на современный мир.">
-            <AnalysisSection />
-          </ContentGate>
+            {/* Авторский раздел: исторический анализ */}
+            <ContentGate title="Исторический анализ" subtitle="Авторские размышления о связях между цивилизациями и их влиянии на современный мир.">
+              <AnalysisSection />
+            </ContentGate>
 
-          {/* Глоссарий ключевых терминов */}
-          <GlossarySection />
+            {/* Глоссарий ключевых терминов */}
+            <GlossarySection />
 
-          {/* Интерактивный квиз */}
-          <QuizSection />
+            {/* Интерактивный квиз */}
+            <QuizSection />
 
-          {/* Источники и ссылки */}
-          <SourcesSection />
+            {/* Источники и ссылки */}
+            <SourcesSection />
+          </ErrorBoundary>
         </main>
         <Footer />
         <BookmarksFloatingButtonWithDialog />

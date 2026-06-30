@@ -19,8 +19,6 @@ export function TimelineSection() {
   const [autoPlay, setAutoPlay] = React.useState(false)
   const sectionRef = React.useRef<HTMLElement>(null)
   const autoPlayRef = React.useRef<ReturnType<typeof setInterval> | undefined>(undefined)
-  const event = allTimeline[activeIdx]
-
   const go = React.useCallback((dir: 1 | -1) => {
     setAutoPlay(false)
     setActiveIdx((cur) =>
@@ -61,26 +59,37 @@ export function TimelineSection() {
   // Keyboard navigation когда секция в видимости
   React.useEffect(() => {
     if (!isInView) return
+    const el = sectionRef.current
+    if (!el) return
     const onKey = (e: KeyboardEvent) => {
       const active = document.activeElement
       if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) return
       if (e.key === 'ArrowLeft') {
         e.preventDefault()
-        go(-1)
+        setActiveIdx((cur) => Math.max(0, cur - 1))
       } else if (e.key === 'ArrowRight') {
         e.preventDefault()
-        go(1)
+        setActiveIdx((cur) => Math.min(allTimeline.length - 1, cur + 1))
       }
     }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [isInView, go])
+    el.addEventListener('keydown', onKey)
+    return () => el.removeEventListener('keydown', onKey)
+  }, [isInView])
+
+  if (!allTimeline.length) {
+    return null
+  }
+
+  const event = allTimeline[activeIdx]
 
   return (
     <section
       id="timeline"
       ref={sectionRef}
-      className="py-20 md:py-28 scroll-mt-20"
+      tabIndex={0}
+      role="region"
+      aria-label="Лента времени"
+      className="py-20 md:py-28 scroll-mt-20 outline-none"
     >
       <div className="container mx-auto max-w-7xl px-4">
         <motion.div
@@ -116,6 +125,7 @@ export function TimelineSection() {
                   key={i}
                   onClick={() => { setAutoPlay(false); setActiveIdx(i) }}
                   aria-label={`Событие: ${ev.yearLabel}`}
+                  aria-current={activeIdx === i ? 'true' : undefined}
                   className={cn(
                     'group relative flex flex-col items-stretch transition-all',
                     'min-w-[110px] sm:min-w-[150px] md:min-w-[190px]'

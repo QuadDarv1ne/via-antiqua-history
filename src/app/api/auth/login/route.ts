@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     if (user.totp_enabled) {
       if (!totpCode) {
         return NextResponse.json<ApiResponse>({
-          ok: false, error: '2fa_required',
+          ok: true,
           data: { require2fa: true },
         }, { status: 200 })
       }
@@ -49,6 +49,7 @@ export async function POST(req: NextRequest) {
         name: user.name,
         emailVerified: user.email_verified,
         totpEnabled: user.totp_enabled,
+        createdAt: user.created_at,
       },
     })
   } catch (err) {

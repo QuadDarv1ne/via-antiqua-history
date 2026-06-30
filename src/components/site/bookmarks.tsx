@@ -81,11 +81,9 @@ export function BookmarksProvider({ children }: { children: React.ReactNode }) {
                 localIds.set(s.id, s)
               }
             }
-            const merged = [...localIds.values()]
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(merged))
-            return merged
+            return [...localIds.values()]
           })
-          setTimeout(() => { syncRef.current = false }, 100)
+          requestAnimationFrame(() => { syncRef.current = false })
         }
       } catch {
         // Silent fail — bookmarks sync is best-effort

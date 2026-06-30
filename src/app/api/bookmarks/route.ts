@@ -28,9 +28,19 @@ export async function PUT(req: NextRequest) {
     }
 
     const { bookmarks } = await req.json()
-    if (!Array.isArray(bookmarks)) {
+    if (!Array.isArray(bookmarks) || bookmarks.length > 200) {
       return NextResponse.json<ApiResponse>({ ok: false, error: 'Некорректные данные' }, { status: 400 })
     }
+
+    const VALID_TYPES = ['city', 'landmark', 'term', 'person', 'map-city', 'order']
+    const sanitized = bookmarks.map((b: Record<string, unknown>) => ({
+      id: String(b.id || '').slice(0, 100),
+      type: VALID_TYPES.includes(String(b.type)) ? String(b.type) : 'term',
+      title: String(b.title || '').slice(0, 200),
+      subtitle: String(b.subtitle || '').slice(0, 500),
+      href: String(b.href || '').slice(0, 100),
+      region: String(b.region || '').slice(0, 50),
+    }))
 
     const db = getDb()
     const upsert = db.prepare(`
@@ -42,17 +52,17 @@ export async function PUT(req: NextRequest) {
 
     const current = db.prepare('SELECT id FROM bookmarks WHERE user_id = ?').all(session.userId) as { id: string }[]
     const currentIds = new Set(current.map((r) => r.id))
-    const newIds = new Set(bookmarks.map((b: { id: string }) => b.id))
+    const newIds = new Set(sanitized.map((b) => b.id))
 
     const toRemove = [...currentIds].filter((id) => !newIds.has(id))
-    const toAdd = bookmarks.filter((b: { id: string }) => !currentIds.has(b.id))
+    const toAdd = sanitized.filter((b) => !currentIds.has(b.id))
 
     const tx = db.transaction(() => {
       for (const id of toRemove) {
         remove.run(session.userId, id)
       }
       for (const b of toAdd) {
-        upsert.run(b.id, session.userId, b.type || '', b.title || '', b.subtitle || '', b.href || '', b.region || '')
+        upsert.run(b.id, session.userId, b.type, b.title, b.subtitle, b.href, b.region)
       }
     })
     tx()

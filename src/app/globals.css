@@ -84,10 +84,10 @@
 
 @layer utilities {
   .font-display {
-    font-family: "Cormorant Garamond", Georgia, 'Times New Roman', serif;
+    font-family: var(--font-cormorant), "Cormorant Garamond", Georgia, 'Times New Roman', serif;
   }
   .font-body {
-    font-family: "EB Garamond", Georgia, serif;
+    font-family: var(--font-eb-garamond), "EB Garamond", Georgia, serif;
   }
   /* Parchment texture overlay */
   .parchment-bg {

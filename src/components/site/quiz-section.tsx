@@ -34,29 +34,43 @@ export function QuizSection() {
   const isAnswered = selected !== null
   const isCorrect = selected === q.correct
 
-  const select = (i: number) => {
-    if (isAnswered) return
+  const select = React.useCallback((i: number) => {
+    if (selected !== null) return
     setSelected(i)
-    const updated = [...answers]
-    updated[current] = i
-    setAnswers(updated)
-  }
+    setAnswers((prev) => {
+      const updated = [...prev]
+      updated[current] = i
+      return updated
+    })
+  }, [selected, current])
 
-  const goNext = () => {
+  const goNext = React.useCallback(() => {
     if (current + 1 >= quizQuestions.length) {
       setFinished(true)
     } else {
-      setCurrent((c) => c + 1)
-      setSelected(answers[current + 1] ?? null)
+      setCurrent((c) => {
+        const next = c + 1
+        setAnswers((prev) => {
+          setSelected(prev[next] ?? null)
+          return prev
+        })
+        return next
+      })
     }
-  }
+  }, [current])
 
-  const goPrev = () => {
+  const goPrev = React.useCallback(() => {
     if (current > 0) {
-      setCurrent((c) => c - 1)
-      setSelected(answers[current - 1] ?? null)
+      setCurrent((c) => {
+        const prev = c - 1
+        setAnswers((answers) => {
+          setSelected(answers[prev] ?? null)
+          return answers
+        })
+        return prev
+      })
     }
-  }
+  }, [current])
 
   // Keyboard navigation: 1-4 to answer, Enter/ArrowRight for next, ArrowLeft for prev
   React.useEffect(() => {
@@ -84,7 +98,7 @@ export function QuizSection() {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [current, isAnswered, finished, q, answers]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [current, isAnswered, finished, q.options.length, select, goNext, goPrev])
 
   const reset = () => {
     setCurrent(0)

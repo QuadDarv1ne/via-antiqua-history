@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json<ApiResponse>({
       ok: true,
-      data: { id, email: email.toLowerCase(), name },
+      data: { id, email: email.toLowerCase(), name, createdAt: new Date().toISOString() },
     })
   } catch (err) {
     console.error('Register error:', err)

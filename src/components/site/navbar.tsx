@@ -69,10 +69,18 @@ export function Navbar() {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
-  const isActive = (href: string) => {
-    const section = href.substring(1)
-    return activeSection === section
-  }
+  const isActive = React.useCallback((href: string) => {
+    return activeSection === href.substring(1)
+  }, [activeSection])
+
+  const toggleTheme = React.useCallback(() => {
+    if (theme === 'system') {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+      setTheme(prefersDark ? 'light' : 'dark')
+    } else {
+      setTheme(theme === 'dark' ? 'light' : 'dark')
+    }
+  }, [theme, setTheme])
 
   return (
     <header
@@ -112,14 +120,7 @@ export function Navbar() {
               variant="ghost"
               size="icon"
               className="hidden sm:inline-flex h-8 w-8"
-              onClick={() => {
-                if (theme === 'system') {
-                  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-                  setTheme(prefersDark ? 'light' : 'dark')
-                } else {
-                  setTheme(theme === 'dark' ? 'light' : 'dark')
-                }
-              }}
+              onClick={toggleTheme}
               aria-label="Переключить тему"
             >
               {mounted &&
@@ -150,7 +151,7 @@ export function Navbar() {
         </div>
 
         {/* Row 2: Navigation (desktop only) */}
-        <div className="hidden lg:flex items-center gap-x-0 flex-wrap justify-center pb-1.5 pt-px border-t border-border/30">
+        <nav className="hidden lg:flex items-center gap-x-0 flex-wrap justify-center pb-1.5 pt-px border-t border-border/30" aria-label="Основная навигация">
           {(user ? SITE_NAV : PUBLIC_NAV).map((item) => (
             <Link
               key={item.href}
@@ -173,7 +174,7 @@ export function Navbar() {
               Войти →
             </Link>
           )}
-        </div>
+        </nav>
       </div>
 
       <AnimatePresence>
@@ -186,6 +187,7 @@ export function Navbar() {
             className="lg:hidden border-t border-border/50 bg-background/95 backdrop-blur-xl overflow-hidden"
           >
             <div className="container mx-auto max-w-7xl px-3 py-3 flex flex-col gap-px">
+              <nav aria-label="Мобильная навигация">
               {(user ? SITE_NAV : PUBLIC_NAV).map((item) => (
                 <Link
                   key={item.href}
@@ -220,6 +222,7 @@ export function Navbar() {
                   Профиль
                 </Link>
               )}
+              </nav>
               <div className="my-2 border-t border-border/40" />
               <div className="grid grid-cols-2 gap-1.5 px-1">
                 <Button
@@ -234,14 +237,7 @@ export function Navbar() {
                   variant="ghost"
                   size="sm"
                   className="justify-start gap-2 h-9 text-sm"
-                  onClick={() => {
-                    if (theme === 'system') {
-                      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-                      setTheme(prefersDark ? 'light' : 'dark')
-                    } else {
-                      setTheme(theme === 'dark' ? 'light' : 'dark')
-                    }
-                  }}
+                  onClick={toggleTheme}
                 >
                   {mounted && (theme === 'dark' ? <><Sun className="h-4 w-4" /> Свет</> : <><Moon className="h-4 w-4" /> Тёмный</>)}
                 </Button>

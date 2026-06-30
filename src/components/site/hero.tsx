@@ -16,6 +16,8 @@ const regionChips = [
   { label: 'Кубань', color: REGION_COLORS.kuban },
 ]
 
+const sectionIds = ['#greece', '#rome', '#mesopotamia', '#kuban']
+
 export function Hero() {
   const { scrollY } = useScroll()
   const parallaxY1 = useTransform(scrollY, [0, 500], [0, -80])
@@ -150,7 +152,6 @@ export function Hero() {
             className="flex flex-wrap gap-1.5 sm:gap-2"
           >
             {regionChips.map((chip, i) => {
-              const sectionIds = ['#greece', '#rome', '#mesopotamia', '#kuban']
               return (
                 <Link
                   key={chip.label}

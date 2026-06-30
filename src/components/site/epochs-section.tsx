@@ -57,7 +57,7 @@ export function EpochsSection() {
                   viewport={{ once: true, margin: '-80px' }}
                   transition={{ duration: 0.5 }}
                   className={cn(
-                    'relative flex flex-col md:flex-row gap-4',
+                    'relative flex flex-col gap-4',
                     isLeft ? 'md:flex-row' : 'md:flex-row-reverse'
                   )}
                 >
@@ -105,7 +105,7 @@ export function EpochsSection() {
                       <ul className="space-y-1 text-xs sm:text-sm text-muted-foreground">
                         {epoch.highlights.map((h, i) => (
                           <li key={i} className="flex items-start gap-1.5">
-                            <span className="text-primary shrink-0">•</span>
+                            <span className="text-primary shrink-0" aria-hidden="true">•</span>
                             <span>{h}</span>
                           </li>
                         ))}

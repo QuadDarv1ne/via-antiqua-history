@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://via-antiqua-history.vercel.app/sitemap.xml

@@ -26,12 +26,16 @@ const regionIconMap: Record<string, React.ReactNode> = {
 }
 
 export function RegionSection({ region, restricted }: { region: Region; restricted?: boolean }) {
-  const [activeCityId, setActiveCityId] = React.useState(region.cities[0].id)
+  const [activeCityId, setActiveCityId] = React.useState(region.cities[0]?.id)
   const [activeLandmark, setActiveLandmark] = React.useState<Landmark | null>(
     null
   )
   const activeCity = region.cities.find((c) => c.id === activeCityId) ?? region.cities[0]
   const { user } = useAuth()
+
+  if (!region.cities.length) {
+    return null
+  }
 
   return (
     <section
