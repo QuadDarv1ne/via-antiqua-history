@@ -69,10 +69,9 @@ export function Navbar() {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
-  const isActive = (href: string) => {
-    const section = href.substring(1)
-    return activeSection === section
-  }
+  const isActive = React.useCallback((href: string) => {
+    return activeSection === href.substring(1)
+  }, [activeSection])
 
   return (
     <header
