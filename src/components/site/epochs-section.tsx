@@ -4,7 +4,7 @@ import * as React from 'react'
 import { motion } from 'framer-motion'
 import { Hourglass } from 'lucide-react'
 import { epochs } from '@/lib/history-data'
-import { cn } from '@/lib/utils'
+import { cn, withAlpha } from '@/lib/utils'
 import { REGION_COLORS, REGION_LABELS } from '@/lib/constants'
 
 export function EpochsSection() {
@@ -23,18 +23,18 @@ export function EpochsSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-100px' }}
           transition={{ duration: 0.6 }}
-          className="mb-10 text-center"
+          className="mb-6 sm:mb-8 md:mb-10 text-center"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/30 bg-primary/5 mb-4">
+          <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-full border border-primary/30 bg-primary/5 mb-3 sm:mb-4">
             <Hourglass className="h-3.5 w-3.5 text-primary" />
-            <span className="text-xs uppercase tracking-widest font-medium">
+            <span className="text-[10px] sm:text-xs uppercase tracking-widest font-medium">
               Исторические эпохи
             </span>
           </div>
-          <h2 className="font-display text-3xl md:text-5xl font-semibold mb-4">
+          <h2 className="font-display text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold mb-3 sm:mb-4">
             Карта эпох античности
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
             Восемь ключевых эпох — от шумерских городов до падения
             Константинополя. Цветными метками отмечены регионы, затронутые
             каждой эпохой.
@@ -44,9 +44,9 @@ export function EpochsSection() {
         {/* Таймлайн эпох */}
         <div className="relative">
           {/* Вертикальная линия */}
-          <div className="absolute left-4 md:left-1/2 top-0 bottom-0 w-px bg-border md:-translate-x-1/2" />
+          <div className="absolute left-[19px] md:left-1/2 top-0 bottom-0 w-px bg-border md:-translate-x-1/2" />
 
-          <div className="space-y-8">
+          <div className="space-y-6 md:space-y-8">
             {epochs.map((epoch, idx) => {
               const isLeft = idx % 2 === 0
               return (
@@ -62,18 +62,18 @@ export function EpochsSection() {
                   )}
                 >
                   {/* Точка на линии */}
-                  <div className="absolute left-4 md:left-1/2 top-6 -translate-x-1/2 z-10">
-                    <span className="block h-4 w-4 rounded-full bg-primary border-2 border-background shadow-md" />
+                  <div className="absolute left-[19px] md:left-1/2 top-5 -translate-x-1/2 z-10">
+                    <span className="block h-3.5 w-3.5 sm:h-4 sm:w-4 rounded-full bg-primary border-2 border-background shadow-md" />
                   </div>
 
                   {/* Карточка эпохи */}
                   <div className="ml-10 md:ml-0 md:w-1/2 md:px-8">
-                    <div className="rounded-lg border border-border bg-card p-5">
+                    <div className="rounded-lg border border-border bg-card p-4 sm:p-5">
                       <div className="flex flex-wrap items-start justify-between gap-2 mb-2">
-                        <h3 className="font-display text-lg sm:text-xl font-semibold leading-tight">
+                        <h3 className="font-display text-base sm:text-lg md:text-xl font-semibold leading-tight">
                           {epoch.name}
                         </h3>
-                        <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                        <span className="text-[11px] sm:text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full shrink-0">
                           {epoch.period}
                         </span>
                       </div>
@@ -88,7 +88,7 @@ export function EpochsSection() {
                             key={r}
                             className="inline-flex items-center gap-1 text-[11px] sm:text-xs font-medium px-2 py-0.5 rounded-full"
                             style={{
-                              backgroundColor: `oklch(from ${REGION_COLORS[r]} l c h / 0.12)`,
+                              backgroundColor: withAlpha(REGION_COLORS[r], 0.12),
                               color: REGION_COLORS[r],
                             }}
                           >
@@ -102,10 +102,10 @@ export function EpochsSection() {
                       </div>
 
                       {/* Highlights */}
-                      <ul className="space-y-1 text-xs text-muted-foreground">
+                      <ul className="space-y-1 text-xs sm:text-sm text-muted-foreground">
                         {epoch.highlights.map((h, i) => (
                           <li key={i} className="flex items-start gap-1.5">
-                            <span className="text-primary">•</span>
+                            <span className="text-primary shrink-0">•</span>
                             <span>{h}</span>
                           </li>
                         ))}

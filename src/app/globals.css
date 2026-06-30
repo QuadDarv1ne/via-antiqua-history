@@ -84,10 +84,10 @@
 
 @layer utilities {
   .font-display {
-    font-family: var(--font-cormorant), Georgia, 'Times New Roman', serif;
+    font-family: "Cormorant Garamond", Georgia, 'Times New Roman', serif;
   }
   .font-body {
-    font-family: var(--font-eb-garamond), Georgia, serif;
+    font-family: "EB Garamond", Georgia, serif;
   }
   /* Parchment texture overlay */
   .parchment-bg {
@@ -131,7 +131,7 @@
 
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: 5rem;
+  scroll-padding-top: 7rem;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -151,6 +151,7 @@ html {
   outline: 2px solid var(--ring);
   outline-offset: 2px;
   border-radius: 4px;
+  opacity: 1;
 }
 
 /* Skip to content link for accessibility */
@@ -168,7 +169,7 @@ html {
   transition: top 0.2s;
 }
 
-.skip-link:focus {
+.skip-link:focus-visible {
   top: 0;
 }
 

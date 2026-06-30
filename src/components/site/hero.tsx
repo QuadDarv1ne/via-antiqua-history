@@ -1,8 +1,8 @@
 'use client'
 
 import * as React from 'react'
-import { motion } from 'framer-motion'
-import { ChevronDown, BookOpen, Map as MapIcon, Sparkles, Landmark, Building2, Calendar, Users, ExternalLink } from 'lucide-react'
+import { motion, useScroll, useTransform } from 'framer-motion'
+import { ChevronDown, BookOpen, Map as MapIcon, Landmark, Building2, Calendar, Users } from 'lucide-react'
 import Link from 'next/link'
 import { allRegions, timeline, persons } from '@/lib/history-data'
 import { useAnimatedCounter } from '@/hooks/use-animated-counter'
@@ -16,6 +16,12 @@ const regionChips = [
 ]
 
 export function Hero() {
+  const { scrollY } = useScroll()
+  const parallaxY1 = useTransform(scrollY, [0, 500], [0, -80])
+  const parallaxY2 = useTransform(scrollY, [0, 500], [0, 60])
+  const parallaxY3 = useTransform(scrollY, [0, 500], [0, -40])
+  const opacity1 = useTransform(scrollY, [0, 300], [1, 0.6])
+
   const citiesCount = allRegions.reduce(
     (acc, r) => acc + r.cities.length,
     0
@@ -26,169 +32,187 @@ export function Hero() {
   )
 
   const stats = [
-    { icon: <Building2 className="h-4 w-4" />, value: citiesCount, label: 'городов' },
-    { icon: <Landmark className="h-4 w-4" />, value: landmarksCount, label: 'памятников' },
-    { icon: <Calendar className="h-4 w-4" />, value: timeline.length, label: 'событий' },
-    { icon: <Users className="h-4 w-4" />, value: persons.length, label: 'персоналий' },
+    { icon: <Building2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />, value: citiesCount, label: 'городов' },
+    { icon: <Landmark className="h-3.5 w-3.5 sm:h-4 sm:w-4" />, value: landmarksCount, label: 'памятников' },
+    { icon: <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4" />, value: timeline.length, label: 'событий' },
+    { icon: <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4" />, value: persons.length, label: 'персоналий' },
   ]
 
   return (
     <section
       id="top"
-      className="relative min-h-screen flex flex-col overflow-hidden parchment-bg pb-8 sm:pb-12"
+      className="relative overflow-hidden parchment-bg"
     >
-      {/* Декоративные круги */}
-      <div className="absolute inset-0 pointer-events-none">
+      {/* Бэкграунд-декорации с параллаксом */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {/* Основное свечение слева вверху */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 0.6, scale: 1 }}
-          transition={{ duration: 1.6 }}
-          className="absolute -top-32 -left-32 h-48 w-48 sm:h-64 sm:w-64 md:h-96 md:w-96 rounded-full"
+          initial={{ opacity: 0, scale: 0.92 }}
+          animate={{ opacity: 0.35, scale: 1 }}
+          transition={{ duration: 1.8 }}
           style={{
-            background:
-              'radial-gradient(circle, oklch(0.7 0.13 60 / 0.22) 0%, transparent 70%)',
+            y: parallaxY1,
+            opacity: opacity1,
+            background: 'radial-gradient(circle, oklch(0.7 0.13 60 / 0.18) 0%, transparent 70%)',
           }}
+          className="absolute -top-48 -left-48 h-[30rem] w-[30rem] rounded-full blur-3xl"
         />
+        {/* Дополнительное свечение справа снизу */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 0.6, scale: 1 }}
-          transition={{ duration: 1.6, delay: 0.2 }}
-          className="absolute -bottom-32 -right-32 h-48 w-48 sm:h-64 sm:w-64 md:h-96 md:w-96 rounded-full"
+          initial={{ opacity: 0, scale: 0.92 }}
+          animate={{ opacity: 0.3, scale: 1 }}
+          transition={{ duration: 1.8, delay: 0.25 }}
           style={{
-            background:
-              'radial-gradient(circle, oklch(0.5 0.12 145 / 0.18) 0%, transparent 70%)',
+            y: parallaxY2,
+            background: 'radial-gradient(circle, oklch(0.5 0.12 145 / 0.12) 0%, transparent 70%)',
           }}
+          className="absolute -bottom-48 -right-48 h-[26rem] w-[26rem] rounded-full blur-3xl"
         />
-        <div className="absolute top-12 sm:top-14 left-0 right-0 meander-border text-primary" />
-        <div className="absolute bottom-24 left-0 right-0 meander-border text-primary" />
+        {/* Центральное мягкое свечение */}
+        <motion.div
+          style={{
+            y: parallaxY3,
+            background: 'radial-gradient(circle, oklch(0.6 0.1 80) 0%, transparent 70%)',
+          }}
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[20rem] w-[20rem] rounded-full blur-2xl opacity-[0.06]"
+        />
+        {/* Декоративные колонны (очень тонкие) */}
+        <div className="absolute right-[8%] top-[15%] h-40 w-px bg-gradient-to-b from-transparent via-primary/5 to-transparent hidden md:block" />
+        <div className="absolute right-[12%] top-[20%] h-32 w-px bg-gradient-to-b from-transparent via-primary/4 to-transparent hidden md:block" />
+        <div className="absolute left-[5%] bottom-[20%] h-28 w-px bg-gradient-to-b from-transparent via-primary/4 to-transparent hidden lg:block" />
+        {/* Нижний разделитель */}
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border/40 to-transparent" />
       </div>
 
-      <div className="h-20 sm:h-24 shrink-0" />
-      <div className="flex-1 flex items-center justify-center relative z-10">
-        <div className="container mx-auto max-w-6xl px-4">
-          <div className="grid lg:grid-cols-[1fr,auto] gap-10 lg:gap-16 items-center">
-            {/* Левая колонка — основной контент */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-            >
-              <h1 className="font-display text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-semibold leading-tight tracking-tight">
-                <span className="block">Исторический Лабиринт</span>
-                <span className="block gold-text mt-2">
-                  От Эллады до Римских Пределов
-                </span>
-              </h1>
-
-              <p className="mt-6 max-w-2xl text-base sm:text-lg text-muted-foreground leading-relaxed font-body">
-                Интерактивная историческая энциклопедия античного мира — Древняя
-                Греция, Римская империя, Месопотамия и Кубань как части единого
-                культурно-экономического пространства. Города, памятники и авторский
-                анализ того, как эти территории тысячелетиями были связаны общими
-                торговыми путями, языком и культурой.
-              </p>
-
-              <div className="mt-6 flex flex-wrap gap-2">
-                {regionChips.map((chip) => (
-                  <span
-                    key={chip.label}
-                    className="px-4 py-2 rounded-full text-sm font-medium border border-border bg-card/60 backdrop-blur-sm flex items-center gap-2"
-                    style={{ color: chip.color }}
-                  >
-                    <span
-                      className="inline-block h-2 w-2 rounded-full"
-                      style={{ backgroundColor: chip.color }}
-                    />
-                    {chip.label}
-                  </span>
-                ))}
-              </div>
-
-              {/* Статистика */}
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.6 }}
-                className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-xl"
-              >
-                {stats.map((s, i) => (
-                  <StatCard key={i} icon={s.icon} value={s.value} label={s.label} />
-                ))}
-              </motion.div>
-
-              <div className="mt-8 flex flex-col sm:flex-row gap-3">
-                <Link
-                  href="#greece"
-                  className="inline-flex items-center justify-center gap-2 h-11 px-6 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium"
-                >
-                  <BookOpen className="h-4 w-4" />
-                  Начать путешествие
-                </Link>
-                <Link
-                  href="#map"
-                  className="inline-flex items-center justify-center gap-2 h-11 px-6 rounded-md border border-border bg-card/60 backdrop-blur-sm hover:bg-accent/10 transition-colors font-medium"
-                >
-                  <MapIcon className="h-4 w-4" />
-                  Открыть карту
-                </Link>
-              </div>
-            </motion.div>
-
-            {/* Правая колонка — автор */}
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.3 }}
-              className="hidden lg:flex flex-col items-center"
-            >
-              <div className="relative mb-4">
-                <div className="w-48 h-48 rounded-2xl overflow-hidden border-2 border-primary/20 shadow-lg">
-                  <img
-                    src="/img/dupley_maxim.jpg"
-                    alt="Дуплей Максим Игоревич"
-                    width={192}
-                    height={192}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-                  <Sparkles className="h-4 w-4 text-primary-foreground" />
-                </div>
-              </div>
-
-              <div className="text-center">
-                <p className="font-display text-lg font-semibold">
-                  Дуплей Максим Игоревич
-                </p>
-                <p className="text-sm text-muted-foreground mt-0.5">
-                  Образовательный ресурс
-                </p>
-                <a
-                  href="https://github.com/QuadDarv1ne"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 mt-3 text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
-                  </svg>
-                  QuadDarv1ne
-                  <ExternalLink className="h-3 w-3" />
-                </a>
-              </div>
-            </motion.div>
+      <div className="relative z-10 container mx-auto max-w-6xl px-4 pt-20 sm:pt-24 md:pt-28 pb-10 sm:pb-14 md:pb-18">
+        {/* Автор — компактная полоса */}
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="mb-5 sm:mb-7"
+        >
+          <div className="inline-flex items-center gap-2 sm:gap-2.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full border border-border/60 bg-card/40 backdrop-blur-sm">
+            <img
+              src="/img/dupley_maxim.jpg"
+              alt="Дуплей Максим Игоревич"
+              width={28}
+              height={28}
+              className="w-6 h-6 sm:w-7 sm:h-7 rounded-full object-cover ring-2 ring-primary/15 shrink-0"
+            />
+            <span className="text-[11px] sm:text-xs font-medium text-foreground/70">
+              Дуплей М.И.
+            </span>
+            <span className="text-border">·</span>
+            <span className="text-[10px] sm:text-[11px] text-muted-foreground/70">
+              Образовательный ресурс
+            </span>
           </div>
+        </motion.div>
 
-          {/* Скролл вниз */}
+        {/* Заголовок */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <h1 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-semibold leading-[1.08] tracking-tight">
+            <span className="block tracking-wide">Исторический Лабиринт</span>
+            <span className="relative inline-block mt-1 sm:mt-1.5">
+              <span className="block gold-text text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-normal">
+                От Эллады до Римских Пределов
+              </span>
+              <span className="absolute -bottom-1.5 sm:-bottom-2 left-0 right-0 h-px bg-gradient-to-r from-primary/30 via-primary/10 to-transparent rounded-full" />
+            </span>
+          </h1>
+        </motion.div>
+
+        {/* Описание */}
+        <motion.p
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="mt-4 sm:mt-5 max-w-2xl text-sm sm:text-base md:text-[17px] text-muted-foreground leading-relaxed font-body"
+        >
+          Интерактивная историческая энциклопедия античного мира — Древняя
+          Греция, Римская империя, Месопотамия и Кубань как части единого
+          культурно-экономического пространства.
+        </motion.p>
+
+        {/* Регионы + статистика + кнопки */}
+        <div className="mt-5 sm:mt-7 flex flex-col gap-4 sm:gap-5">
+          {/* Чипсы регионов */}
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1.4 }}
-            className="mt-12 flex justify-center lg:justify-start"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.2 }}
+            className="flex flex-wrap gap-1.5 sm:gap-2"
           >
-            <ChevronDown className="h-6 w-6 text-muted-foreground animate-bounce" />
+            {regionChips.map((chip, i) => {
+              const sectionIds = ['#greece', '#rome', '#mesopotamia', '#kuban']
+              return (
+                <Link
+                  key={chip.label}
+                  href={sectionIds[i]}
+                  className="group px-3 py-1.5 sm:px-3.5 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-medium border border-border/60 bg-card/40 backdrop-blur-sm flex items-center gap-1.5 hover:border-primary/30 hover:bg-card/70 transition-all duration-200"
+                  style={{ color: chip.color }}
+                >
+                  <span
+                    className="inline-block h-1.5 w-1.5 sm:h-[6px] sm:w-[6px] rounded-full transition-transform group-hover:scale-125"
+                    style={{ backgroundColor: chip.color }}
+                  />
+                  {chip.label}
+                </Link>
+              )
+            })}
+          </motion.div>
+
+          {/* Статистика + кнопки */}
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.3 }}
+            className="flex flex-col sm:flex-row sm:items-end gap-4 sm:gap-6"
+          >
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2">
+              {stats.map((s, i) => (
+                <StatCard key={i} icon={s.icon} value={s.value} label={s.label} />
+              ))}
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-2.5 sm:ml-auto shrink-0">
+              <Link
+                href="#greece"
+                className="group inline-flex items-center justify-center gap-2 h-9 sm:h-10 px-4 sm:px-5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 font-medium text-[13px] sm:text-sm shadow-sm shadow-primary/20"
+              >
+                <BookOpen className="h-3.5 w-3.5 transition-transform group-hover:-rotate-6" />
+                Начать путешествие
+              </Link>
+              <Link
+                href="#map"
+                className="inline-flex items-center justify-center gap-2 h-9 sm:h-10 px-4 sm:px-5 rounded-lg border border-border/60 bg-card/40 backdrop-blur-sm hover:bg-card/70 hover:border-border transition-all duration-200 font-medium text-[13px] sm:text-sm"
+              >
+                <MapIcon className="h-3.5 w-3.5" />
+                Открыть карту
+              </Link>
+            </div>
           </motion.div>
         </div>
+
+        {/* Скролл вниз */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1 }}
+          className="mt-10 sm:mt-12 flex justify-center"
+        >
+          <motion.div
+            animate={{ y: [0, 5, 0] }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+          >
+            <ChevronDown className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground/40" aria-hidden="true" />
+          </motion.div>
+        </motion.div>
       </div>
     </section>
   )
@@ -204,15 +228,25 @@ function StatCard({
   label: string
 }) {
   const animatedValue = useAnimatedCounter(value, 1400)
+  const [hovered, setHovered] = React.useState(false)
   return (
-    <div className="rounded-lg border border-border bg-card/60 backdrop-blur-sm px-3 py-3">
-      <div className="flex items-center justify-center gap-1.5 text-primary mb-1">
+    <motion.div
+      whileHover={{ y: -2, scale: 1.03 }}
+      onHoverStart={() => setHovered(true)}
+      onHoverEnd={() => setHovered(false)}
+      className="rounded-lg border border-border/50 bg-card/40 backdrop-blur-sm px-2 sm:px-2.5 py-1.5 sm:py-2 text-center transition-shadow duration-200 cursor-default"
+    >
+      <motion.div
+        className="flex items-center justify-center gap-1 text-primary/80 mb-px"
+        animate={hovered ? { scale: 1.08 } : { scale: 1 }}
+        transition={{ duration: 0.2 }}
+      >
         {icon}
-        <span className="font-display text-2xl md:text-3xl font-bold gold-text tabular-nums">
+        <span className="font-display text-base sm:text-lg md:text-xl font-bold gold-text tabular-nums">
           {animatedValue}
         </span>
-      </div>
-      <div className="text-xs text-muted-foreground">{label}</div>
-    </div>
+      </motion.div>
+      <div className="text-[9px] sm:text-[10px] text-muted-foreground/60 text-center">{label}</div>
+    </motion.div>
   )
 }

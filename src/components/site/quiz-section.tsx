@@ -4,7 +4,7 @@ import * as React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Brain, CheckCircle2, XCircle, RotateCcw, Trophy } from 'lucide-react'
 import { quizQuestions } from '@/lib/history-data'
-import { cn } from '@/lib/utils'
+import { cn, withAlpha } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { REGION_COLORS, REGION_LABELS } from '@/lib/constants'
@@ -134,22 +134,22 @@ export function QuizSection() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5 }}
-            className="rounded-xl border border-border bg-card p-8 md:p-12 text-center"
+            className="rounded-xl border border-border bg-card p-6 sm:p-8 md:p-10 lg:p-12 text-center"
           >
-            <Trophy className="h-16 w-16 mx-auto mb-4 text-primary" />
-            <h3 className="font-display text-3xl font-semibold mb-3">
+            <Trophy className="h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 mx-auto mb-3 sm:mb-4 text-primary" />
+            <h3 className="font-display text-xl sm:text-2xl md:text-3xl font-semibold mb-2 sm:mb-3">
               Квиз пройден!
             </h3>
-            <p className="text-lg text-muted-foreground mb-6">
+            <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6">
               Вы ответили правильно на
             </p>
-            <div className="font-display text-6xl font-bold gold-text mb-2">
+            <div className="font-display text-4xl sm:text-5xl md:text-6xl font-bold gold-text mb-1 sm:mb-2">
               {correctCount} / {quizQuestions.length}
             </div>
-            <p className="text-2xl font-semibold mb-8">{percent}%</p>
+            <p className="text-xl sm:text-2xl font-semibold mb-6 sm:mb-8">{percent}%</p>
 
             {/* Статистика по регионам */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-6 sm:mb-8">
               {(['greece', 'rome', 'mesopotamia', 'kuban'] as const).map(
                 (key) => {
                   const total = regionStats[key].total
@@ -157,18 +157,18 @@ export function QuizSection() {
                   return (
                     <div
                       key={key}
-                      className="rounded-lg border border-border p-3"
+                      className="rounded-lg border border-border p-2.5 sm:p-3"
                       style={{
-                        backgroundColor: `${REGION_COLORS[key].replace(')', ' / 0.08)')}`,
+                        backgroundColor: withAlpha(REGION_COLORS[key], 0.08),
                       }}
                     >
                       <div
-                        className="text-xs font-medium mb-1"
+                        className="text-[10px] sm:text-xs font-medium mb-0.5 sm:mb-1"
                         style={{ color: REGION_COLORS[key] }}
                       >
                         {REGION_LABELS[key]}
                       </div>
-                      <div className="text-lg font-bold">
+                      <div className="text-base sm:text-lg font-bold">
                         {correct}/{total}
                       </div>
                     </div>
@@ -202,26 +202,26 @@ export function QuizSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-100px' }}
           transition={{ duration: 0.6 }}
-          className="mb-8 text-center"
+          className="mb-6 sm:mb-8 text-center"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/30 bg-primary/5 mb-4">
+          <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-full border border-primary/30 bg-primary/5 mb-3 sm:mb-4">
             <Brain className="h-3.5 w-3.5 text-primary" />
-            <span className="text-xs uppercase tracking-widest font-medium">
+            <span className="text-[10px] sm:text-xs uppercase tracking-widest font-medium">
               Проверка знаний
             </span>
           </div>
-          <h2 className="font-display text-3xl md:text-5xl font-semibold mb-4">
+          <h2 className="font-display text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold mb-3 sm:mb-4">
             Исторический квиз
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
             {quizQuestions.length} вопросов о Греции, Риме, Месопотамии и
             Кубани. Проверьте, насколько хорошо вы усвоили материал.
           </p>
         </motion.div>
 
         {/* Прогресс */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between text-sm mb-2">
+        <div className="mb-5 sm:mb-6">
+          <div className="flex items-center justify-between text-xs sm:text-sm mb-1.5 sm:mb-2">
             <span className="text-muted-foreground">
               Вопрос {current + 1} из {quizQuestions.length}
             </span>
@@ -229,8 +229,8 @@ export function QuizSection() {
               Правильно: {correctCount} / {quizQuestions.length}
             </span>
           </div>
-          <Progress value={progress} className="h-2" />
-          <div className="flex gap-1.5 mt-2 justify-center">
+          <Progress value={progress} className="h-1.5 sm:h-2" />
+          <div className="flex gap-1 mt-1.5 sm:mt-2 justify-center">
             {quizQuestions.map((_, i) => {
               const a = answers[i]
               const isCorrect_q = a !== null && a === quizQuestions[i].correct
@@ -245,8 +245,8 @@ export function QuizSection() {
                     }
                   }}
                   className={cn(
-                    'h-2 rounded-full transition-all cursor-pointer',
-                    i === current ? 'w-6 bg-primary' : 'w-2',
+                    'h-1.5 sm:h-2 rounded-full transition-all cursor-pointer',
+                    i === current ? 'w-5 sm:w-6 bg-primary' : 'w-1.5 sm:w-2',
                     a === null ? 'bg-border' : isCorrect_q ? 'bg-green-500' : 'bg-red-400'
                   )}
                   aria-label={`Вопрос ${i + 1}${a !== null ? (isCorrect_q ? ', верно' : ', неверно') : ', не отвечен'}`}
@@ -263,13 +263,13 @@ export function QuizSection() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.3 }}
-            className="rounded-xl border border-border bg-card p-6 md:p-8"
+            className="rounded-xl border border-border bg-card p-4 sm:p-5 md:p-6 lg:p-8"
           >
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
               <span
-                className="text-xs uppercase tracking-widest font-medium px-2 py-1 rounded-full"
+                className="text-[10px] sm:text-xs uppercase tracking-widest font-medium px-2 py-1 rounded-full"
                 style={{
-                  backgroundColor: `${REGION_COLORS[q.region].replace(')', ' / 0.12)')}`,
+                  backgroundColor: withAlpha(REGION_COLORS[q.region], 0.12),
                   color: REGION_COLORS[q.region],
                 }}
               >
@@ -282,7 +282,7 @@ export function QuizSection() {
               )}
             </div>
 
-            <h3 className="font-display text-xl md:text-2xl font-semibold mb-6 leading-snug">
+            <h3 className="font-display text-base sm:text-lg md:text-xl lg:text-2xl font-semibold mb-4 sm:mb-6 leading-snug">
               {q.question}
             </h3>
 
@@ -297,7 +297,7 @@ export function QuizSection() {
                     onClick={() => select(i)}
                     disabled={isAnswered}
                     className={cn(
-                      'w-full text-left p-4 rounded-lg border transition-all flex items-center gap-3',
+                      'w-full text-left p-3 sm:p-4 rounded-lg border transition-all flex items-center gap-2 sm:gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1',
                       !isAnswered &&
                         'border-border hover:border-primary hover:bg-accent/5 hover:shadow-sm cursor-pointer',
                       showAsCorrect &&
@@ -312,7 +312,7 @@ export function QuizSection() {
                   >
                     <span
                       className={cn(
-                        'flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold border-2',
+                        'flex h-6 w-6 sm:h-7 sm:w-7 shrink-0 items-center justify-center rounded-full text-[11px] sm:text-xs font-bold border-2',
                         !isAnswered && 'border-border',
                         showAsCorrect && 'border-green-500 bg-green-500 text-white',
                         showAsWrong && 'border-red-500 bg-red-500 text-white',
@@ -323,14 +323,14 @@ export function QuizSection() {
                       )}
                     >
                       {showAsCorrect ? (
-                        <CheckCircle2 className="h-4 w-4" />
+                        <CheckCircle2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       ) : showAsWrong ? (
-                        <XCircle className="h-4 w-4" />
+                        <XCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       ) : (
                         String.fromCharCode(65 + i)
                       )}
                     </span>
-                    <span className="text-sm md:text-base flex-1">{opt}</span>
+                    <span className="text-xs sm:text-sm md:text-base flex-1 leading-relaxed">{opt}</span>
                   </motion.button>
                 )
               })}
@@ -340,37 +340,38 @@ export function QuizSection() {
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className={cn(
-                  'mt-4 p-4 rounded-lg border',
-                  isCorrect
-                    ? 'border-green-500/40 bg-green-50 dark:bg-green-950/30'
-                    : 'border-amber-500/40 bg-amber-50 dark:bg-amber-950/30'
-                )}
-              >
-                <p
-                  className={cn(
-                    'text-sm font-semibold mb-1',
-                    isCorrect ? 'text-green-700 dark:text-green-400' : 'text-amber-700 dark:text-amber-400'
-                  )}
-                >
-                  {isCorrect ? '✓ Верно!' : '✗ Не совсем так'}
-                </p>
-                <p className="text-sm text-foreground/85 leading-relaxed">
-                  {q.explanation}
-                </p>
+            className={cn(
+              'mt-3 sm:mt-4 p-3 sm:p-4 rounded-lg border',
+              isCorrect
+                ? 'border-green-500/40 bg-green-50 dark:bg-green-950/30'
+                : 'border-amber-500/40 bg-amber-50 dark:bg-amber-950/30'
+            )}
+          >
+            <p
+              className={cn(
+                'text-xs sm:text-sm font-semibold mb-1',
+                isCorrect ? 'text-green-700 dark:text-green-400' : 'text-amber-700 dark:text-amber-400'
+              )}
+            >
+              {isCorrect ? '✓ Верно!' : '✗ Не совсем так'}
+            </p>
+            <p className="text-xs sm:text-sm text-foreground/85 leading-relaxed">
+              {q.explanation}
+            </p>
               </motion.div>
             )}
 
-            <div className="mt-6 flex justify-between gap-3">
+            <div className="mt-4 sm:mt-6 flex flex-col-reverse sm:flex-row justify-between gap-2 sm:gap-3">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={goPrev}
                 disabled={current === 0}
+                className="flex-1 sm:flex-none"
               >
                 Назад
               </Button>
-              <Button onClick={goNext} disabled={!isAnswered} size="sm">
+              <Button onClick={goNext} disabled={!isAnswered} size="sm" className="flex-1 sm:flex-none">
                 {current + 1 >= quizQuestions.length
                   ? 'Завершить'
                   : 'Следующий вопрос'}

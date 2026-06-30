@@ -23,7 +23,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
               <span className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-primary text-primary-foreground transition-transform group-hover:rotate-12">
                 <Landmark className="h-4 w-4 sm:h-5 sm:w-5" />
               </span>
-              <span className="font-display text-base lg:text-xl font-semibold tracking-wide truncate">
+              <span className="font-display text-sm sm:text-base lg:text-xl font-semibold tracking-wide truncate">
                 Исторический Лабиринт
               </span>
             </Link>

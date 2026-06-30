@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Landmark, Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
+import { cn, passwordStrength } from '@/lib/utils'
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -17,9 +18,21 @@ export default function RegisterPage() {
   const [error, setError] = React.useState('')
   const [loading, setLoading] = React.useState(false)
 
+  const strength = React.useMemo(() => passwordStrength(password), [password])
+
+  const passwordsMatch = confirmPassword.length > 0 && password === confirmPassword
+  const passwordsMismatch = confirmPassword.length > 0 && password !== confirmPassword
+
+  const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+
+    if (!EMAIL_REGEX.test(email)) {
+      setError('Укажите корректный email')
+      return
+    }
 
     if (password.length < 8) {
       setError('Пароль должен быть не менее 8 символов')
@@ -55,7 +68,7 @@ export default function RegisterPage() {
               <Landmark className="h-5 w-5" />
             </span>
           </Link>
-          <h1 className="font-display text-3xl font-semibold">Регистрация</h1>
+          <h1 className="font-display text-2xl sm:text-3xl font-semibold">Регистрация</h1>
           <p className="text-sm text-muted-foreground mt-1">Создайте аккаунт</p>
         </div>
 
@@ -117,6 +130,19 @@ export default function RegisterPage() {
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
+            {password && (
+              <div className="mt-2">
+                <div className="flex gap-1 mb-1">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <div
+                      key={i}
+                      className={`h-1 flex-1 rounded-full transition-colors ${i <= strength.score ? strength.color : 'bg-muted'}`}
+                    />
+                  ))}
+                </div>
+                <p className="text-[11px] text-muted-foreground">{strength.label}</p>
+              </div>
+            )}
           </div>
 
           <div>
@@ -129,8 +155,17 @@ export default function RegisterPage() {
               placeholder="Повторите пароль"
               required
               autoComplete="new-password"
-              className="w-full h-11 px-4 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
+              className={cn(
+                'w-full h-11 px-4 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors',
+                passwordsMismatch ? 'border-destructive' : passwordsMatch ? 'border-green-500' : 'border-border'
+              )}
             />
+            {passwordsMismatch && (
+              <p className="text-[11px] text-destructive mt-1">Пароли не совпадают</p>
+            )}
+            {passwordsMatch && (
+              <p className="text-[11px] text-green-600 dark:text-green-400 mt-1">Пароли совпадают</p>
+            )}
           </div>
 
           <button

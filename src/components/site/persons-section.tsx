@@ -4,7 +4,7 @@ import * as React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Users } from 'lucide-react'
 import { persons, type Person } from '@/lib/history-data'
-import { cn } from '@/lib/utils'
+import { cn, withAlpha } from '@/lib/utils'
 import {
   Dialog,
   DialogContent,
@@ -46,18 +46,18 @@ export function PersonsSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-100px' }}
           transition={{ duration: 0.6 }}
-          className="mb-10 text-center"
+          className="mb-6 sm:mb-8 md:mb-10 text-center"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/30 bg-primary/5 mb-4">
+          <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-full border border-primary/30 bg-primary/5 mb-3 sm:mb-4">
             <Users className="h-3.5 w-3.5 text-primary" />
-            <span className="text-xs uppercase tracking-widest font-medium">
+            <span className="text-[10px] sm:text-xs uppercase tracking-widest font-medium">
               Исторические деятели
             </span>
           </div>
-          <h2 className="font-display text-3xl md:text-5xl font-semibold mb-4">
+          <h2 className="font-display text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold mb-3 sm:mb-4">
             Ключевые персоналии
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
             {persons.length} исторических деятелей, определивших судьбы Греции,
             Рима, Месопотамии и Кубани — от Саргона Древнего до князя Владимира.
             Нажмите на карточку, чтобы прочитать подробную биографию.
@@ -65,14 +65,14 @@ export function PersonsSection() {
         </motion.div>
 
         {/* Фильтры */}
-        <div className="mb-8 flex flex-wrap gap-2 justify-center">
+        <div className="mb-5 sm:mb-6 flex flex-wrap gap-1.5 sm:gap-2 justify-center">
           {filters.map((f) => (
             <button
               type="button"
               key={f.key}
               onClick={() => setFilter(f.key)}
               className={cn(
-                'px-4 py-2 rounded-full text-sm font-medium border transition-all',
+                'px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium border transition-all',
                 filter === f.key
                   ? 'bg-primary text-primary-foreground border-primary'
                   : 'bg-card border-border hover:border-primary/40'
@@ -98,37 +98,37 @@ export function PersonsSection() {
                   transition={{ duration: 0.35, delay: idx * 0.04 }}
                   whileHover={{ y: -4 }}
                   onClick={() => setActive(p)}
-                  className="text-left p-5 rounded-lg border border-border bg-card hover:border-primary hover:shadow-md transition-all"
+                  className="text-left p-4 sm:p-5 rounded-lg border border-border bg-card hover:border-primary hover:shadow-md transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1"
                 >
-                  <div className="flex items-start justify-between gap-2 mb-3">
-                    <div>
-                      <h3 className="font-display text-lg font-semibold leading-tight">
+                  <div className="flex items-start justify-between gap-2 mb-2 sm:mb-3">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-display text-base sm:text-lg font-semibold leading-tight truncate">
                         {p.name}
                       </h3>
                       {p.originalName && (
-                        <p className="text-xs text-muted-foreground italic mt-0.5 font-body">
+                        <p className="text-[11px] sm:text-xs text-muted-foreground italic mt-0.5 font-body">
                           {p.originalName}
                         </p>
                       )}
                     </div>
                     <span
-                      className="shrink-0 inline-block px-2 py-0.5 rounded-full text-[11px] sm:text-xs font-medium"
+                      className="shrink-0 inline-block px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded-full text-[10px] sm:text-xs font-medium"
                       style={{
-                        backgroundColor: `oklch(from ${color} l c h / 0.12)`,
+                        backgroundColor: withAlpha(color, 0.12),
                         color,
                       }}
                     >
                       {REGION_LABELS[p.region]}
                     </span>
                   </div>
-                  <p className="text-xs text-primary font-medium mb-2">{p.era}</p>
-                  <p className="text-xs text-muted-foreground mb-3 italic">
+                  <p className="text-[11px] sm:text-xs text-primary font-medium mb-1.5 sm:mb-2">{p.era}</p>
+                  <p className="text-[11px] sm:text-xs text-muted-foreground mb-2 sm:mb-3 italic">
                     {p.role}
                   </p>
-                  <p className="text-sm text-foreground/80 leading-relaxed line-clamp-3">
+                  <p className="text-xs sm:text-sm text-foreground/80 leading-relaxed line-clamp-3">
                     {p.shortBio}
                   </p>
-                  <span className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-primary">
+                  <span className="mt-2 sm:mt-3 inline-flex items-center gap-1 text-[11px] sm:text-xs font-medium text-primary">
                     Читать биографию →
                   </span>
                 </motion.button>
@@ -140,27 +140,27 @@ export function PersonsSection() {
 
       {/* Модальное окно с биографией */}
       <Dialog open={!!active} onOpenChange={(o) => !o && setActive(null)}>
-        <DialogContent className="max-w-2xl max-h-[90vh]">
-          <DialogHeader>
-            <div className="flex items-start justify-between gap-3 pr-8">
-              <div>
+        <DialogContent className="max-w-2xl max-h-[85vh] sm:max-h-[90vh]">
+          <DialogHeader className="pb-2 sm:pb-3">
+            <div className="flex items-start justify-between gap-2 sm:gap-3 pr-8">
+              <div className="min-w-0 flex-1">
                 {active && (
                   <Badge
                     variant="secondary"
-                    className="mb-2"
+                    className="mb-2 text-[10px] sm:text-xs"
                     style={{
-                      backgroundColor: `oklch(from ${REGION_COLORS[active.region]} l c h / 0.15)`,
+                      backgroundColor: withAlpha(REGION_COLORS[active.region], 0.15),
                       color: REGION_COLORS[active.region],
                     }}
                   >
                     {REGION_LABELS[active.region]} · {active.era}
                   </Badge>
                 )}
-                <DialogTitle className="font-display text-2xl md:text-3xl">
+                <DialogTitle className="font-display text-xl sm:text-2xl md:text-3xl leading-tight">
                   {active?.name}
                 </DialogTitle>
                 {active?.originalName && (
-                  <p className="text-sm text-muted-foreground italic mt-1 font-body">
+                  <p className="text-xs sm:text-sm text-muted-foreground italic mt-0.5 sm:mt-1 font-body">
                     {active.originalName}
                   </p>
                 )}
@@ -178,36 +178,36 @@ export function PersonsSection() {
                 />
               )}
             </div>
-            <DialogDescription className="text-base">
+            <DialogDescription className="text-xs sm:text-base">
               {active?.role}
             </DialogDescription>
           </DialogHeader>
 
-          <ScrollArea className="max-h-[60vh] pr-4">
-            <div className="space-y-5">
-              <p className="text-base leading-relaxed text-foreground/90">
+          <ScrollArea className="max-h-[55vh] sm:max-h-[60vh] pr-3 sm:pr-4">
+            <div className="space-y-4 sm:space-y-5">
+              <p className="text-sm sm:text-base leading-relaxed text-foreground/90">
                 {active?.shortBio}
               </p>
-              <p className="text-base leading-relaxed text-foreground/85">
+              <p className="text-sm sm:text-base leading-relaxed text-foreground/85">
                 {active?.fullBio}
               </p>
 
               {active && (
                 <div>
-                  <h5 className="font-display text-lg font-semibold mb-3 flex items-center gap-2">
+                  <h5 className="font-display text-base sm:text-lg font-semibold mb-2 sm:mb-3 flex items-center gap-2">
                     <span
-                      className="inline-block h-1 w-6 rounded-full"
+                      className="inline-block h-1 w-5 sm:w-6 rounded-full"
                       style={{
                         backgroundColor: REGION_COLORS[active.region],
                       }}
                     />
                     Главные достижения
                   </h5>
-                  <ul className="space-y-2">
+                  <ul className="space-y-1.5 sm:space-y-2">
                     {active.achievements.map((a, i) => (
                       <li
                         key={i}
-                        className="flex items-start gap-2 text-sm leading-relaxed"
+                        className="flex items-start gap-2 text-xs sm:text-sm leading-relaxed"
                       >
                         <span
                           className="mt-1.5 inline-block h-1.5 w-1.5 rounded-full shrink-0"

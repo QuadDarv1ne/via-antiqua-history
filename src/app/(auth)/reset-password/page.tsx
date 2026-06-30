@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 import { Landmark, Eye, EyeOff, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { passwordStrength } from '@/lib/utils'
 
 function ResetPasswordForm() {
   const searchParams = useSearchParams()
@@ -15,6 +16,8 @@ function ResetPasswordForm() {
   const [done, setDone] = React.useState(false)
   const [error, setError] = React.useState('')
   const [loading, setLoading] = React.useState(false)
+
+  const strength = React.useMemo(() => passwordStrength(password), [password])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -54,7 +57,7 @@ function ResetPasswordForm() {
               <CheckCircle2 className="h-7 w-7 text-primary" />
             </span>
           </div>
-          <h1 className="font-display text-3xl font-semibold mb-2">Пароль изменён</h1>
+          <h1 className="font-display text-2xl sm:text-3xl font-semibold mb-2">Пароль изменён</h1>
           <p className="text-sm text-muted-foreground mb-6">Теперь вы можете войти с новым паролем.</p>
           <Link
             href="/login"
@@ -76,7 +79,7 @@ function ResetPasswordForm() {
               <Landmark className="h-5 w-5" />
             </span>
           </Link>
-          <h1 className="font-display text-3xl font-semibold">Новый пароль</h1>
+          <h1 className="font-display text-2xl sm:text-3xl font-semibold">Новый пароль</h1>
           <p className="text-sm text-muted-foreground mt-1">Введите код из письма и новый пароль</p>
         </div>
 
@@ -139,6 +142,19 @@ function ResetPasswordForm() {
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
+            {password && (
+              <div className="mt-2">
+                <div className="flex gap-1 mb-1">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <div
+                      key={i}
+                      className={`h-1 flex-1 rounded-full transition-colors ${i <= strength.score ? strength.color : 'bg-muted'}`}
+                    />
+                  ))}
+                </div>
+                <p className="text-[11px] text-muted-foreground">{strength.label}</p>
+              </div>
+            )}
           </div>
 
           <button

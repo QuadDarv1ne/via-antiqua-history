@@ -2,13 +2,14 @@
 
 import * as React from 'react'
 import Link from 'next/link'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useTheme } from 'next-themes'
 import { Menu, X, Sun, Moon, Landmark, Search, User } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { SearchDialog } from '@/components/site/search-dialog'
-import { SITE_NAV } from '@/lib/constants'
+import { SITE_NAV, PUBLIC_NAV, PROTECTED_NAV } from '@/lib/constants'
 
 export function Navbar() {
   const [open, setOpen] = React.useState(false)
@@ -26,16 +27,15 @@ export function Navbar() {
   React.useEffect(() => {
     let rafId: number | null = null
     let ticking = false
+    const sections = SITE_NAV.map(item => item.href.substring(1))
 
     const onScroll = () => {
       if (!ticking) {
         rafId = requestAnimationFrame(() => {
           setScrolled(window.scrollY > 24)
-          
-          // Determine active section based on scroll position
-          const sections = SITE_NAV.map(item => item.href.substring(1))
+
           const scrollPosition = window.scrollY + 100
-          
+
           for (let i = sections.length - 1; i >= 0; i--) {
             const section = document.getElementById(sections[i])
             if (section && section.offsetTop <= scrollPosition) {
@@ -55,7 +55,6 @@ export function Navbar() {
     }
   }, [])
 
-  // Global hotkeys: Ctrl/Cmd+K → search; Esc → close
   React.useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
@@ -80,125 +79,185 @@ export function Navbar() {
       className={cn(
         'fixed top-0 inset-x-0 z-50 transition-all duration-300',
         scrolled
-          ? 'bg-background/85 backdrop-blur-md border-b border-border shadow-sm'
-          : 'bg-transparent'
+          ? 'bg-background/90 backdrop-blur-xl border-b border-border/50 shadow-[0_1px_3px_rgba(0,0,0,0.04)]'
+          : 'bg-background/60 backdrop-blur-md'
       )}
     >
       <div className="container mx-auto max-w-7xl px-3 sm:px-4">
-        <nav className="flex h-14 sm:h-16 items-center justify-between gap-1 sm:gap-2">
-          <Link href="#top" className="flex items-center gap-1.5 sm:gap-2 group shrink-0">
-            <span className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-primary text-primary-foreground transition-transform group-hover:rotate-12 shrink-0">
-              <Landmark className="h-4 w-4 sm:h-5 sm:w-5" />
+        {/* Row 1: Logo + Actions */}
+        <div className="flex h-12 sm:h-14 items-center justify-between gap-2">
+          <Link href="#top" className="flex items-center gap-2 group shrink-0">
+            <span className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-all duration-200 group-hover:scale-105 shrink-0">
+              <Landmark className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </span>
-            <span className="font-display text-base lg:text-xl font-semibold tracking-wide truncate hidden lg:inline">
+            <span className="font-display text-sm sm:text-base lg:text-lg font-semibold tracking-wide truncate hidden sm:inline">
               Исторический Лабиринт
             </span>
           </Link>
 
-          <div className="hidden lg:flex items-center gap-0.5 flex-1 justify-center">
-            {SITE_NAV.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "px-2 xl:px-3 py-2 text-xs xl:text-sm font-medium rounded-md transition-colors whitespace-nowrap",
-                  isActive(item.href)
-                    ? "text-foreground bg-accent/10 font-semibold"
-                    : "text-foreground/80 hover:text-foreground hover:bg-accent/10"
-                )}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </div>
-
-          <div className="flex items-center gap-0.5 shrink-0">
+          <div className="flex items-center gap-px shrink-0">
             <Button
               variant="ghost"
               size="icon"
-              className="hidden sm:inline-flex h-8 w-8 sm:h-9 sm:w-9"
+              className="h-8 w-8"
               onClick={() => setSearchOpen(true)}
               aria-label="Поиск"
             >
-              <Search className="h-4 w-4 sm:h-5 sm:w-5" />
+              <Search className="h-4 w-4" />
             </Button>
             <Button
               variant="ghost"
               size="icon"
-              className="hidden sm:inline-flex h-8 w-8 sm:h-9 sm:w-9"
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="hidden sm:inline-flex h-8 w-8"
+              onClick={() => {
+                if (theme === 'system') {
+                  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+                  setTheme(prefersDark ? 'light' : 'dark')
+                } else {
+                  setTheme(theme === 'dark' ? 'light' : 'dark')
+                }
+              }}
               aria-label="Переключить тему"
             >
               {mounted &&
                 (theme === 'dark' ? (
-                  <Sun className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <Sun className="h-4 w-4" />
                 ) : (
-                  <Moon className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <Moon className="h-4 w-4" />
                 ))}
             </Button>
             <Link
               href={user ? '/profile' : '/login'}
-              className="inline-flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-accent/10 transition-colors"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/8 transition-colors shrink-0"
               aria-label={user ? 'Профиль' : 'Войти'}
             >
-              <User className="h-4 w-4 sm:h-5 sm:w-5" />
+              <User className="h-4 w-4" />
             </Link>
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 sm:h-9 sm:w-9 lg:hidden"
+              className="h-8 w-8 lg:hidden shrink-0"
               onClick={() => setOpen((v) => !v)}
               aria-label="Меню"
               aria-expanded={open}
             >
-              {open ? <X className="h-4 w-4 sm:h-5 sm:w-5" /> : <Menu className="h-4 w-4 sm:h-5 sm:w-5" />}
+              {open ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
             </Button>
           </div>
-        </nav>
+        </div>
+
+        {/* Row 2: Navigation (desktop only) */}
+        <div className="hidden lg:flex items-center gap-x-0 flex-wrap justify-center pb-1.5 pt-px border-t border-border/30">
+          {(user ? SITE_NAV : PUBLIC_NAV).map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                "px-2.5 py-1 text-[11px] font-medium rounded-md transition-all duration-150 whitespace-nowrap",
+                isActive(item.href)
+                  ? "text-foreground bg-accent/10 font-semibold"
+                  : "text-foreground/60 hover:text-foreground/85 hover:bg-accent/6"
+              )}
+            >
+              {item.label}
+            </Link>
+          ))}
+          {!user && (
+            <Link
+              href="/login"
+              className="px-2.5 py-1 text-[11px] font-medium rounded-md transition-all duration-150 whitespace-nowrap text-primary/80 hover:text-primary hover:bg-primary/5"
+            >
+              Войти →
+            </Link>
+          )}
+        </div>
       </div>
 
-      {open && (
-          <div className="lg:hidden border-t border-border bg-background/95 backdrop-blur-md">
-          <div className="container mx-auto max-w-7xl px-4 py-3 flex flex-col gap-1">
-            {SITE_NAV.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setOpen(false)}
-                className="px-3 py-2 text-sm font-medium hover:bg-accent/10 rounded-md"
-              >
-                {item.label}
-              </Link>
-            ))}
-            <div className="border-t border-border my-1" />
-            <div className="flex flex-col gap-1 px-3 py-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="justify-start gap-2 sm:hidden"
-                onClick={() => { setSearchOpen(true); setOpen(false) }}
-              >
-                <Search className="h-4 w-4" /> Поиск
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="justify-start gap-2"
-                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              >
-                {mounted && (theme === 'dark' ? <><Sun className="h-4 w-4" /> Светлая тема</> : <><Moon className="h-4 w-4" /> Тёмная тема</>)}
-              </Button>
-              <Link
-                href={user ? '/profile' : '/login'}
-                onClick={() => setOpen(false)}
-                className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md hover:bg-accent/10"
-              >
-                <User className="h-4 w-4" /> {user ? 'Профиль' : 'Войти'}
-              </Link>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2, ease: 'easeInOut' }}
+            className="lg:hidden border-t border-border/50 bg-background/95 backdrop-blur-xl overflow-hidden"
+          >
+            <div className="container mx-auto max-w-7xl px-3 py-3 flex flex-col gap-px">
+              {PUBLIC_NAV.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setOpen(false)}
+                  className={cn(
+                    "px-3 py-2.5 text-sm font-medium rounded-lg transition-colors",
+                    isActive(item.href)
+                      ? "bg-accent/10 text-foreground font-semibold"
+                      : "hover:bg-accent/5 text-foreground/75"
+                  )}
+                >
+                  {item.label}
+                </Link>
+              ))}
+              {!user && PROTECTED_NAV.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setOpen(false)}
+                  className="px-3 py-2.5 text-sm font-medium text-muted-foreground/70 hover:bg-accent/5 rounded-lg flex items-center justify-between"
+                >
+                  <span>{item.label}</span>
+                  <span className="text-[10px] bg-primary/8 text-primary/70 px-1.5 py-0.5 rounded-full">🔒</span>
+                </Link>
+              ))}
+              {user && PROTECTED_NAV.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setOpen(false)}
+                  className="px-3 py-2.5 text-sm font-medium hover:bg-accent/5 rounded-lg"
+                >
+                  {item.label}
+                </Link>
+              ))}
+              {user && (
+                <Link
+                  href="/profile"
+                  onClick={() => setOpen(false)}
+                  className="px-3 py-2.5 text-sm font-medium hover:bg-accent/5 rounded-lg"
+                >
+                  Профиль
+                </Link>
+              )}
+              <div className="my-2 border-t border-border/40" />
+              <div className="grid grid-cols-2 gap-1.5 px-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="justify-start gap-2 h-9 text-sm"
+                  onClick={() => { setSearchOpen(true); setOpen(false) }}
+                >
+                  <Search className="h-4 w-4" /> Поиск
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="justify-start gap-2 h-9 text-sm"
+                  onClick={() => {
+                    if (theme === 'system') {
+                      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+                      setTheme(prefersDark ? 'light' : 'dark')
+                    } else {
+                      setTheme(theme === 'dark' ? 'light' : 'dark')
+                    }
+                  }}
+                >
+                  {mounted && (theme === 'dark' ? <><Sun className="h-4 w-4" /> Свет</> : <><Moon className="h-4 w-4" /> Тёмный</>)}
+                </Button>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
     </header>

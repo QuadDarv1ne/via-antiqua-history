@@ -15,9 +15,11 @@ import { OrdersSection } from '@/components/site/orders-section'
 import { EpochsSection } from '@/components/site/epochs-section'
 import { QuizSection } from '@/components/site/quiz-section'
 import { SourcesSection } from '@/components/site/sources-section'
+import { ContentGate } from '@/components/site/content-gate'
 import { Footer } from '@/components/site/footer'
 import { ScrollToTop } from '@/components/site/scroll-to-top'
 import { ReadingProgress } from '@/components/site/reading-progress'
+import { SectionDivider } from '@/components/site/section-divider'
 import {
   BookmarksFloatingButton,
   BookmarksDialog,
@@ -32,15 +34,17 @@ export default function Home() {
         <Navbar />
         <main id="main-content" role="main" className="flex-1">
           <Hero />
+          <SectionDivider />
 
           {/* Раздел: Древняя Греция */}
           <RegionSection region={greece} />
+          <SectionDivider />
 
           {/* Раздел: Римская империя */}
-          <RegionSection region={rome} />
+          <RegionSection region={rome} restricted />
 
           {/* Раздел: Месопотамия */}
-          <RegionSection region={mesopotamia} />
+          <RegionSection region={mesopotamia} restricted />
 
           {/* Раздел: Кубань */}
           <RegionSection region={kuban} />
@@ -52,22 +56,32 @@ export default function Home() {
           <WondersSection />
 
           {/* Архитектурные ордера */}
-          <OrdersSection />
+          <ContentGate title="Архитектурные ордера" subtitle="Дорийский, ионический и коринфский — система пропорций, определившая облик античной архитектуры.">
+            <OrdersSection />
+          </ContentGate>
 
           {/* Исторические эпохи */}
-          <EpochsSection />
+          <ContentGate title="Исторические эпохи" subtitle="Восемь ключевых эпох — от шумерских городов до падения Константинополя.">
+            <EpochsSection />
+          </ContentGate>
 
           {/* Интерактивная лента времени */}
           <TimelineSection />
 
           {/* Интерактивная карта */}
-          <MapSection />
+          <ContentGate title="Интерактивная карта" subtitle="Нажмите на город, чтобы узнать о нём больше. Используйте фильтры для подсветки регионов.">
+            <MapSection />
+          </ContentGate>
 
           {/* Сравнительная таблица цивилизаций */}
-          <ComparisonSection />
+          <ContentGate title="Сравнение цивилизаций" subtitle="Сопоставление Древней Греции, Рима, Месопотамии и Кубани по восьми ключевым параметрам.">
+            <ComparisonSection />
+          </ContentGate>
 
           {/* Авторский раздел: исторический анализ */}
-          <AnalysisSection />
+          <ContentGate title="Исторический анализ" subtitle="Авторские размышления о связях между цивилизациями и их влиянии на современный мир.">
+            <AnalysisSection />
+          </ContentGate>
 
           {/* Глоссарий ключевых терминов */}
           <GlossarySection />

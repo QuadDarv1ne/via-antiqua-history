@@ -3,7 +3,7 @@
 import * as React from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Shield, ShieldOff, LogOut, Loader2, Copy, Check, Smartphone, Bookmark, User } from 'lucide-react'
+import { Shield, ShieldOff, LogOut, Loader2, Copy, Check, Smartphone, Bookmark, AlertTriangle } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useBookmarks } from '@/components/site/bookmarks'
 
@@ -18,6 +18,7 @@ export default function ProfilePage() {
   const [setupLoading, setSetupLoading] = React.useState(false)
   const [confirmLoading, setConfirmLoading] = React.useState(false)
   const [disableLoading, setDisableLoading] = React.useState(false)
+  const [confirmDisable, setConfirmDisable] = React.useState(false)
   const [error, setError] = React.useState('')
   const [copiedIdx, setCopiedIdx] = React.useState(-1)
   const [loggingOut, setLoggingOut] = React.useState(false)
@@ -89,6 +90,7 @@ export default function ProfilePage() {
       const res = await fetch('/api/auth/2fa/verify', { method: 'DELETE' })
       const json = await res.json()
       if (json.ok) {
+        setConfirmDisable(false)
         await refresh()
       } else {
         setError(json.error || 'Ошибка')
@@ -114,28 +116,28 @@ export default function ProfilePage() {
 
   return (
     <main className="min-h-screen bg-background">
-      <div className="container mx-auto max-w-2xl px-4 py-12">
+      <div className="container mx-auto max-w-2xl px-4 py-8 sm:py-12">
         <Link href="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8">
           ← На главную
         </Link>
 
         <div className="flex items-center gap-4 mb-8">
-          <div className="w-14 h-14 rounded-full bg-primary/10 border border-border flex items-center justify-center text-primary shrink-0">
-            <User className="h-6 w-6" />
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-primary/10 flex items-center justify-center text-primary font-display text-lg sm:text-xl font-semibold border border-border shrink-0">
+            {(user.name || 'П')[0].toUpperCase()}
           </div>
-          <div>
-            <h1 className="font-display text-3xl font-semibold">{user.name || 'Пользователь'}</h1>
+          <div className="min-w-0">
+            <h1 className="font-display text-xl sm:text-2xl md:text-3xl font-semibold truncate">{user.name || 'Пользователь'}</h1>
             <p className="text-sm text-muted-foreground">{user.email}</p>
           </div>
         </div>
 
         <div className="space-y-6">
           {/* 2FA секция */}
-          <div className="rounded-xl border border-border bg-card p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <Shield className="h-5 w-5 text-primary" />
-                <h2 className="font-display text-lg font-semibold">Двухфакторная аутентификация</h2>
+          <div className="rounded-xl border border-border bg-card p-4 sm:p-6">
+            <div className="flex items-center justify-between gap-2 mb-3 sm:mb-4">
+              <div className="flex items-center gap-2 min-w-0">
+                <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-primary shrink-0" />
+                <h2 className="font-display text-base sm:text-lg font-semibold truncate">Двухфакторная аутентификация</h2>
               </div>
               <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${user.totpEnabled ? 'bg-green-500/10 text-green-600 dark:text-green-400' : 'bg-muted text-muted-foreground'}`}>
                 {user.totpEnabled ? 'Включена' : 'Выключена'}
@@ -146,13 +148,41 @@ export default function ProfilePage() {
               <p className="text-sm text-destructive mb-3">{error}</p>
             )}
 
-            {user.totpEnabled ? (
+            {user.totpEnabled ? confirmDisable ? (
+              <div className="space-y-3 p-3 rounded-lg border border-destructive/30 bg-destructive/5">
+                <p className="text-sm font-medium text-destructive flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 shrink-0" />
+                  Вы уверены?
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Отключение 2FA снижает безопасность вашего аккаунта. Вы сможете
+                  войти только по паролю.
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleDisable2fa}
+                    disabled={disableLoading}
+                    className="inline-flex items-center gap-2 h-9 px-4 rounded-lg bg-destructive text-destructive-foreground text-sm font-medium hover:bg-destructive/90 disabled:opacity-50 transition-colors"
+                  >
+                    {disableLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldOff className="h-4 w-4" />}
+                    Отключить
+                  </button>
+                  <button
+                    onClick={() => setConfirmDisable(false)}
+                    disabled={disableLoading}
+                    className="inline-flex items-center gap-2 h-9 px-4 rounded-lg border border-border text-sm font-medium hover:bg-accent/10 transition-colors"
+                  >
+                    Отмена
+                  </button>
+                </div>
+              </div>
+            ) : (
               <button
-                onClick={handleDisable2fa}
+                onClick={() => setConfirmDisable(true)}
                 disabled={disableLoading}
                 className="inline-flex items-center gap-2 h-9 px-4 rounded-lg border border-border text-sm font-medium hover:bg-accent/10 disabled:opacity-50 transition-colors"
               >
-                {disableLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldOff className="h-4 w-4" />}
+                <ShieldOff className="h-4 w-4" />
                 Отключить 2FA
               </button>
             ) : qrCode ? (
@@ -215,11 +245,11 @@ export default function ProfilePage() {
           </div>
 
           {/* Закладки */}
-          <div className="rounded-xl border border-border bg-card p-6">
+          <div className="rounded-xl border border-border bg-card p-4 sm:p-6">
             <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <Bookmark className="h-5 w-5 text-primary" />
-                <h2 className="font-display text-lg font-semibold">Закладки</h2>
+              <div className="flex items-center gap-2 min-w-0">
+                <Bookmark className="h-4 w-4 sm:h-5 sm:w-5 text-primary shrink-0" />
+                <h2 className="font-display text-base sm:text-lg font-semibold">Закладки</h2>
               </div>
               <span className="text-sm font-medium text-muted-foreground">{bookmarks.length}</span>
             </div>
@@ -229,7 +259,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Дата регистрации */}
-          <div className="rounded-xl border border-border bg-card p-6">
+          <div className="rounded-xl border border-border bg-card p-4 sm:p-6">
             <p className="text-sm text-muted-foreground">
               Аккаунт создан: <span className="text-foreground font-medium">{new Date(user.createdAt).toLocaleDateString('ru-RU')}</span>
             </p>
@@ -239,7 +269,7 @@ export default function ProfilePage() {
           <button
             onClick={handleLogout}
             disabled={loggingOut}
-            className="inline-flex items-center gap-2 h-11 px-6 rounded-lg border border-border text-sm font-medium hover:bg-accent/10 disabled:opacity-50 transition-colors"
+            className="inline-flex items-center gap-2 h-10 sm:h-11 px-5 sm:px-6 rounded-lg border border-border text-sm font-medium hover:bg-accent/10 disabled:opacity-50 transition-colors"
           >
             {loggingOut ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />}
             Выйти

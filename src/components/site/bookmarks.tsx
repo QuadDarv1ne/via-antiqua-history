@@ -3,7 +3,7 @@
 import * as React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Bookmark, BookmarkCheck, X, Trash2, BookOpen, Check, Undo2 } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn, withAlpha } from '@/lib/utils'
 import {
   Dialog,
   DialogContent,
@@ -147,15 +147,13 @@ export function BookmarksProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const toggle = React.useCallback((item: BookmarkItem) => {
+    let wasAdded = false
     setBookmarks((cur) => {
       const exists = cur.some((b) => b.id === item.id)
-      if (exists) {
-        showToast(item.title, false)
-        return cur.filter((b) => b.id !== item.id)
-      }
-      showToast(item.title, true)
-      return [item, ...cur]
+      wasAdded = !exists
+      return exists ? cur.filter((b) => b.id !== item.id) : [item, ...cur]
     })
+    showToast(item.title, wasAdded)
   }, [showToast])
 
   const remove = React.useCallback((id: string) => {
@@ -224,7 +222,7 @@ export function BookmarkButton({ item }: { item: BookmarkItem }) {
       }}
       aria-label={active ? 'Убрать из закладок' : 'В закладки'}
       className={cn(
-        'inline-flex items-center justify-center h-9 w-9 rounded-full transition-colors',
+        'inline-flex items-center justify-center h-8 w-8 sm:h-9 sm:w-9 rounded-full transition-colors shrink-0',
         active
           ? 'bg-primary text-primary-foreground shadow-md'
           : 'bg-background/80 text-muted-foreground hover:text-foreground hover:bg-background border border-border'
@@ -255,7 +253,7 @@ export function BookmarksFloatingButton({
       transition={{ delay: 1, duration: 0.3 }}
       onClick={onClick}
       aria-label="Закладки"
-      className="fixed bottom-6 left-6 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-card border border-border text-foreground shadow-lg hover:shadow-xl hover:bg-accent/10 transition-all"
+      className="fixed bottom-4 left-4 sm:bottom-6 sm:left-6 z-40 flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-card border border-border text-foreground shadow-lg hover:shadow-xl hover:bg-accent/10 transition-all active:scale-95"
     >
       <Bookmark className="h-5 w-5" />
       {count > 0 && (
@@ -288,15 +286,15 @@ export function BookmarksDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl max-h-[80vh] p-0 gap-0 overflow-hidden">
+      <DialogContent className="max-w-xl max-h-[80vh] p-0 gap-0 overflow-hidden mx-4 sm:mx-auto">
         <DialogTitle className="sr-only">Сохранённые закладки</DialogTitle>
-        <div className="flex items-center justify-between px-4 h-14 border-b border-border">
+        <div className="flex items-center justify-between px-3 sm:px-4 h-12 sm:h-14 border-b border-border">
           <div className="flex items-center gap-2">
-            <Bookmark className="h-5 w-5 text-primary" />
-            <span className="font-display text-lg font-semibold">
+            <Bookmark className="h-4.5 w-4.5 sm:h-5 sm:w-5 text-primary" />
+            <span className="font-display text-base sm:text-lg font-semibold">
               Закладки
             </span>
-            <span className="text-xs text-muted-foreground">
+            <span className="text-[10px] sm:text-xs text-muted-foreground">
               ({bookmarks.length})
             </span>
           </div>
@@ -305,10 +303,10 @@ export function BookmarksDialog({
               variant="ghost"
               size="sm"
               onClick={clear}
-              className="text-muted-foreground hover:text-destructive"
+              className="text-muted-foreground hover:text-destructive h-8 px-2 text-xs sm:text-sm"
             >
-              <Trash2 className="h-4 w-4 mr-1" />
-              Очистить
+              <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
+              <span className="hidden sm:inline">Очистить</span>
             </Button>
           )}
         </div>
@@ -316,52 +314,52 @@ export function BookmarksDialog({
         <ScrollArea className="max-h-[60vh]">
           <div className="p-2">
             {bookmarks.length === 0 ? (
-              <div className="p-8 text-center">
-                <BookOpen className="h-10 w-10 mx-auto text-muted-foreground mb-3 opacity-40" />
-                <p className="text-sm text-muted-foreground mb-2">
+              <div className="p-6 sm:p-8 text-center">
+                <BookOpen className="h-8 w-8 sm:h-10 sm:w-10 mx-auto text-muted-foreground mb-2 sm:mb-3 opacity-40" />
+                <p className="text-xs sm:text-sm text-muted-foreground mb-1.5 sm:mb-2">
                   У вас пока нет закладок
                 </p>
-                <p className="text-xs text-muted-foreground/70 max-w-xs mx-auto">
+                <p className="text-[11px] sm:text-xs text-muted-foreground/70 max-w-xs mx-auto leading-relaxed">
                   Нажимайте на иконку закладки рядом с городом, памятником,
                   персоной или термином, чтобы сохранить их здесь.
                 </p>
               </div>
             ) : (
-                <div className="space-y-1">
+                <div className="space-y-0.5">
                 {bookmarks.map((b) => {
                   const color = getRegionColor(b.region)
                   return (
                     <div
                       key={b.id}
-                      className="group flex items-start gap-3 p-3 rounded-md hover:bg-accent/5 transition-colors"
+                      className="group flex items-start gap-2.5 sm:gap-3 p-2.5 sm:p-3 rounded-md hover:bg-accent/5 transition-colors"
                     >
                       <button
                         type="button"
                         onClick={() => handleNavigate(b.href)}
-                        className="flex items-start gap-3 flex-1 min-w-0 text-left"
+                        className="flex items-start gap-2.5 sm:gap-3 flex-1 min-w-0 text-left"
                       >
                         <span
-                          className="shrink-0 mt-0.5 flex h-8 w-8 items-center justify-center rounded-md"
+                          className="shrink-0 mt-0.5 flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-md"
                           style={{
-                            backgroundColor: `oklch(from ${color} l c h / 0.12)`,
+                            backgroundColor: withAlpha(color, 0.12),
                             color,
                           }}
                         >
-                          <Bookmark className="h-4 w-4" />
+                          <Bookmark className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                         </span>
                         <span className="min-w-0 flex-1">
-                          <span className="flex items-center gap-2 mb-0.5">
-                            <span className="font-medium text-sm truncate">
+                          <span className="flex items-center gap-1.5 sm:gap-2 mb-0.5 flex-wrap">
+                            <span className="font-medium text-xs sm:text-sm truncate">
                               {b.title}
                             </span>
                             <span
-                              className="text-[11px] sm:text-xs uppercase tracking-wider font-medium"
+                              className="text-[10px] sm:text-xs uppercase tracking-wider font-medium shrink-0"
                               style={{ color }}
                             >
                               {typeLabels[b.type]}
                             </span>
                           </span>
-                          <span className="text-xs text-muted-foreground line-clamp-1 block">
+                          <span className="text-[11px] sm:text-xs text-muted-foreground line-clamp-1 block">
                             {b.subtitle}
                           </span>
                         </span>

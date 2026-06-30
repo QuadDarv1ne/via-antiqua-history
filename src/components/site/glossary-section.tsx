@@ -4,7 +4,7 @@ import * as React from 'react'
 import { motion } from 'framer-motion'
 import { BookMarked, Search } from 'lucide-react'
 import { glossary } from '@/lib/history-data'
-import { cn } from '@/lib/utils'
+import { cn, withAlpha } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
 import { BookmarkButton } from '@/components/site/bookmarks'
 import { REGION_COLORS, REGION_LABELS, FILTER_LABELS } from '@/lib/constants'
@@ -46,18 +46,18 @@ export function GlossarySection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-100px' }}
           transition={{ duration: 0.6 }}
-          className="mb-10 text-center"
+          className="mb-6 sm:mb-8 md:mb-10 text-center"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/30 bg-primary/5 mb-4">
+          <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-full border border-primary/30 bg-primary/5 mb-3 sm:mb-4">
             <BookMarked className="h-3.5 w-3.5 text-primary" />
-            <span className="text-xs uppercase tracking-widest font-medium">
+            <span className="text-[10px] sm:text-xs uppercase tracking-widest font-medium">
               Справочный раздел
             </span>
           </div>
-          <h2 className="font-display text-3xl md:text-5xl font-semibold mb-4">
+          <h2 className="font-display text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold mb-3 sm:mb-4">
             Глоссарий ключевых терминов
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
             {glossary.length} ключевых понятий античного мира — от архитектурных ордеров до
             политических институтов. Используйте фильтр и поиск для быстрого
             доступа.
@@ -65,25 +65,25 @@ export function GlossarySection() {
         </motion.div>
 
         {/* Search + filter */}
-        <div className="mb-8 flex flex-col md:flex-row gap-3">
+        <div className="mb-5 sm:mb-6 flex flex-col gap-2.5 sm:gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Поиск термина или определения…"
-              className="pl-10"
+              placeholder="Поиск термина…"
+              className="pl-10 h-10 sm:h-11 text-sm"
               aria-label="Поиск по глоссарию"
             />
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5 sm:gap-2">
             {filterOptions.map((opt) => (
               <button
                 type="button"
                 key={opt.key}
                 onClick={() => setFilter(opt.key)}
                 className={cn(
-                  'px-3 py-1.5 rounded-full text-xs font-medium border transition-all whitespace-nowrap',
+                  'px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-medium border transition-all whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1',
                   filter === opt.key
                     ? 'bg-primary text-primary-foreground border-primary'
                     : 'bg-card border-border hover:border-primary/40'
@@ -111,13 +111,13 @@ export function GlossarySection() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.35, delay: idx * 0.03 }}
-                  className="rounded-lg border border-border bg-card p-5 hover:shadow-md transition-shadow"
+                  className="rounded-lg border border-border bg-card p-4 sm:p-5 hover:shadow-md transition-shadow"
                 >
                   <div className="flex items-start justify-between gap-2 mb-2">
-                    <h3 className="font-display text-lg font-semibold leading-tight">
+                    <h3 className="font-display text-base sm:text-lg font-semibold leading-tight">
                       {term.term}
                     </h3>
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1.5 shrink-0">
                       <BookmarkButton
                         item={{
                           id: `term:${term.term}`,
@@ -129,9 +129,9 @@ export function GlossarySection() {
                         }}
                       />
                       <span
-                        className="shrink-0 inline-block px-2 py-0.5 rounded-full text-[11px] sm:text-xs font-medium"
+                        className="shrink-0 inline-block px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded-full text-[10px] sm:text-xs font-medium"
                         style={{
-                          backgroundColor: `oklch(from ${meta.color} l c h / 0.12)`,
+                          backgroundColor: withAlpha(meta.color, 0.12),
                           color: meta.color,
                         }}
                       >

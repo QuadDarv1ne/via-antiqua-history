@@ -1,11 +1,11 @@
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
-import { randomBytes } from 'crypto'
+import { randomBytes, randomInt } from 'crypto'
 import { cookies } from 'next/headers'
 
 let _jwtSecret: string | undefined
 
-function getJwtSecret(): string {
+export function getJwtSecret(): string {
   if (_jwtSecret !== undefined) return _jwtSecret
   const secret = process.env.JWT_SECRET
   if (secret) {
@@ -42,7 +42,7 @@ export function generateToken(bytes = 32): string {
 export function generateNumericCode(length = 6): string {
   let code = ''
   for (let i = 0; i < length; i++) {
-    code += Math.floor(Math.random() * 10).toString()
+    code += randomInt(0, 10).toString()
   }
   return code
 }

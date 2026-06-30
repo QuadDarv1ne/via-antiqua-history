@@ -34,28 +34,31 @@ export const FILTER_LABELS: Record<string, string> = {
 }
 
 // Навигация — единый источник для navbar, footer, breadcrumbs
-export const SITE_NAV = [
+export const PUBLIC_NAV = [
   { href: '#greece', label: 'Греция' },
-  { href: '#rome', label: 'Рим' },
-  { href: '#mesopotamia', label: 'Месопотамия' },
   { href: '#kuban', label: 'Кубань' },
   { href: '#persons', label: 'Персоналии' },
   { href: '#wonders', label: 'Чудеса' },
+  { href: '#timeline', label: 'Хронология' },
+  { href: '#glossary', label: 'Глоссарий' },
+  { href: '#quiz', label: 'Квиз' },
+  { href: '#sources', label: 'Источники' },
+] as const
+
+export const PROTECTED_NAV = [
+  { href: '#rome', label: 'Рим' },
+  { href: '#mesopotamia', label: 'Месопотамия' },
   { href: '#orders', label: 'Ордера' },
   { href: '#epochs', label: 'Эпохи' },
-  { href: '#timeline', label: 'Хронология' },
   { href: '#map', label: 'Карта' },
   { href: '#comparison', label: 'Сравнение' },
   { href: '#analysis', label: 'Анализ' },
-  { href: '#glossary', label: 'Глоссарий' },
-  { href: '#quiz', label: 'Квиз' },
 ] as const
 
-// Полный список навигации для footer
-export const FOOTER_NAV = [
-  ...SITE_NAV,
-  { href: '#sources', label: 'Источники' },
-] as const
+export const SITE_NAV = [...PUBLIC_NAV, ...PROTECTED_NAV] as const
+
+// Полный список навигации для footer (SITE_NAV уже содержит #sources через PUBLIC_NAV)
+export const FOOTER_NAV = [...SITE_NAV] as const
 
 export const SOCIAL_LINKS = [
   { href: 'https://rutube.ru/channel/4218729/', label: 'Rutube', title: 'Хижина программиста' },

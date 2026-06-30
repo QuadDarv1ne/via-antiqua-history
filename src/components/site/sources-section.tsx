@@ -47,18 +47,18 @@ export function SourcesSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-100px' }}
           transition={{ duration: 0.6 }}
-          className="mb-10 text-center"
+          className="mb-6 sm:mb-8 md:mb-10 text-center"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/30 bg-primary/5 mb-4">
+          <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-full border border-primary/30 bg-primary/5 mb-3 sm:mb-4">
             <BookText className="h-3.5 w-3.5 text-primary" />
-            <span className="text-xs uppercase tracking-widest font-medium">
+            <span className="text-[10px] sm:text-xs uppercase tracking-widest font-medium">
               Библиография
             </span>
           </div>
-          <h2 className="font-display text-3xl md:text-5xl font-semibold mb-4">
+          <h2 className="font-display text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold mb-3 sm:mb-4">
             Источники и ссылки
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
             Литература, первоисточники и музеи, использованные при подготовке
             материалов сайта. Стартовая точка проекта — статья о прогулке по
             афинскому Акрополю из «Яндекс.Путешествий».
@@ -78,13 +78,13 @@ export function SourcesSection() {
                 viewport={{ once: true, margin: '-50px' }}
                 transition={{ duration: 0.5 }}
               >
-                <h3 className="font-display text-xl md:text-2xl font-semibold mb-4 flex items-center gap-2">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-card text-primary">
+                <h3 className="font-display text-lg sm:text-xl md:text-2xl font-semibold mb-3 sm:mb-4 flex items-center gap-2">
+                  <span className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg border border-border bg-card text-primary shrink-0">
                     {meta.icon}
                   </span>
                   {meta.label}
                 </h3>
-                <div className="grid sm:grid-cols-2 gap-3">
+                <div className="grid sm:grid-cols-2 gap-2.5 sm:gap-3">
                   {items.map((src, idx) => {
                     const Wrapper = src.url ? 'a' : 'div'
                     return (
@@ -92,12 +92,12 @@ export function SourcesSection() {
                       key={src.title + idx}
                       {...(src.url ? { href: src.url, target: '_blank', rel: 'noopener noreferrer' } : {})}
                       className={cn(
-                        'rounded-lg border border-border bg-card p-4 transition-shadow hover:shadow-sm',
+                        'rounded-lg border border-border bg-card p-3 sm:p-4 transition-shadow hover:shadow-sm',
                         src.url && 'cursor-pointer'
                       )}
                     >
                       <div className="flex items-start justify-between gap-2 mb-1">
-                        <h4 className="font-display font-semibold leading-tight">
+                        <h4 className="font-display font-semibold text-sm sm:text-base leading-tight line-clamp-2">
                           {src.title}
                         </h4>
                         {src.url && (
@@ -105,11 +105,11 @@ export function SourcesSection() {
                         )}
                       </div>
                       {src.author && (
-                        <p className="text-sm text-primary font-medium mb-2">
+                        <p className="text-xs sm:text-sm text-primary font-medium mb-1.5 sm:mb-2">
                           {src.author}
                         </p>
                       )}
-                      <p className="text-sm text-foreground/75 leading-relaxed">
+                      <p className="text-xs sm:text-sm text-foreground/75 leading-relaxed line-clamp-2">
                         {src.description}
                       </p>
                     </Wrapper>

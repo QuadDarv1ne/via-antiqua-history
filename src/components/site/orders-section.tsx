@@ -17,7 +17,7 @@ import { BookmarkButton } from '@/components/site/bookmarks'
 // SVG-схемы капителей для каждого ордера
 function DoricCapital() {
   return (
-    <svg viewBox="0 0 80 50" className="w-full h-20 sm:h-28 md:h-32" preserveAspectRatio="xMidYMid meet">
+    <svg viewBox="0 0 80 50" className="w-full h-16 sm:h-20 md:h-28" preserveAspectRatio="xMidYMid meet">
       {/* Абака — квадратная плита */}
       <rect x="10" y="5" width="60" height="10" fill="currentColor" opacity="0.85" />
       {/* Эхин — круглая подушка */}
@@ -34,7 +34,7 @@ function DoricCapital() {
 
 function IonicCapital() {
   return (
-    <svg viewBox="0 0 80 50" className="w-full h-20 sm:h-28 md:h-32" preserveAspectRatio="xMidYMid meet">
+    <svg viewBox="0 0 80 50" className="w-full h-16 sm:h-20 md:h-28" preserveAspectRatio="xMidYMid meet">
       {/* Абака */}
       <rect x="5" y="8" width="70" height="6" fill="currentColor" opacity="0.85" />
       {/* Левая волюта */}
@@ -61,7 +61,7 @@ function IonicCapital() {
 
 function CorinthianCapital() {
   return (
-    <svg viewBox="0 0 80 60" className="w-full h-20 sm:h-28 md:h-32" preserveAspectRatio="xMidYMid meet">
+    <svg viewBox="0 0 80 60" className="w-full h-16 sm:h-20 md:h-28" preserveAspectRatio="xMidYMid meet">
       {/* Абака */}
       <rect x="3" y="5" width="74" height="6" fill="currentColor" opacity="0.85" />
       {/* Маленькие волюты в углах */}
@@ -92,10 +92,15 @@ function CorinthianCapital() {
   )
 }
 
+const capitalMap: Record<string, React.FC> = {
+  doric: DoricCapital,
+  ionic: IonicCapital,
+  corinthian: CorinthianCapital,
+}
+
 function Capital({ id }: { id: string }) {
-  if (id === 'doric') return <DoricCapital />
-  if (id === 'ionic') return <IonicCapital />
-  return <CorinthianCapital />
+  const Component = capitalMap[id] ?? CorinthianCapital
+  return <Component />
 }
 
 export function OrdersSection() {
@@ -112,18 +117,18 @@ export function OrdersSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-100px' }}
           transition={{ duration: 0.6 }}
-          className="mb-10 text-center"
+          className="mb-6 sm:mb-8 md:mb-10 text-center"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/30 bg-primary/5 mb-4">
+          <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-full border border-primary/30 bg-primary/5 mb-3 sm:mb-4">
             <Columns3 className="h-3.5 w-3.5 text-primary" />
-            <span className="text-xs uppercase tracking-widest font-medium">
+            <span className="text-[10px] sm:text-xs uppercase tracking-widest font-medium">
               Архитектура
             </span>
           </div>
-          <h2 className="font-display text-3xl md:text-5xl font-semibold mb-4">
+          <h2 className="font-display text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold mb-3 sm:mb-4">
             Три архитектурных ордера
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
             Дорийский, ионический и коринфский — система пропорций и деталей,
             определившая облик античной архитектуры и всю европейскую традицию
             после.
@@ -142,7 +147,7 @@ export function OrdersSection() {
                 transition={{ duration: 0.5, delay: idx * 0.1 }}
                 whileHover={{ y: -4 }}
                 onClick={() => setActive(order)}
-                className="text-left p-6 rounded-lg border border-border bg-card hover:border-primary hover:shadow-md transition-all flex flex-col"
+                className="text-left p-6 rounded-lg border border-border bg-card hover:border-primary hover:shadow-md transition-all flex flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1"
               >
                 <h3 className="font-display text-xl font-semibold mb-1">
                   {order.name}
@@ -153,17 +158,17 @@ export function OrdersSection() {
 
                 {/* SVG-схема капители */}
                 <div
-                  className="mb-4 rounded-md bg-muted/30 p-4 flex items-center justify-center"
+                  className="mb-3 sm:mb-4 rounded-md bg-muted/30 p-3 sm:p-4 flex items-center justify-center"
                   style={{ color: accentColor }}
                 >
                   <Capital id={order.id} />
                 </div>
 
-                <p className="text-sm text-foreground/80 leading-relaxed mb-3 flex-1">
+                <p className="text-xs sm:text-sm text-foreground/80 leading-relaxed mb-2 sm:mb-3 flex-1">
                   {order.shortDesc}
                 </p>
 
-                <div className="space-y-1 text-xs text-muted-foreground">
+                <div className="space-y-0.5 sm:space-y-1 text-[11px] sm:text-xs text-muted-foreground">
                   <p>
                     <span className="font-medium text-foreground">Период:</span>{' '}
                     {order.period}
@@ -188,14 +193,14 @@ export function OrdersSection() {
 
       {/* Модальное окно с деталями ордера */}
       <Dialog open={!!active} onOpenChange={(o) => !o && setActive(null)}>
-        <DialogContent className="max-w-2xl max-h-[90vh]">
-          <DialogHeader>
+        <DialogContent className="max-w-2xl max-h-[85vh] sm:max-h-[90vh]">
+          <DialogHeader className="pb-2 sm:pb-3">
             <div className="flex items-start justify-between gap-3 pr-8">
               <div>
-                <DialogTitle className="font-display text-2xl md:text-3xl">
+                <DialogTitle className="font-display text-xl sm:text-2xl md:text-3xl">
                   {active?.name}
                 </DialogTitle>
-                <DialogDescription className="text-base">
+                <DialogDescription className="text-xs sm:text-base">
                   {active?.originalName} · {active?.period}
                 </DialogDescription>
               </div>
@@ -214,37 +219,37 @@ export function OrdersSection() {
             </div>
           </DialogHeader>
 
-          <ScrollArea className="max-h-[60vh] pr-4">
-            <div className="space-y-5">
+          <ScrollArea className="max-h-[55vh] sm:max-h-[60vh] pr-3 sm:pr-4">
+            <div className="space-y-4 sm:space-y-5">
               {/* Большая схема капители */}
               {active && (
                 <div
-                  className="rounded-lg bg-muted/30 p-6 flex items-center justify-center"
+                  className="rounded-lg bg-muted/30 p-4 sm:p-6 flex items-center justify-center"
                   style={{ color: 'oklch(0.5 0.12 50)' }}
                 >
-                  <div className="w-full max-w-md">
+                  <div className="w-full max-w-sm sm:max-w-md">
                     <Capital id={active.id} />
                   </div>
                 </div>
               )}
 
-              <p className="text-base leading-relaxed text-foreground/90">
+              <p className="text-sm sm:text-base leading-relaxed text-foreground/90">
                 {active?.shortDesc}
               </p>
-              <p className="text-base leading-relaxed text-foreground/85">
+              <p className="text-sm sm:text-base leading-relaxed text-foreground/85">
                 {active?.visualDescription}
               </p>
 
               {active && (
                 <>
                   <div>
-                    <h5 className="font-display text-lg font-semibold mb-3 flex items-center gap-2">
-                      <span className="inline-block h-1 w-6 rounded-full bg-primary" />
+                    <h5 className="font-display text-base sm:text-lg font-semibold mb-2 sm:mb-3 flex items-center gap-2">
+                      <span className="inline-block h-1 w-5 sm:w-6 rounded-full bg-primary" />
                       Характеристики
                     </h5>
-                    <ul className="space-y-2">
+                    <ul className="space-y-1.5 sm:space-y-2">
                       {active.characteristics.map((c, i) => (
-                        <li key={i} className="flex items-start gap-2 text-sm leading-relaxed">
+                        <li key={i} className="flex items-start gap-2 text-xs sm:text-sm leading-relaxed">
                           <span className="mt-1.5 inline-block h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
                           <span className="text-foreground/85">{c}</span>
                         </li>
@@ -253,13 +258,13 @@ export function OrdersSection() {
                   </div>
 
                   <div>
-                    <h5 className="font-display text-lg font-semibold mb-3 flex items-center gap-2">
-                      <span className="inline-block h-1 w-6 rounded-full bg-primary" />
+                    <h5 className="font-display text-base sm:text-lg font-semibold mb-2 sm:mb-3 flex items-center gap-2">
+                      <span className="inline-block h-1 w-5 sm:w-6 rounded-full bg-primary" />
                       Образцы
                     </h5>
-                    <ul className="space-y-2">
+                    <ul className="space-y-1.5 sm:space-y-2">
                       {active.examples.map((e, i) => (
-                        <li key={i} className="flex items-start gap-2 text-sm leading-relaxed">
+                        <li key={i} className="flex items-start gap-2 text-xs sm:text-sm leading-relaxed">
                           <span className="mt-1.5 inline-block h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
                           <span className="text-foreground/85">{e}</span>
                         </li>

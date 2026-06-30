@@ -34,36 +34,36 @@ export function MapSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-100px' }}
           transition={{ duration: 0.6 }}
-          className="mb-10 md:mb-14 text-center"
+          className="mb-6 sm:mb-8 md:mb-10 md:mb-14 text-center"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/30 bg-primary/5 mb-4">
+          <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-full border border-primary/30 bg-primary/5 mb-3 sm:mb-4">
             <MapPin className="h-3.5 w-3.5 text-primary" />
-            <span className="text-xs uppercase tracking-widest font-medium">
+            <span className="text-[10px] sm:text-xs uppercase tracking-widest font-medium">
               География античного мира
             </span>
           </div>
-          <h2 className="font-display text-3xl md:text-5xl font-semibold mb-4">
+          <h2 className="font-display text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold mb-3 sm:mb-4">
             Интерактивная карта
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
             Нажмите на город, чтобы узнать о нём больше. Используйте фильтры
             ниже, чтобы подсветить отдельные регионы.
           </p>
         </motion.div>
 
         {/* Фильтры */}
-        <div className="flex flex-wrap gap-2 justify-center mb-6">
+        <div className="flex flex-wrap gap-1.5 sm:gap-2 justify-center mb-4 sm:mb-6">
           <button
             type="button"
             onClick={() => setFilter('all')}
             className={cn(
-              'px-4 py-2 rounded-full text-sm font-medium border transition-all',
+              'px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1',
               filter === 'all'
                 ? 'bg-primary text-primary-foreground border-primary'
                 : 'bg-card border-border hover:border-primary/40'
             )}
           >
-            Все регионы
+            Все
           </button>
           {(['greece', 'rome', 'mesopotamia', 'kuban'] as const).map((key) => (
             <button
@@ -71,7 +71,7 @@ export function MapSection() {
               key={key}
               onClick={() => setFilter(key)}
               className={cn(
-                'px-4 py-2 rounded-full text-sm font-medium border transition-all flex items-center gap-2',
+                'px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium border transition-all flex items-center gap-1.5 sm:gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1',
                 filter === key
                   ? 'text-white border-transparent'
                   : 'bg-card border-border hover:border-primary/40'
@@ -83,7 +83,7 @@ export function MapSection() {
               }
             >
               <span
-                className="inline-block h-2 w-2 rounded-full"
+                className="inline-block h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full"
                 style={{
                   backgroundColor:
                     filter === key ? 'white' : REGION_COLORS[key],
@@ -94,11 +94,11 @@ export function MapSection() {
           ))}
         </div>
 
-        <div className="grid lg:grid-cols-12 gap-6">
+        <div className="grid lg:grid-cols-12 gap-4 sm:gap-6">
           {/* Карта */}
           <div className="lg:col-span-8">
             <div
-              className="relative aspect-[3/2] sm:aspect-[4/3] rounded-xl border border-border bg-card overflow-hidden"
+              className="relative aspect-[4/3] sm:aspect-[3/2] rounded-xl border border-border bg-card overflow-hidden"
               style={{
                 backgroundImage: `
                   linear-gradient(rgba(0,0,0,0.04) 1px, transparent 1px),
@@ -193,12 +193,12 @@ export function MapSection() {
                     onClick={() => setSelected(r.id)}
                     onMouseEnter={() => setHovered(r.id)}
                     onMouseLeave={() => setHovered(null)}
-                    className="absolute group flex items-center justify-center"
+                    className="absolute group flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-full"
                     style={{
                       left: `${r.x}%`,
                       top: `${r.y}%`,
-                      width: '44px',
-                      height: '44px',
+                      width: '48px',
+                      height: '48px',
                       transform: 'translate(-50%, -50%)',
                     }}
                     aria-label={r.name}
@@ -208,22 +208,22 @@ export function MapSection() {
                       className="absolute rounded-full animate-ping opacity-40 pointer-events-none"
                       style={{
                         backgroundColor: color,
-                        width: isSelected || isHovered ? '24px' : '16px',
-                        height: isSelected || isHovered ? '24px' : '16px',
+                        width: isSelected || isHovered ? '28px' : '18px',
+                        height: isSelected || isHovered ? '28px' : '18px',
                       }}
                     />
                     <span
                       className="relative block rounded-full border-2 border-white shadow-md transition-all pointer-events-none"
                       style={{
                         backgroundColor: color,
-                        width: isSelected || isHovered ? '16px' : '11px',
-                        height: isSelected || isHovered ? '16px' : '11px',
+                        width: isSelected || isHovered ? '18px' : '13px',
+                        height: isSelected || isHovered ? '18px' : '13px',
                       }}
                     />
                     {/* Подпись */}
                     <span
                       className={cn(
-                        'absolute left-1/2 -translate-x-1/2 top-full mt-0.5 whitespace-nowrap rounded px-1.5 py-0.5 text-[11px] sm:text-xs font-medium transition-opacity pointer-events-none',
+                        'absolute left-1/2 -translate-x-1/2 top-full mt-1 whitespace-nowrap rounded px-1.5 py-0.5 text-[10px] sm:text-xs font-medium transition-opacity pointer-events-none',
                         isHovered || isSelected
                           ? 'opacity-100'
                           : 'opacity-70 group-hover:opacity-100'
@@ -252,7 +252,7 @@ export function MapSection() {
 
           {/* Информация о выбранном городе */}
           <div className="lg:col-span-4">
-            <div className="rounded-xl border border-border bg-card p-6 h-full">
+            <div className="rounded-xl border border-border bg-card p-4 sm:p-5 md:p-6 h-full">
               <AnimatePresence mode="wait">
                 {selectedRegion ? (
                   <motion.div
@@ -262,16 +262,16 @@ export function MapSection() {
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.25 }}
                   >
-                    <div className="flex items-center gap-2 mb-3">
+                    <div className="flex items-center gap-2 mb-2 sm:mb-3">
                       <span
-                        className="inline-block h-3 w-3 rounded-full"
+                        className="inline-block h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full"
                         style={{
                           backgroundColor:
                             REGION_COLORS[selectedRegion.region],
                         }}
                       />
                       <span
-                        className="text-xs uppercase tracking-widest font-medium"
+                        className="text-[10px] sm:text-xs uppercase tracking-widest font-medium"
                         style={{
                           color: REGION_COLORS[selectedRegion.region],
                         }}
@@ -279,16 +279,16 @@ export function MapSection() {
                         {REGION_LABELS[selectedRegion.region]}
                       </span>
                     </div>
-                    <h3 className="font-display text-2xl font-semibold mb-2">
+                    <h3 className="font-display text-lg sm:text-xl md:text-2xl font-semibold mb-2">
                       {selectedRegion.name}
                     </h3>
-                    <p className="text-sm text-foreground/85 leading-relaxed">
+                    <p className="text-xs sm:text-sm text-foreground/85 leading-relaxed">
                       {selectedRegion.description}
                     </p>
                     <button
                       type="button"
                       onClick={() => setSelected(null)}
-                      className="mt-4 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                      className="mt-3 sm:mt-4 inline-flex items-center gap-1 text-[11px] sm:text-xs text-muted-foreground hover:text-foreground"
                     >
                       <X className="h-3 w-3" /> Сбросить
                     </button>
@@ -299,10 +299,10 @@ export function MapSection() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="text-center py-12"
+                    className="text-center py-8 sm:py-10 md:py-12"
                   >
-                    <Info className="h-8 w-8 mx-auto text-muted-foreground mb-3 opacity-50" />
-                    <p className="text-sm text-muted-foreground">
+                    <Info className="h-7 w-7 sm:h-8 sm:w-8 mx-auto text-muted-foreground mb-2 sm:mb-3 opacity-50" />
+                    <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
                       Нажмите на точку города, чтобы увидеть его описание
                     </p>
                   </motion.div>

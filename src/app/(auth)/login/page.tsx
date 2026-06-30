@@ -17,9 +17,17 @@ export default function LoginPage() {
   const [loading, setLoading] = React.useState(false)
   const [require2fa, setRequire2fa] = React.useState(false)
 
+  const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+
+    if (!EMAIL_REGEX.test(email)) {
+      setError('Укажите корректный email')
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -50,7 +58,7 @@ export default function LoginPage() {
               <Landmark className="h-5 w-5" />
             </span>
           </Link>
-          <h1 className="font-display text-3xl font-semibold">
+          <h1 className="font-display text-2xl sm:text-3xl font-semibold">
             {require2fa ? 'Двухфакторная аутентификация' : 'Вход'}
           </h1>
           <p className="text-sm text-muted-foreground mt-1">

@@ -24,21 +24,21 @@ export function AnalysisSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-100px' }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-12 md:mb-16"
+          className="text-center mb-8 sm:mb-10 md:mb-12 md:mb-16"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/30 bg-primary/5 mb-4">
+          <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-full border border-primary/30 bg-primary/5 mb-3 sm:mb-4">
             <Feather className="h-3.5 w-3.5 text-primary" />
-            <span className="text-xs uppercase tracking-widest font-medium">
+            <span className="text-[10px] sm:text-xs uppercase tracking-widest font-medium">
               Авторский раздел
             </span>
           </div>
-          <h2 className="font-display text-3xl md:text-5xl font-semibold mb-4">
+          <h2 className="font-display text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold mb-3 sm:mb-4">
             {authorAnalysis.sectionTitle}
           </h2>
-          <p className="text-sm text-muted-foreground uppercase tracking-widest mb-6">
+          <p className="text-[11px] sm:text-xs text-muted-foreground uppercase tracking-widest mb-4 sm:mb-6">
             Автор: {authorAnalysis.author}
           </p>
-          <p className="text-lg md:text-xl text-muted-foreground leading-relaxed font-body max-w-3xl mx-auto">
+          <p className="text-sm sm:text-base md:text-lg text-muted-foreground leading-relaxed font-body max-w-3xl mx-auto">
             {authorAnalysis.intro}
           </p>
         </motion.div>
@@ -51,33 +51,33 @@ export function AnalysisSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-50px' }}
               transition={{ duration: 0.6, delay: idx * 0.05 }}
-              className="rounded-xl border border-border bg-card p-6 md:p-10 relative"
+              className="rounded-xl border border-border bg-card p-5 sm:p-6 md:p-8 lg:p-10 relative"
             >
-              <div className="absolute top-6 left-6 hidden md:block">
-                <span className="font-display text-5xl font-bold text-primary/20">
+              <div className="absolute top-4 left-4 sm:top-6 sm:left-6 hidden md:block">
+                <span className="font-display text-4xl sm:text-5xl font-bold text-primary/20">
                   {String(idx + 1).padStart(2, '0')}
                 </span>
               </div>
 
               <div className="md:pl-14">
-                <h3 className="font-display text-xl md:text-2xl font-semibold mb-4 leading-tight">
+                <h3 className="font-display text-lg sm:text-xl md:text-2xl font-semibold mb-3 md:mb-4 leading-tight">
                   {section.title}
                 </h3>
 
-                <div className="mb-5 p-4 rounded-lg border-l-4 border-primary bg-primary/5">
+                <div className="mb-4 md:mb-5 p-3 sm:p-4 rounded-lg border-l-4 border-primary bg-primary/5">
                   <div className="flex items-start gap-2">
                     <Quote className="h-4 w-4 text-primary shrink-0 mt-1" />
-                    <p className="text-base md:text-lg italic leading-relaxed text-foreground/90 font-body">
+                    <p className="text-sm sm:text-base md:text-lg italic leading-relaxed text-foreground/90 font-body">
                       {section.thesis}
                     </p>
                   </div>
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-3 md:space-y-4">
                   {section.body.map((para, i) => (
                     <p
                       key={i}
-                      className="text-base leading-relaxed text-foreground/85"
+                      className="text-sm sm:text-base leading-relaxed text-foreground/85"
                     >
                       {para}
                     </p>
@@ -93,14 +93,14 @@ export function AnalysisSection() {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="mt-12 text-center"
+          className="mt-8 sm:mt-10 md:mt-12 text-center"
         >
-          <div className="inline-flex items-center gap-3 text-sm text-muted-foreground italic">
-            <span className="h-px w-12 bg-border" />
+          <div className="inline-flex items-center gap-2 sm:gap-3 text-xs sm:text-sm text-muted-foreground italic">
+            <span className="h-px w-8 sm:w-12 bg-border" />
             <span className="font-body">
               Автор: {authorAnalysis.author}
             </span>
-            <span className="h-px w-12 bg-border" />
+            <span className="h-px w-8 sm:w-12 bg-border" />
           </div>
         </motion.div>
       </div>

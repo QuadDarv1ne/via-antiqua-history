@@ -1,25 +1,8 @@
 import type { Metadata, Viewport } from "next";
-import { Cormorant_Garamond, EB_Garamond } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/site/theme-provider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { BookmarksProvider } from "@/components/site/bookmarks";
-
-const cormorant = Cormorant_Garamond({
-  subsets: ["latin", "cyrillic"],
-  weight: ["400", "500", "600", "700"],
-  style: ["normal", "italic"],
-  variable: "--font-cormorant",
-  display: "swap",
-});
-
-const ebGaramond = EB_Garamond({
-  subsets: ["latin", "cyrillic"],
-  weight: ["400", "500", "600", "700"],
-  style: ["normal", "italic"],
-  variable: "--font-eb-garamond",
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://via-antiqua-history.vercel.app'),
@@ -31,7 +14,7 @@ export const metadata: Metadata = {
     "Интерактивная историческая энциклопедия античного мира — Древняя Греция, Римская империя, Месопотамия и Кубань как единое культурное пространство. 18 городов, 32+ памятников, 12 персоналий, 7 чудес света.",
   keywords: [
     "Древняя Греция",
-    "Римская империя", 
+    "Римская империя",
     "Месопотамия",
     "Кубань",
     "Боспорское царство",
@@ -103,10 +86,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ru" suppressHydrationWarning className={`${cormorant.variable} ${ebGaramond.variable}`}>
-      <body
-        className="font-body antialiased bg-background text-foreground"
-      >
+    <html lang="ru" suppressHydrationWarning>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body className="font-body antialiased bg-background text-foreground">
         <a href="#main-content" className="skip-link">
           Перейти к основному содержанию
         </a>
@@ -116,12 +105,12 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-            <AuthProvider>
-              <BookmarksProvider>
-                {children}
-              </BookmarksProvider>
-            </AuthProvider>
-          </ThemeProvider>
+          <AuthProvider>
+            <BookmarksProvider>
+              {children}
+            </BookmarksProvider>
+          </AuthProvider>
+        </ThemeProvider>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

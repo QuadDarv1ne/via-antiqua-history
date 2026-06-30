@@ -19,11 +19,11 @@ export function TimelineSection() {
   const sectionRef = React.useRef<HTMLElement>(null)
   const event = allTimeline[activeIdx]
 
-  const go = (dir: 1 | -1) => {
+  const go = React.useCallback((dir: 1 | -1) => {
     setActiveIdx((cur) =>
       Math.min(allTimeline.length - 1, Math.max(0, cur + dir))
     )
-  }
+  }, [])
 
   // Отслеживаем, в зоне видимости ли секция
   React.useEffect(() => {
@@ -53,7 +53,7 @@ export function TimelineSection() {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [isInView, activeIdx])
+  }, [isInView, go])
 
   return (
     <section
@@ -67,18 +67,18 @@ export function TimelineSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-100px' }}
           transition={{ duration: 0.6 }}
-          className="mb-10 md:mb-14 text-center"
+          className="mb-6 sm:mb-8 md:mb-10 md:mb-14 text-center"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/30 bg-primary/5 mb-4">
+          <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-full border border-primary/30 bg-primary/5 mb-3 sm:mb-4">
             <Calendar className="h-3.5 w-3.5 text-primary" />
-            <span className="text-xs uppercase tracking-widest font-medium">
+            <span className="text-[10px] sm:text-xs uppercase tracking-widest font-medium">
               Параллельная хронология
             </span>
           </div>
-          <h2 className="font-display text-3xl md:text-5xl font-semibold mb-4">
+          <h2 className="font-display text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold mb-3 sm:mb-4">
             Лента времени
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
             Проследите, как одновременно развивались четыре региона — от
             шумерских городов до падения Константинополя. Нажимайте на события
             или используйте стрелки.
@@ -94,9 +94,10 @@ export function TimelineSection() {
                   type="button"
                   key={i}
                   onClick={() => setActiveIdx(i)}
+                  aria-label={`Событие: ${ev.yearLabel}`}
                   className={cn(
                     'group relative flex flex-col items-stretch transition-all',
-                    'min-w-[100px] sm:min-w-[140px] md:min-w-[180px]'
+                    'min-w-[110px] sm:min-w-[150px] md:min-w-[190px]'
                   )}
                 >
                   {/* Точки на дорожке */}
@@ -146,18 +147,18 @@ export function TimelineSection() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="grid md:grid-cols-12 gap-6 items-stretch"
+          className="grid md:grid-cols-12 gap-4 sm:gap-6 items-stretch"
         >
           {/* Левая колонка: год и навигация */}
           <div className="md:col-span-4">
-            <div className="rounded-xl border border-border bg-card p-6 h-full flex flex-col">
-              <div className="text-xs uppercase tracking-widest text-muted-foreground mb-2">
+            <div className="rounded-xl border border-border bg-card p-4 sm:p-5 md:p-6 h-full flex flex-col">
+              <div className="text-[10px] sm:text-xs uppercase tracking-widest text-muted-foreground mb-1.5 sm:mb-2">
                 {activeIdx + 1} из {allTimeline.length}
               </div>
-              <div className="font-display text-3xl sm:text-4xl md:text-5xl font-bold mb-3 gold-text">
+              <div className="font-display text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-2 sm:mb-3 gold-text">
                 {event.yearLabel}
               </div>
-              <p className="text-sm text-muted-foreground mb-6 flex-1">
+              <p className="text-xs sm:text-sm text-muted-foreground mb-4 sm:mb-6 flex-1">
                 {event.greece || event.rome || event.mesopotamia || event.kuban
                   ? 'События этого периода:'
                   : 'Событие этого периода'}
@@ -169,18 +170,18 @@ export function TimelineSection() {
                   size="sm"
                   onClick={() => go(-1)}
                   disabled={activeIdx === 0}
-                  className="flex-1"
+                  className="flex-1 text-xs sm:text-sm"
                 >
-                  <ChevronLeft className="h-4 w-4 mr-1" /> Назад
+                  <ChevronLeft className="h-3.5 w-3.5 mr-1 sm:mr-1" /> Назад
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => go(1)}
                   disabled={activeIdx === allTimeline.length - 1}
-                  className="flex-1"
+                  className="flex-1 text-xs sm:text-sm"
                 >
-                  Далее <ChevronRight className="h-4 w-4 ml-1" />
+                  Далее <ChevronRight className="h-3.5 w-3.5 ml-1 sm:ml-1" />
                 </Button>
               </div>
               <span className="hidden sm:inline text-[11px] text-muted-foreground italic text-center mt-2">
@@ -191,7 +192,7 @@ export function TimelineSection() {
 
           {/* Правая колонка: события по регионам */}
           <div className="md:col-span-8">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 md:gap-4">
               {(['greece', 'rome', 'mesopotamia', 'kuban'] as const).map(
                 (regionKey) => {
                   const text = event[regionKey]
@@ -204,27 +205,27 @@ export function TimelineSection() {
                     <div
                       key={regionKey}
                       className={cn(
-                        'rounded-lg border p-5 transition-all',
+                        'rounded-lg p-3.5 sm:p-4 md:p-5 transition-all',
                         text
-                          ? 'bg-card border-border'
-                          : 'bg-muted/30 border-border/60 opacity-50'
+                          ? 'border border-border bg-card'
+                          : 'border border-border/60 bg-muted/30 opacity-50'
                       )}
                     >
-                      <div className="flex items-center gap-2 mb-2">
+                      <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
                         <span
-                          className="flex h-7 w-7 items-center justify-center rounded-full text-[11px] sm:text-xs font-bold text-white"
+                          className="flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-full text-[10px] sm:text-xs font-bold text-white shrink-0"
                           style={{ backgroundColor: meta.color }}
                         >
                           {meta.short}
                         </span>
                         <span
-                          className="text-sm font-semibold"
+                          className="text-xs sm:text-sm font-semibold truncate"
                           style={{ color: meta.color }}
                         >
                           {meta.label}
                         </span>
                       </div>
-                      <p className="text-sm leading-relaxed text-foreground/85 min-h-[3rem]">
+                      <p className="text-xs sm:text-sm leading-relaxed text-foreground/85 min-h-[2.5rem] sm:min-h-[3rem]">
                         {text || '— нет заметных событий в этот период'}
                       </p>
                     </div>

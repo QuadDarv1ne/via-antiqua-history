@@ -12,9 +12,7 @@ export default function Error({
   reset: () => void
 }) {
   useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      console.error(error)
-    }
+    console.error(error)
   }, [error])
 
   return (
@@ -25,7 +23,7 @@ export default function Error({
             <AlertTriangle className="h-8 w-8 text-destructive" />
           </span>
         </div>
-        <h1 className="font-display text-4xl md:text-5xl font-semibold mb-4">
+        <h1 className="font-display text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold mb-3 sm:mb-4">
           Что-то пошло не так
         </h1>
         <p className="text-muted-foreground mb-8 leading-relaxed">
@@ -41,14 +39,14 @@ export default function Error({
           <button
             type="button"
             onClick={reset}
-            className="inline-flex items-center justify-center gap-2 h-11 px-6 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium"
+            className="inline-flex items-center justify-center gap-2 h-10 sm:h-11 px-5 sm:px-6 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium text-sm sm:text-base"
           >
             <RotateCcw className="h-4 w-4" />
             Попробовать снова
           </button>
           <Link
             href="/"
-            className="inline-flex items-center justify-center gap-2 h-11 px-6 rounded-md border border-border bg-card hover:bg-accent/10 transition-colors font-medium"
+            className="inline-flex items-center justify-center gap-2 h-10 sm:h-11 px-5 sm:px-6 rounded-md border border-border bg-card hover:bg-accent/10 transition-colors font-medium text-sm sm:text-base"
           >
             На главную
           </Link>

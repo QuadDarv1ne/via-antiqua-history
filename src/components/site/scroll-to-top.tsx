@@ -26,7 +26,7 @@ export function ScrollToTop() {
             window.scrollTo({ top: 0, behavior: 'smooth' })
           }
           aria-label="Наверх"
-          className="fixed bottom-6 right-6 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 hover:scale-105 active:scale-95 transition-all"
+          className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 hover:scale-105 active:scale-95 transition-all"
         >
           <ArrowUp className="h-5 w-5" />
         </motion.button>

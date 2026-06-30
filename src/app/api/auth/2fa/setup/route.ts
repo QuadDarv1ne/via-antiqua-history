@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { randomBytes } from 'crypto'
 import { toDataURL } from 'qrcode'
 import { getDb } from '@/lib/auth/db'
 import { getSession } from '@/lib/auth/utils'
@@ -54,7 +55,7 @@ export async function POST(req: NextRequest) {
     }
 
     const recoveryCodes = Array.from({ length: 8 }, () =>
-      Math.random().toString(36).substring(2, 10).toUpperCase()
+      randomBytes(4).toString('hex').toUpperCase()
     )
 
     db.prepare('UPDATE users SET totp_enabled = 1, recovery_codes = ? WHERE id = ?').run(

@@ -10,7 +10,7 @@ export default function NotFound() {
             <Compass className="h-8 w-8 text-muted-foreground" />
           </span>
         </div>
-        <h1 className="font-display text-6xl font-semibold mb-2 gold-text">
+        <h1 className="font-display text-5xl sm:text-6xl font-semibold mb-2 gold-text">
           404
         </h1>
         <p className="font-display text-xl text-foreground mb-4">
@@ -22,7 +22,7 @@ export default function NotFound() {
         </p>
         <Link
           href="/"
-          className="inline-flex items-center gap-2 h-11 px-6 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium"
+          className="inline-flex items-center gap-2 h-10 sm:h-11 px-5 sm:px-6 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium text-sm sm:text-base"
         >
           <Home className="h-4 w-4" />
           Вернуться к началу
