@@ -11,9 +11,14 @@ export function ReadingProgress() {
     restDelta: 0.001,
   })
   const [percentage, setPercentage] = React.useState(0)
+  const lastPercentRef = React.useRef(0)
 
   useMotionValueEvent(scrollYProgress, 'change', (latest) => {
-    setPercentage(Math.round(latest * 100))
+    const next = Math.round(latest * 100)
+    if (next !== lastPercentRef.current) {
+      lastPercentRef.current = next
+      setPercentage(next)
+    }
   })
 
   return (

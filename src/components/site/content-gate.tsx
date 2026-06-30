@@ -43,7 +43,7 @@ export function ContentGate({
         </div>
 
         <div className="relative rounded-xl border border-border bg-card overflow-hidden min-h-[420px] md:min-h-[480px]">
-          <div className="blur-sm opacity-30 pointer-events-none overflow-hidden">
+          <div className="blur-sm opacity-30 pointer-events-none overflow-hidden" aria-hidden="true">
             {children}
           </div>
 

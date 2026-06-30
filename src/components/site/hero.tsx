@@ -15,6 +15,17 @@ const regionChips = [
   { label: 'Кубань', color: REGION_COLORS.kuban },
 ]
 
+const sectionIds = ['#greece', '#rome', '#mesopotamia', '#kuban']
+
+const citiesCount = allRegions.reduce(
+  (acc, r) => acc + r.cities.length,
+  0
+)
+const landmarksCount = allRegions.reduce(
+  (acc, r) => acc + r.cities.reduce((a, c) => a + c.landmarks.length, 0),
+  0
+)
+
 export function Hero() {
   const { scrollY } = useScroll()
   const parallaxY1 = useTransform(scrollY, [0, 500], [0, -80])
@@ -31,12 +42,12 @@ export function Hero() {
     0
   )
 
-  const stats = [
+  const stats = React.useMemo(() => [
     { icon: <Building2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />, value: citiesCount, label: 'городов' },
     { icon: <Landmark className="h-3.5 w-3.5 sm:h-4 sm:w-4" />, value: landmarksCount, label: 'памятников' },
     { icon: <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4" />, value: timeline.length, label: 'событий' },
     { icon: <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4" />, value: persons.length, label: 'персоналий' },
-  ]
+  ], [])
 
   return (
     <section
@@ -149,7 +160,6 @@ export function Hero() {
             className="flex flex-wrap gap-1.5 sm:gap-2"
           >
             {regionChips.map((chip, i) => {
-              const sectionIds = ['#greece', '#rome', '#mesopotamia', '#kuban']
               return (
                 <Link
                   key={chip.label}

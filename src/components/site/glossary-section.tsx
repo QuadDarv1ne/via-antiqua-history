@@ -22,14 +22,17 @@ export function GlossarySection() {
   const [filter, setFilter] = React.useState('all')
   const [query, setQuery] = React.useState('')
 
-  const filtered = glossary.filter((t) => {
-    const matchFilter = filter === 'all' || t.origin === filter
-    const matchQuery =
-      !query ||
-      t.term.toLowerCase().includes(query.toLowerCase()) ||
-      t.definition.toLowerCase().includes(query.toLowerCase())
-    return matchFilter && matchQuery
-  })
+  const filtered = React.useMemo(() => {
+    const q = query.toLowerCase()
+    return glossary.filter((t) => {
+      const matchFilter = filter === 'all' || t.origin === filter
+      const matchQuery =
+        !q ||
+        t.term.toLowerCase().includes(q) ||
+        t.definition.toLowerCase().includes(q)
+      return matchFilter && matchQuery
+    })
+  }, [filter, query])
 
   return (
     <section
@@ -110,7 +113,7 @@ export function GlossarySection() {
                   initial={{ opacity: 0, y: 12 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ duration: 0.35, delay: idx * 0.03 }}
+                  transition={{ duration: 0.35, delay: Math.min(idx * 0.03, 0.5) }}
                   className="rounded-lg border border-border bg-card p-4 sm:p-5 hover:shadow-md transition-shadow"
                 >
                   <div className="flex items-start justify-between gap-2 mb-2">

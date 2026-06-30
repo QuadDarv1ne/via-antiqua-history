@@ -1,6 +1,6 @@
 export function SectionDivider() {
   return (
-    <div className="relative h-16 sm:h-20 md:h-24 overflow-hidden bg-background">
+    <div className="relative h-16 sm:h-20 md:h-24 overflow-hidden bg-background" aria-hidden="true">
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="w-px h-full bg-gradient-to-b from-transparent via-border/30 to-transparent" />
       </div>
