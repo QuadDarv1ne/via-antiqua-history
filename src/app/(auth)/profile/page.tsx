@@ -218,12 +218,13 @@ export default function ProfilePage() {
                   Отсканируйте QR-код в приложении-аутентификаторе (Google Authenticator, Яндекс.Ключ и др.)
                 </p>
                 <div className="flex justify-center">
-                  <img src={qrCode} alt="QR Code" className="h-48 w-48" />
+                  <img src={qrCode} alt="QR-код для настройки двухфакторной аутентификации" className="h-48 w-48" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1.5">Код из приложения</label>
+                  <label htmlFor="totp-input" className="block text-sm font-medium mb-1.5">Код из приложения</label>
                   <div className="flex gap-2">
                     <input
+                      id="totp-input"
                       type="text"
                       value={totpCode}
                       onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
