@@ -17,6 +17,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   return (
     <>
       <header className="fixed top-0 inset-x-0 z-50 bg-background/85 backdrop-blur-md border-b border-border">
+        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary/20" />
         <div className="container mx-auto max-w-7xl px-3 sm:px-4">
           <nav className="flex h-14 sm:h-16 items-center">
             <Link href="/" className="flex items-center gap-1.5 sm:gap-2 group">
@@ -30,9 +31,9 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           </nav>
         </div>
       </header>
-      <div className="pt-14 sm:pt-16">
+      <main className="pt-14 sm:pt-16" id="main-content">
         {children}
-      </div>
+      </main>
     </>
   )
 }
