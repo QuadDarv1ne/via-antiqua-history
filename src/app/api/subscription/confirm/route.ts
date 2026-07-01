@@ -10,45 +10,41 @@ export async function POST(_request: NextRequest) {
 
     const db = getDb()
     const now = new Date().toISOString()
-    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
 
-    // Check for pending payment
-    const payment = db.prepare(`
-      SELECT * FROM payments
-      WHERE user_id = ? AND status = 'pending'
-      ORDER BY created_at DESC
+    // Check if user already has active subscription
+    const activeSub = db.prepare(`
+      SELECT id FROM subscriptions
+      WHERE user_id = ? AND status = 'active' AND expires_at > ?
       LIMIT 1
-    `).get(session.userId) as {
-      id: string
-      amount: number
-      sbp_qr_data: string
-    } | undefined
+    `).get(session.userId, now)
 
-    if (!payment) {
-      return NextResponse.json({
-        ok: false,
-        error: 'Нет активного платежа',
-      })
+    if (activeSub) {
+      return NextResponse.json({ ok: false, error: 'Подписка уже активна' }, { status: 400 })
     }
 
-    // Update payment status
-    db.prepare(`
-      UPDATE payments SET status = 'paid', updated_at = ? WHERE id = ?
-    `).run(now, payment.id)
+    // Check if there's a paid subscription ready to activate
+    const paidSub = db.prepare(`
+      SELECT id FROM subscriptions
+      WHERE user_id = ? AND status = 'pending' AND payment_id IN (
+        SELECT id FROM payments WHERE user_id = ? AND status = 'paid'
+      )
+      LIMIT 1
+    `).get(session.userId, session.userId) as { id: string } | undefined
 
-    // Update subscription to active
+    if (!paidSub) {
+      return NextResponse.json({ ok: false, error: 'Нет оплаченной подписки для активации' }, { status: 400 })
+    }
+
+    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+
     db.prepare(`
-      UPDATE subscriptions
-      SET status = 'active', payment_id = ?, updated_at = ?, expires_at = ?
-      WHERE user_id = ? AND status = 'pending' AND payment_id = ?
-    `).run(payment.id, now, expiresAt, session.userId, payment.id)
+      UPDATE subscriptions SET status = 'active', updated_at = ?, expires_at = ?
+      WHERE id = ?
+    `).run(now, expiresAt, paidSub.id)
 
     return NextResponse.json({
       ok: true,
-      data: {
-        message: 'Подписка активирована',
-        expiresAt,
-      },
+      data: { message: 'Подписка активирована', expiresAt },
     })
   } catch (err) {
     console.error('POST /api/subscription/confirm error:', err)
