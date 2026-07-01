@@ -10,6 +10,8 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { SearchDialog } from '@/components/site/search-dialog'
 import { SITE_NAV, PUBLIC_NAV, PROTECTED_NAV } from '@/lib/constants'
+import { useSectionProgress } from '@/hooks/use-section-progress'
+import { Progress } from '@/components/ui/progress'
 
 export function Navbar() {
   const [open, setOpen] = React.useState(false)
@@ -19,6 +21,10 @@ export function Navbar() {
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = React.useState(false)
   const { user, loading: authLoading } = useAuth()
+
+  // Section progress tracking
+  const SECTION_IDS = ['greece', 'rome', 'mesopotamia', 'kuban', 'persons', 'wonders', 'orders', 'epochs', 'timeline', 'map', 'comparison', 'analysis', 'glossary', 'quiz', 'sources']
+  const { progressPercent } = useSectionProgress(SECTION_IDS)
 
   React.useEffect(() => {
     setMounted(true)
@@ -107,6 +113,14 @@ export function Navbar() {
                 Исторический Лабиринт
               </span>
             </Link>
+
+            {/* Индикатор прогресса изучения */}
+            <div className="hidden md:flex items-center gap-2 shrink-0">
+              <span className="text-[11px] text-muted-foreground/60 whitespace-nowrap">
+                Изучено: {progressPercent}%
+              </span>
+              <Progress value={progressPercent} className="h-1.5 w-24" />
+            </div>
 
             <div className="flex items-center gap-0.5 shrink-0">
               <Button

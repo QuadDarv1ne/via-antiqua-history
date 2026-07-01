@@ -25,7 +25,7 @@ export default function RegisterPage() {
   const strength = React.useMemo(() => passwordStrength(password), [password])
 
   const passwordsMatch = confirmPassword.length > 0 && password === confirmPassword
-  const passwordsMismatch = confirmPassword.length > 0 && password !== password
+  const passwordsMismatch = confirmPassword.length > 0 && password !== confirmPassword
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
