@@ -48,10 +48,11 @@ export async function POST(req: NextRequest) {
     }
 
     const passwordHash = await hashPassword(newPassword)
+    const now = new Date().toISOString()
 
-    db.prepare('UPDATE users SET password_hash = ?, updated_at = datetime(\'now\') WHERE id = ?').run(passwordHash, session.userId)
+    db.prepare('UPDATE users SET password_hash = ?, password_changed_at = ?, updated_at = ? WHERE id = ?').run(passwordHash, now, now, session.userId)
 
-    await createSession(session.userId, user.email as string)
+    await createSession(session.userId, user.email as string, now)
 
     return NextResponse.json<ApiResponse>({ ok: true, data: { message: 'Пароль успешно изменён' } })
   } catch (err) {

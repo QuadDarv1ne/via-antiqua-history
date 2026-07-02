@@ -4,10 +4,11 @@ import * as React from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { Shield, ShieldOff, LogOut, Loader2, Copy, Check, Smartphone, Bookmark, AlertTriangle, Crown, CreditCard, QrCode, Clock, CheckCircle2, XCircle, Lock } from 'lucide-react'
+import { Shield, ShieldOff, LogOut, Loader2, Copy, Check, Smartphone, Bookmark, AlertTriangle, Crown, CreditCard, QrCode, Clock, CheckCircle2, XCircle, Lock, Eye, EyeOff } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useBookmarks } from '@/components/site/bookmarks'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
+import { passwordStrength, validatePassword } from '@/lib/utils'
 
 export default function ProfilePage() {
   const router = useRouter()
@@ -58,6 +59,9 @@ export default function ProfilePage() {
   const [changePasswordLoading, setChangePasswordLoading] = React.useState(false)
   const [changePasswordError, setChangePasswordError] = React.useState('')
   const [changePasswordSuccess, setChangePasswordSuccess] = React.useState(false)
+  const [showNewPassword, setShowNewPassword] = React.useState(false)
+
+  const newPwStrength = React.useMemo(() => passwordStrength(newPassword), [newPassword])
 
   React.useEffect(() => {
     if (!loading && !user) {
@@ -243,6 +247,12 @@ export default function ProfilePage() {
 
     if (!currentPassword || !newPassword || !confirmNewPassword) {
       setChangePasswordError('Заполните все поля')
+      return
+    }
+
+    const passwordError = validatePassword(newPassword)
+    if (passwordError) {
+      setChangePasswordError(passwordError)
       return
     }
 
@@ -737,14 +747,35 @@ export default function ProfilePage() {
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/50 pointer-events-none" />
                     <input
                       id="new-password"
-                      type="password"
+                      type={showNewPassword ? 'text' : 'password'}
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       placeholder="Минимум 8 символов"
                       autoComplete="new-password"
-                      className="w-full h-9 pl-8 pr-3 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
+                      className="w-full h-9 pl-8 pr-9 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-foreground/80 transition-colors"
+                      tabIndex={-1}
+                    >
+                      {showNewPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                    </button>
                   </div>
+                  {newPassword && (
+                    <div className="mt-2">
+                      <div className="flex gap-1 mb-1">
+                        {[1, 2, 3, 4, 5].map((i) => (
+                          <div
+                            key={i}
+                            className={`h-1 flex-1 rounded-full transition-all duration-300 ${i <= newPwStrength.score ? newPwStrength.color : 'bg-muted/60'}`}
+                          />
+                        ))}
+                      </div>
+                      <p className="text-[10px] text-muted-foreground/60">{newPwStrength.label}</p>
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label htmlFor="confirm-new-password" className="block text-xs font-medium mb-1 text-foreground/80">

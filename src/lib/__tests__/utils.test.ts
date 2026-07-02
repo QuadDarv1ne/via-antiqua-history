@@ -68,8 +68,8 @@ describe('validateEmail', () => {
 
 describe('validatePassword', () => {
   it('returns null for valid password', () => {
-    expect(validatePassword('password1')).toBeNull()
     expect(validatePassword('MyP4ssw0rd')).toBeNull()
+    expect(validatePassword('Str0ng!Pass')).toBeNull()
   })
 
   it('requires minimum 8 characters', () => {
@@ -77,12 +77,28 @@ describe('validatePassword', () => {
     expect(validatePassword('Abcdef1')).toContain('8 символов')
   })
 
-  it('requires at least one letter', () => {
-    expect(validatePassword('12345678')).toContain('букву')
+  it('requires at least one lowercase letter', () => {
+    expect(validatePassword('12345678')).toContain('строчную')
+    expect(validatePassword('ABCDEFGH1')).toContain('строчную')
+  })
+
+  it('requires at least one uppercase letter', () => {
+    expect(validatePassword('abcdefgh1')).toContain('заглавную')
+    expect(validatePassword('abc12345')).toContain('заглавную')
   })
 
   it('requires at least one digit', () => {
-    expect(validatePassword('abcdefgh')).toContain('цифру')
+    expect(validatePassword('Abcdefgh')).toContain('цифру')
+    expect(validatePassword('AbcdEfgH')).toContain('цифру')
+  })
+
+  it('rejects passwords with 3+ repeated characters', () => {
+    expect(validatePassword('Aabbb1cd')).toContain('одинаковых символов')
+    expect(validatePassword('Ab1111ef')).toContain('одинаковых символов')
+  })
+
+  it('allows passwords with 2 repeated characters', () => {
+    expect(validatePassword('Aabb1cde')).toBeNull()
   })
 
   it('rejects passwords longer than 128 characters', () => {

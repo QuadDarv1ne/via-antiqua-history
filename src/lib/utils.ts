@@ -26,13 +26,15 @@ export function passwordStrength(password: string) {
   return { score, label: 'Отличный', color: 'bg-green-500' }
 }
 
-export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+export const EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/
 
 export function validatePassword(password: string): string | null {
   if (password.length < 8) return 'Пароль должен содержать минимум 8 символов'
   if (password.length > 128) return 'Пароль не должен превышать 128 символов'
-  if (!/[A-Za-z]/.test(password)) return 'Пароль должен содержать хотя бы одну букву'
+  if (!/[a-z]/.test(password)) return 'Пароль должен содержать хотя бы одну строчную букву'
+  if (!/[A-Z]/.test(password)) return 'Пароль должен содержать хотя бы одну заглавную букву'
   if (!/\d/.test(password)) return 'Пароль должен содержать хотя бы одну цифру'
+  if (/(.)\1{2,}/.test(password)) return 'Пароль не должен содержать более 2 одинаковых символов подряд'
   return null
 }
 
