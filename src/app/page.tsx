@@ -14,41 +14,60 @@ import {
   BookmarksDialog,
 } from '@/components/site/bookmarks'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
+import { CardSkeleton, GridSkeleton } from '@/components/ui/skeleton'
 
 import { greece, rome, mesopotamia, kuban } from '@/lib/history-data'
 
+// Skeleton loaders for dynamic sections
+function DynamicSectionSkeleton({ variant = 'card' }: { variant?: 'card' | 'grid' | 'full' }) {
+  if (variant === 'grid') return <GridSkeleton count={3} />
+  if (variant === 'full') return <div className="py-20 md:py-28"><CardSkeleton lines={6} /></div>
+  return <CardSkeleton lines={4} />
+}
+
 const PersonsSection = dynamic(() =>
-  import('@/components/site/persons-section').then((m) => m.PersonsSection)
+  import('@/components/site/persons-section').then((m) => m.PersonsSection),
+  { loading: () => <DynamicSectionSkeleton variant="grid" /> }
 )
 const WondersSection = dynamic(() =>
-  import('@/components/site/wonders-section').then((m) => m.WondersSection)
+  import('@/components/site/wonders-section').then((m) => m.WondersSection),
+  { loading: () => <DynamicSectionSkeleton variant="grid" /> }
 )
 const TimelineSection = dynamic(() =>
-  import('@/components/site/timeline-section').then((m) => m.TimelineSection)
+  import('@/components/site/timeline-section').then((m) => m.TimelineSection),
+  { loading: () => <DynamicSectionSkeleton variant="full" /> }
 )
 const MapSection = dynamic(() =>
-  import('@/components/site/map-section').then((m) => m.MapSection)
+  import('@/components/site/map-section').then((m) => m.MapSection),
+  { loading: () => <DynamicSectionSkeleton variant="full" /> }
 )
 const ComparisonSection = dynamic(() =>
-  import('@/components/site/comparison-section').then((m) => m.ComparisonSection)
+  import('@/components/site/comparison-section').then((m) => m.ComparisonSection),
+  { loading: () => <DynamicSectionSkeleton variant="full" /> }
 )
 const AnalysisSection = dynamic(() =>
-  import('@/components/site/analysis-section').then((m) => m.AnalysisSection)
+  import('@/components/site/analysis-section').then((m) => m.AnalysisSection),
+  { loading: () => <DynamicSectionSkeleton variant="full" /> }
 )
 const GlossarySection = dynamic(() =>
-  import('@/components/site/glossary-section').then((m) => m.GlossarySection)
+  import('@/components/site/glossary-section').then((m) => m.GlossarySection),
+  { loading: () => <DynamicSectionSkeleton variant="grid" /> }
 )
 const OrdersSection = dynamic(() =>
-  import('@/components/site/orders-section').then((m) => m.OrdersSection)
+  import('@/components/site/orders-section').then((m) => m.OrdersSection),
+  { loading: () => <DynamicSectionSkeleton variant="grid" /> }
 )
 const EpochsSection = dynamic(() =>
-  import('@/components/site/epochs-section').then((m) => m.EpochsSection)
+  import('@/components/site/epochs-section').then((m) => m.EpochsSection),
+  { loading: () => <DynamicSectionSkeleton variant="grid" /> }
 )
 const QuizSection = dynamic(() =>
-  import('@/components/site/quiz-section').then((m) => m.QuizSection)
+  import('@/components/site/quiz-section').then((m) => m.QuizSection),
+  { loading: () => <DynamicSectionSkeleton variant="full" /> }
 )
 const SourcesSection = dynamic(() =>
-  import('@/components/site/sources-section').then((m) => m.SourcesSection)
+  import('@/components/site/sources-section').then((m) => m.SourcesSection),
+  { loading: () => <DynamicSectionSkeleton variant="grid" /> }
 )
 
 export default function Home() {

@@ -22,6 +22,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { BookmarksProvider } from "@/components/site/bookmarks";
 import { ScrollToTop } from "@/components/site/scroll-to-top";
 import { DEFAULT_SITE_URL } from "@/lib/constants";
+import { FAQSchema } from "@/components/seo/faq-schema";
 
 const JSON_LD = {
   "@context": "https://schema.org",
@@ -49,6 +50,14 @@ const JSON_LD = {
     "Интерактивная карта",
     "Квиз на 20 вопросов",
     "Глоссарий терминов",
+  ],
+};
+
+const BREADCRUMB_LIST = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Главная", "item": process.env.NEXT_PUBLIC_SITE_URL || DEFAULT_SITE_URL },
   ],
 };
 
@@ -139,6 +148,11 @@ export default function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
+        />
+        <FAQSchema />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(BREADCRUMB_LIST) }}
         />
         <a href="#main-content" className="skip-link">
           Перейти к основному содержанию

@@ -6,6 +6,7 @@ import { MapPin, X, Info } from 'lucide-react'
 import { mapRegions } from '@/lib/history-data'
 import { cn } from '@/lib/utils'
 import { REGION_COLORS, REGION_LABELS } from '@/lib/constants'
+import { useTheme } from 'next-themes'
 
 type FilterKey = 'all' | 'greece' | 'rome' | 'mesopotamia' | 'kuban'
 
@@ -13,12 +14,21 @@ export function MapSection() {
   const [filter, setFilter] = React.useState<FilterKey>('all')
   const [hovered, setHovered] = React.useState<string | null>(null)
   const [selected, setSelected] = React.useState<string | null>(null)
+  const { resolvedTheme } = useTheme()
+  const isDark = resolvedTheme === 'dark'
 
   const visibleRegions = mapRegions.filter(
     (r) => filter === 'all' || r.region === filter
   )
 
   const selectedRegion = mapRegions.find((r) => r.id === selected)
+
+  // Theme-aware SVG colors
+  const landFill = isDark ? 'oklch(0.35 0.04 60 / 0.3)' : 'oklch(0.7 0.06 70 / 0.25)'
+  const landStroke = isDark ? 'oklch(0.5 0.05 60 / 0.5)' : 'oklch(0.5 0.1 60 / 0.4)'
+  const landFillDark = isDark ? 'oklch(0.3 0.05 50 / 0.4)' : 'oklch(0.65 0.08 50 / 0.3)'
+  const landStrokeDark = isDark ? 'oklch(0.5 0.05 50 / 0.5)' : 'oklch(0.5 0.1 50 / 0.4)'
+  const gridColor = isDark ? 'oklch(0.4 0.03 50 / 0.2)' : 'oklch(0.5 0.05 50 / 0.12)'
 
   return (
     <section
@@ -117,43 +127,43 @@ export function MapSection() {
                 {/* Сухопутные «пятна» — очень условная схема Средиземноморья */}
                 <path
                   d="M 30,30 Q 35,25 45,28 L 55,30 Q 60,32 62,38 L 64,42 Q 60,46 55,46 L 48,45 Q 42,44 38,42 L 32,38 Z"
-                  fill="oklch(0.7 0.06 70 / 0.25)"
-                  stroke="oklch(0.5 0.1 60 / 0.4)"
+                  fill={landFill}
+                  stroke={landStroke}
                   strokeWidth="0.2"
                 />
                 {/* Италия */}
                 <path
                   d="M 46,40 L 49,38 L 50,46 L 48,52 L 47,52 L 48,46 L 47,42 Z"
-                  fill="oklch(0.65 0.08 50 / 0.3)"
-                  stroke="oklch(0.5 0.1 50 / 0.4)"
+                  fill={landFillDark}
+                  stroke={landStrokeDark}
                   strokeWidth="0.2"
                 />
                 {/* Балканы/Греция */}
                 <path
                   d="M 50,38 L 56,38 L 58,44 L 54,50 L 52,48 L 54,42 L 50,42 Z"
-                  fill="oklch(0.65 0.08 60 / 0.3)"
-                  stroke="oklch(0.5 0.1 60 / 0.4)"
+                  fill={landFillDark}
+                  stroke={landStrokeDark}
                   strokeWidth="0.2"
                 />
                 {/* Малая Азия */}
                 <path
                   d="M 58,40 L 68,38 L 70,44 L 64,46 L 60,44 Z"
-                  fill="oklch(0.65 0.08 55 / 0.3)"
-                  stroke="oklch(0.5 0.1 50 / 0.4)"
+                  fill={landFillDark}
+                  stroke={landStrokeDark}
                   strokeWidth="0.2"
                 />
                 {/* Месопотамия */}
                 <path
                   d="M 62,42 L 70,42 L 72,48 L 66,50 L 62,48 Z"
-                  fill="oklch(0.65 0.08 50 / 0.3)"
-                  stroke="oklch(0.5 0.1 45 / 0.4)"
+                  fill={landFillDark}
+                  stroke={landStrokeDark}
                   strokeWidth="0.2"
                 />
                 {/* Крым / Кубань */}
                 <path
                   d="M 58,32 Q 62,30 64,33 L 62,40 L 58,40 Z"
-                  fill="oklch(0.65 0.08 145 / 0.3)"
-                  stroke="oklch(0.5 0.1 145 / 0.4)"
+                  fill={landFillDark}
+                  stroke={landStrokeDark}
                   strokeWidth="0.2"
                 />
                 {/* Крит */}
@@ -162,8 +172,8 @@ export function MapSection() {
                   cy="51"
                   rx="2"
                   ry="0.6"
-                  fill="oklch(0.65 0.08 60 / 0.3)"
-                  stroke="oklch(0.5 0.1 60 / 0.4)"
+                  fill={landFillDark}
+                  stroke={landStrokeDark}
                   strokeWidth="0.2"
                 />
                 {/* Тонкая сетка-«параллели» */}
@@ -174,7 +184,7 @@ export function MapSection() {
                     y1={y}
                     x2="100"
                     y2={y}
-                    stroke="oklch(0.5 0.05 50 / 0.12)"
+                    stroke={gridColor}
                     strokeWidth="0.1"
                     strokeDasharray="0.5,0.5"
                   />
