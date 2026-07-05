@@ -1,6 +1,4 @@
-'use client'
-
-import { FAQ_DATA } from '@/lib/history-data/faq'
+import { FAQ_DATA } from '@/lib/history-data'
 
 export function FAQSchema() {
   const jsonLd = {

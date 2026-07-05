@@ -4,6 +4,7 @@ import * as React from 'react'
 import Link from 'next/link'
 import { Lock, BookOpen, CreditCard, Crown } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
+import { useSubscription } from '@/hooks/use-subscription'
 import { SUBSCRIPTION_PRICE } from '@/lib/constants'
 
 interface ContentGateProps {
@@ -20,31 +21,7 @@ export function ContentGate({
   restricted = false,
 }: ContentGateProps) {
   const { user, loading } = useAuth()
-  const [hasSubscription, setHasSubscription] = React.useState<boolean>(false)
-  const [subscriptionLoading, setSubscriptionLoading] = React.useState(true)
-
-  // Проверяем подписку пользователя
-  React.useEffect(() => {
-    if (!user || !restricted) {
-      setSubscriptionLoading(false)
-      return
-    }
-
-    async function checkSubscription() {
-      try {
-        const res = await fetch('/api/subscription/status')
-        const data = await res.json()
-        setHasSubscription(data.ok && data.data?.status === 'active')
-      } catch (error) {
-        console.error('Failed to check subscription:', error)
-        setHasSubscription(false)
-      } finally {
-        setSubscriptionLoading(false)
-      }
-    }
-
-    checkSubscription()
-  }, [user, restricted])
+  const { hasSubscription, subscriptionLoading } = useSubscription()
 
   const isLoading = loading || (user && restricted && subscriptionLoading)
 

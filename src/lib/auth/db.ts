@@ -96,7 +96,7 @@ function initSchema(db: Database.Database) {
   `)
 }
 
-export function closeDb() {
+function closeDb() {
   if (db) {
     db.close()
     db = null

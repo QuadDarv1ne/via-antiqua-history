@@ -15,6 +15,7 @@ export { persons } from './persons'
 export { wonders } from './wonders'
 export { architecturalOrders } from './orders'
 export { epochs } from './epochs'
+export { FAQ_DATA } from './faq'
 
 import { greece } from './greece'
 import { rome } from './rome'

@@ -18,6 +18,7 @@ import { BookmarkButton } from '@/components/site/bookmarks'
 import { ShareButton } from '@/components/site/share-button'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
+import { useSubscription } from '@/hooks/use-subscription'
 
 export function RegionSection({ region, restricted }: { region: Region; restricted?: boolean }) {
   const regionIconMap = React.useMemo<Record<string, React.ReactNode>>(() => ({
@@ -33,20 +34,7 @@ export function RegionSection({ region, restricted }: { region: Region; restrict
   )
   const activeCity = region.cities.find((c) => c.id === activeCityId) ?? region.cities[0]
   const { user } = useAuth()
-  const [hasSubscription, setHasSubscription] = React.useState(false)
-
-  React.useEffect(() => {
-    if (!user || !restricted) return
-    let cancelled = false
-    fetch('/api/subscription/status')
-      .then(r => r.json())
-      .then(data => {
-        if (!cancelled) setHasSubscription(data.ok && data.data?.status === 'active')
-      })
-      .catch(() => {})
-      .finally(() => {})
-    return () => { cancelled = true }
-  }, [user, restricted])
+  const { hasSubscription } = useSubscription()
 
   if (!region.cities.length) {
     return null
