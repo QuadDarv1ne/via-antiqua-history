@@ -1,26 +1,36 @@
-import Database from 'better-sqlite3'
-import path from 'path'
-import fs from 'fs'
+import Database from "better-sqlite3";
+import path from "path";
+import fs from "fs";
 
-const DB_PATH = process.env.DB_PATH || (() => {
-  const dataPath = path.join(process.cwd(), 'data', 'app.db')
-  const dataDir = path.dirname(dataPath)
-  if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true })
-  const amveraPath = '/data/app.db'
-  if (fs.existsSync(path.dirname(amveraPath))) return amveraPath
-  return dataPath
-})()
+const DB_PATH =
+  process.env.DB_PATH ||
+  (() => {
+    const dataPath = path.join(process.cwd(), "data", "app.db");
+    const dataDir = path.dirname(dataPath);
+    if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+    const amveraPath = "/data/app.db";
+    if (fs.existsSync(path.dirname(amveraPath))) return amveraPath;
+    return dataPath;
+  })();
 
-let db: Database.Database | null = null
+let db: Database.Database | null = null;
+let initPromise: Promise<Database.Database> | null = null;
 
 export function getDb(): Database.Database {
-  if (!db) {
-    db = new Database(DB_PATH)
-    db.pragma('journal_mode = WAL')
-    db.pragma('foreign_keys = ON')
-    initSchema(db)
+  if (db) return db;
+
+  if (!initPromise) {
+    initPromise = (async () => {
+      const instance = new Database(DB_PATH);
+      instance.pragma("journal_mode = WAL");
+      instance.pragma("foreign_keys = ON");
+      initSchema(instance);
+      db = instance;
+      return instance;
+    })();
   }
-  return db
+
+  return initPromise as unknown as Database.Database;
 }
 
 function initSchema(db: Database.Database) {
@@ -93,18 +103,24 @@ function initSchema(db: Database.Database) {
     CREATE INDEX IF NOT EXISTS idx_subscriptions_status ON subscriptions(status, expires_at);
     CREATE INDEX IF NOT EXISTS idx_payments_user_id ON payments(user_id);
     CREATE INDEX IF NOT EXISTS idx_payments_status ON payments(status);
-  `)
+  `);
 }
 
 function closeDb() {
   if (db) {
-    db.close()
-    db = null
+    db.close();
+    db = null;
   }
 }
 
-if (typeof process !== 'undefined') {
-  process.on('exit', closeDb)
-  process.on('SIGINT', () => { closeDb(); process.exit() })
-  process.on('SIGTERM', () => { closeDb(); process.exit() })
+if (typeof process !== "undefined") {
+  process.on("exit", closeDb);
+  process.on("SIGINT", () => {
+    closeDb();
+    process.exit();
+  });
+  process.on("SIGTERM", () => {
+    closeDb();
+    process.exit();
+  });
 }

@@ -1,102 +1,121 @@
-import bcrypt from 'bcryptjs'
-import jwt from 'jsonwebtoken'
-import { randomBytes, randomInt } from 'crypto'
-import { cookies } from 'next/headers'
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import { randomBytes, randomInt } from "crypto";
+import { cookies } from "next/headers";
 
-let _jwtSecret: string | undefined
+let _jwtSecret: string | undefined;
 
 export function getJwtSecret(): string {
-  if (_jwtSecret !== undefined) return _jwtSecret
-  const secret = process.env.JWT_SECRET
+  if (_jwtSecret !== undefined) return _jwtSecret;
+  const secret = process.env.JWT_SECRET;
   if (secret) {
-    _jwtSecret = secret
-    return secret
+    _jwtSecret = secret;
+    return secret;
   }
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error('JWT_SECRET environment variable is required in production')
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      "JWT_SECRET environment variable is required in production",
+    );
   }
-  _jwtSecret = 'dev-secret-change-in-production-' + randomBytes(16).toString('hex')
-  return _jwtSecret
+  _jwtSecret =
+    "dev-secret-change-in-production-" + randomBytes(16).toString("hex");
+  return _jwtSecret;
 }
 
-const SESSION_COOKIE = 'session'
-const SESSION_MAX_AGE = 7 * 24 * 60 * 60 // 7 days in seconds
+const SESSION_COOKIE = "session";
+const SESSION_MAX_AGE = 7 * 24 * 60 * 60; // 7 days in seconds
 
 export type SessionPayload = {
-  userId: string
-  email: string
-  passwordChangedAt?: string
-}
+  userId: string;
+  email: string;
+  passwordChangedAt?: string;
+};
 
 export async function hashPassword(password: string): Promise<string> {
-  return bcrypt.hash(password, 10)
+  return bcrypt.hash(password, 10);
 }
 
-export async function verifyPassword(password: string, hash: string): Promise<boolean> {
-  return bcrypt.compare(password, hash)
+export async function verifyPassword(
+  password: string,
+  hash: string,
+): Promise<boolean> {
+  return bcrypt.compare(password, hash);
 }
 
 export function generateToken(bytes = 32): string {
-  return randomBytes(bytes).toString('hex')
+  return randomBytes(bytes).toString("hex");
 }
 
 export function generateNumericCode(length = 6): string {
-  let code = ''
+  let code = "";
   for (let i = 0; i < length; i++) {
-    code += randomInt(0, 10).toString()
+    code += randomInt(0, 10).toString();
   }
-  return code
+  return code;
 }
 
 export function signJwt(payload: SessionPayload): string {
-  return jwt.sign(payload, getJwtSecret(), { expiresIn: SESSION_MAX_AGE })
+  return jwt.sign(payload, getJwtSecret(), { expiresIn: SESSION_MAX_AGE });
 }
 
 export function verifyJwt(token: string): SessionPayload | null {
   try {
-    return jwt.verify(token, getJwtSecret()) as SessionPayload
+    return jwt.verify(token, getJwtSecret()) as SessionPayload;
   } catch {
-    return null
+    return null;
   }
 }
 
-export async function createSession(userId: string, email: string, passwordChangedAt?: string | null) {
-  const token = signJwt({ userId, email, passwordChangedAt: passwordChangedAt || undefined })
-  const cookieStore = await cookies()
+export async function createSession(
+  userId: string,
+  email: string,
+  passwordChangedAt?: string | null,
+) {
+  const token = signJwt({
+    userId,
+    email,
+    passwordChangedAt: passwordChangedAt || undefined,
+  });
+  const cookieStore = await cookies();
   cookieStore.set(SESSION_COOKIE, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
     maxAge: SESSION_MAX_AGE,
-    path: '/',
-  })
-  return token
+    path: "/",
+  });
+  return token;
 }
 
 export async function destroySession() {
-  const cookieStore = await cookies()
-  cookieStore.set(SESSION_COOKIE, '', {
+  const cookieStore = await cookies();
+  cookieStore.set(SESSION_COOKIE, "", {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
     maxAge: 0,
-    path: '/',
-  })
+    path: "/",
+  });
 }
 
 export async function getSession(): Promise<SessionPayload | null> {
-  const cookieStore = await cookies()
-  const token = cookieStore.get(SESSION_COOKIE)?.value
-  if (!token) return null
-  const payload = verifyJwt(token)
-  if (!payload) return null
+  const cookieStore = await cookies();
+  const token = cookieStore.get(SESSION_COOKIE)?.value;
+  if (!token) return null;
+  const payload = verifyJwt(token);
+  if (!payload) return null;
   if (payload.passwordChangedAt) {
-    const { getDb } = await import('@/lib/auth/db')
-    const db = getDb()
-    const user = db.prepare('SELECT password_changed_at FROM users WHERE id = ?').get(payload.userId) as Record<string, unknown> | undefined
-    if (!user || (user.password_changed_at || null) !== payload.passwordChangedAt) {
-      return null
+    const { getDb } = await import("@/lib/auth/db");
+    const db = getDb();
+    const user = db
+      .prepare("SELECT password_changed_at FROM users WHERE id = ?")
+      .get(payload.userId) as Record<string, unknown> | undefined;
+    if (
+      !user ||
+      (user.password_changed_at || null) !== payload.passwordChangedAt
+    ) {
+      return null;
     }
   }
-  return payload
+  return payload;
 }

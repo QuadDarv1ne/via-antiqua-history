@@ -1,51 +1,58 @@
-const TEST_MODE = process.env.NODE_ENV !== 'production' || process.env.EMAIL_TEST_MODE === 'true'
+const TEST_MODE =
+  process.env.NODE_ENV !== "production" ||
+  process.env.EMAIL_TEST_MODE === "true";
 
 export type EmailMessage = {
-  to: string
-  subject: string
-  text: string
-  html?: string
-}
+  to: string;
+  subject: string;
+  text: string;
+  html?: string;
+};
 
 export async function sendEmail(msg: EmailMessage): Promise<boolean> {
   if (TEST_MODE) {
-    console.warn('--- EMAIL (TEST MODE) ---')
-    console.warn(`To: ${msg.to}`)
-    console.warn(`Subject: ${msg.subject}`)
-    console.warn(`Body: ${msg.text}`)
-    console.warn('--- END EMAIL ---')
-    return true
+    // eslint-disable-next-line no-console
+    console.log("--- EMAIL (TEST MODE) ---");
+    // eslint-disable-next-line no-console
+    console.log(`To: ${msg.to}`);
+    // eslint-disable-next-line no-console
+    console.log(`Subject: ${msg.subject}`);
+    // eslint-disable-next-line no-console
+    console.log(`Body: ${msg.text}`);
+    // eslint-disable-next-line no-console
+    console.log("--- END EMAIL ---");
+    return true;
   }
 
   try {
-    const nodemailer = await import('nodemailer')
+    const nodemailer = await import("nodemailer");
     const transporter = nodemailer.default.createTransport({
       host: process.env.SMTP_HOST,
-      port: parseInt(process.env.SMTP_PORT || '587'),
-      secure: process.env.SMTP_SECURE === 'true',
+      port: parseInt(process.env.SMTP_PORT || "587"),
+      secure: process.env.SMTP_SECURE === "true",
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
       },
-    })
+    });
     await transporter.sendMail({
-      from: process.env.SMTP_FROM || 'noreply@example.com',
+      from: process.env.SMTP_FROM || "noreply@example.com",
       to: msg.to,
       subject: msg.subject,
       text: msg.text,
       html: msg.html || msg.text,
-    })
-    return true
+    });
+    return true;
   } catch (err) {
-    console.error('Failed to send email:', err)
-    return false
+    console.error("Failed to send email:", err);
+    return false;
   }
 }
 
 export function sendPasswordResetEmail(to: string, code: string) {
   return sendEmail({
     to,
-    subject: 'Восстановление пароля — Исторический Лабиринт',
+    subject: "Восстановление пароля — Исторический Лабиринт",
     text: `Код для восстановления пароля: ${code}\n\nКод действителен в течение 15 минут.\n\nЕсли вы не запрашивали восстановление пароля, проигнорируйте это письмо.`,
     html: `
       <div style="font-family: 'EB Garamond', Georgia, serif; max-width: 480px; margin: 0 auto; padding: 24px; background: #faf8f4; border-radius: 8px;">
@@ -58,5 +65,5 @@ export function sendPasswordResetEmail(to: string, code: string) {
         <p style="color: #7a6a5a; font-size: 12px;">— Исторический Лабиринт</p>
       </div>
     `,
-  })
+  });
 }
