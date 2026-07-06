@@ -14,23 +14,16 @@ const DB_PATH =
   })();
 
 let db: Database.Database | null = null;
-let initPromise: Promise<Database.Database> | null = null;
 
 export function getDb(): Database.Database {
   if (db) return db;
 
-  if (!initPromise) {
-    initPromise = (async () => {
-      const instance = new Database(DB_PATH);
-      instance.pragma("journal_mode = WAL");
-      instance.pragma("foreign_keys = ON");
-      initSchema(instance);
-      db = instance;
-      return instance;
-    })();
-  }
-
-  return initPromise as unknown as Database.Database;
+  const instance = new Database(DB_PATH);
+  instance.pragma("journal_mode = WAL");
+  instance.pragma("foreign_keys = ON");
+  initSchema(instance);
+  db = instance;
+  return instance;
 }
 
 function initSchema(db: Database.Database) {
