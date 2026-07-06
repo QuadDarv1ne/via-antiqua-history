@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createHmac, timingSafeEqual } from "crypto";
 import { getDb } from "@/lib/auth/db";
+import { apiOk, apiError } from "@/lib/auth/api-response";
 
 /**
  * Вебхук для обработки платежей от FastPay Connect
@@ -20,11 +21,8 @@ export async function POST(request: NextRequest) {
     const isValidSignature = verifyWebhookSignature(payload, signature);
 
     if (!isValidSignature) {
-      console.error("Invalid webhook signature"); // Never log payload — contains payment data
-      return NextResponse.json(
-        { ok: false, error: "Invalid signature" },
-        { status: 401 },
-      );
+      console.error("Invalid webhook signature");
+      return apiError("Invalid signature", 401);
     }
 
     const { event, data } = payload;
@@ -47,13 +45,10 @@ export async function POST(request: NextRequest) {
         console.warn(`Unhandled webhook event: ${event}`, data);
     }
 
-    return NextResponse.json({ ok: true, message: "Webhook processed" });
+    return apiOk({ message: "Webhook processed" });
   } catch (err) {
     console.error("POST /api/webhook/fastpay error:", err);
-    return NextResponse.json(
-      { ok: false, error: "Internal server error" },
-      { status: 500 },
-    );
+    return apiError("Internal server error", 500);
   }
 }
 
@@ -197,6 +192,25 @@ async function handlePaymentRefunded(data: unknown) {
     refundAmount?: number;
   };
 
+  // Look up the payment to get the internal ID
+  const payment = db
+    .prepare(
+      `
+    SELECT id FROM payments 
+    WHERE id = ? OR external_payment_id = ?
+  `,
+    )
+    .get(paymentData.externalPaymentId, paymentData.paymentId) as
+    | { id: string }
+    | undefined;
+
+  if (!payment) {
+    console.error(
+      `Refund: payment not found: ${paymentData.externalPaymentId} / ${paymentData.paymentId}`,
+    );
+    return;
+  }
+
   // Обновляем статус платежа и отменяем подписку атомарно
   db.transaction(() => {
     db.prepare(
@@ -204,9 +218,9 @@ async function handlePaymentRefunded(data: unknown) {
       UPDATE payments 
       SET status = 'refunded', 
           updated_at = ? 
-      WHERE id = ? OR external_payment_id = ?
+      WHERE id = ?
     `,
-    ).run(now, paymentData.externalPaymentId, paymentData.paymentId);
+    ).run(now, payment.id);
 
     db.prepare(
       `
@@ -215,7 +229,7 @@ async function handlePaymentRefunded(data: unknown) {
           updated_at = ?
       WHERE payment_id = ? AND status = 'active'
     `,
-    ).run(now, paymentData.externalPaymentId);
+    ).run(now, payment.id);
   })();
 
   console.warn(

@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { getDb } from '@/lib/auth/db'
 import { getSession, verifyPassword, hashPassword, createSession } from '@/lib/auth/utils'
 import { validatePassword } from '@/lib/utils'
+import { apiOk, apiError } from '@/lib/auth/api-response'
 import { checkRateLimit, rateLimitResponse } from '@/lib/auth/rate-limit'
-import type { ApiResponse } from '@/lib/auth/types'
 
 const RATE_LIMIT = { windowMs: 15 * 60 * 1000, max: 5 }
 
@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
   try {
     const session = await getSession()
     if (!session) {
-      return NextResponse.json<ApiResponse>({ ok: false, error: 'Не авторизован' }, { status: 401 })
+      return apiError('Не авторизован', 401)
     }
 
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
@@ -23,28 +23,28 @@ export async function POST(req: NextRequest) {
     const { currentPassword, newPassword } = await req.json()
 
     if (!currentPassword || !newPassword) {
-      return NextResponse.json<ApiResponse>({ ok: false, error: 'Заполните все поля' }, { status: 400 })
+      return apiError('Заполните все поля', 400)
     }
 
     if (currentPassword === newPassword) {
-      return NextResponse.json<ApiResponse>({ ok: false, error: 'Новый пароль должен отличаться от текущего' }, { status: 400 })
+      return apiError('Новый пароль должен отличаться от текущего', 400)
     }
 
     const passwordError = validatePassword(newPassword)
     if (passwordError) {
-      return NextResponse.json<ApiResponse>({ ok: false, error: passwordError }, { status: 400 })
+      return apiError(passwordError, 400)
     }
 
     const db = getDb()
     const user = db.prepare('SELECT id, password_hash, email FROM users WHERE id = ?').get(session.userId) as Record<string, unknown> | undefined
 
     if (!user) {
-      return NextResponse.json<ApiResponse>({ ok: false, error: 'Пользователь не найден' }, { status: 404 })
+      return apiError('Пользователь не найден', 404)
     }
 
     const valid = await verifyPassword(currentPassword, user.password_hash as string)
     if (!valid) {
-      return NextResponse.json<ApiResponse>({ ok: false, error: 'Неверный текущий пароль' }, { status: 401 })
+      return apiError('Неверный текущий пароль', 401)
     }
 
     const passwordHash = await hashPassword(newPassword)
@@ -54,9 +54,9 @@ export async function POST(req: NextRequest) {
 
     await createSession(session.userId, user.email as string, now)
 
-    return NextResponse.json<ApiResponse>({ ok: true, data: { message: 'Пароль успешно изменён' } })
+    return apiOk({ message: 'Пароль успешно изменён' })
   } catch (err) {
     console.error('Change password error:', err)
-    return NextResponse.json<ApiResponse>({ ok: false, error: 'Внутренняя ошибка сервера' }, { status: 500 })
+    return apiError('Внутренняя ошибка сервера', 500)
   }
 }

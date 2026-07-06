@@ -1,12 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { getDb } from '@/lib/auth/db'
 import { getSession } from '@/lib/auth/utils'
+import { apiOk, apiError } from '@/lib/auth/api-response'
 
 export async function GET(_request: NextRequest) {
   try {
     const session = await getSession()
     if (!session) {
-      return NextResponse.json({ ok: false, error: 'Не авторизован' }, { status: 401 })
+      return apiError('Не авторизован', 401)
     }
 
     const db = getDb()
@@ -34,11 +35,9 @@ export async function GET(_request: NextRequest) {
       daysLeft: Math.max(0, Math.ceil((new Date(sub.expires_at).getTime() - Date.now()) / 86400000)),
     } : null
 
-    return NextResponse.json({ ok: true, data }, {
-      headers: { 'Cache-Control': 'private, max-age=30, stale-while-revalidate=60' },
-    })
+    return apiOk(data, { headers: { 'Cache-Control': 'private, max-age=30, stale-while-revalidate=60' } })
   } catch (err) {
     console.error('GET /api/subscription/status error:', err)
-    return NextResponse.json({ ok: false, error: 'Ошибка сервера' }, { status: 500 })
+    return apiError('Ошибка сервера', 500)
   }
 }

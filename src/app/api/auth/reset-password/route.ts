@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { getDb } from '@/lib/auth/db'
 import { hashPassword } from '@/lib/auth/utils'
 import { validatePassword } from '@/lib/utils'
+import { apiOk, apiError } from '@/lib/auth/api-response'
 import { checkRateLimit, rateLimitResponse } from '@/lib/auth/rate-limit'
-import type { ApiResponse } from '@/lib/auth/types'
 
 const RATE_LIMIT = { windowMs: 15 * 60 * 1000, max: 5 }
 const USER_RATE_LIMIT = { windowMs: 15 * 60 * 1000, max: 3 }
@@ -13,12 +13,12 @@ export async function POST(req: NextRequest) {
     const { email, code, password } = await req.json()
 
     if (!email || !code || !password) {
-      return NextResponse.json<ApiResponse>({ ok: false, error: 'Заполните все поля' }, { status: 400 })
+      return apiError('Заполните все поля', 400)
     }
 
     const passwordError = validatePassword(password)
     if (passwordError) {
-      return NextResponse.json<ApiResponse>({ ok: false, error: passwordError }, { status: 400 })
+      return apiError(passwordError, 400)
     }
 
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
     const user = db.prepare('SELECT id FROM users WHERE email = ?').get(email.toLowerCase()) as Record<string, unknown> | undefined
 
     if (!user) {
-      return NextResponse.json<ApiResponse>({ ok: false, error: 'Неверный код или email' }, { status: 400 })
+      return apiError('Неверный код или email', 400)
     }
 
     const token = db.prepare(
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
     ).get(user.id, code) as Record<string, unknown> | undefined
 
     if (!token) {
-      return NextResponse.json<ApiResponse>({ ok: false, error: 'Код недействителен или истёк' }, { status: 400 })
+      return apiError('Код недействителен или истёк', 400)
     }
 
     const passwordHash = await hashPassword(password)
@@ -59,9 +59,9 @@ export async function POST(req: NextRequest) {
     })
     updateTransactions()
 
-    return NextResponse.json<ApiResponse>({ ok: true, data: { message: 'Пароль успешно изменён' } })
+    return apiOk({ message: 'Пароль успешно изменён' })
   } catch (err) {
     console.error('Reset password error:', err)
-    return NextResponse.json<ApiResponse>({ ok: false, error: 'Внутренняя ошибка сервера' }, { status: 500 })
+    return apiError('Внутренняя ошибка сервера', 500)
   }
 }

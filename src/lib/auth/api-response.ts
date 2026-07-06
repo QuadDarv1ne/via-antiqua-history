@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server'
 import type { ApiResponse } from './types'
 
-export function apiOk<T>(data?: T, status = 200) {
-  return NextResponse.json<ApiResponse<T>>({ ok: true, data }, { status })
+export function apiOk<T>(data?: T, init?: ResponseInit) {
+  const status = init?.status ?? 200
+  return NextResponse.json<ApiResponse<T>>({ ok: true, data }, { ...init, status })
 }
 
 export function apiError(error: string, status: number) {

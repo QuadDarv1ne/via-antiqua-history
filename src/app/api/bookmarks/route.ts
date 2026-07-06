@@ -1,19 +1,18 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { getDb } from "@/lib/auth/db";
 import { getSession } from "@/lib/auth/utils";
+import { apiOk, apiError } from "@/lib/auth/api-response";
 import { checkRateLimit, rateLimitResponse } from "@/lib/auth/rate-limit";
-import type { ApiResponse, BookmarkRow } from "@/lib/auth/types";
+import type { BookmarkRow } from "@/lib/auth/types";
 
 const RATE_LIMIT = { windowMs: 60 * 1000, max: 20 };
+const CACHE_HEADERS = { "Cache-Control": "private, max-age=10, stale-while-revalidate=30" };
 
 export async function GET(_req: NextRequest) {
   try {
     const session = await getSession();
     if (!session) {
-      return NextResponse.json<ApiResponse>(
-        { ok: false, error: "Не авторизован" },
-        { status: 401 },
-      );
+      return apiError("Не авторизован", 401);
     }
 
     const ip =
@@ -33,20 +32,10 @@ export async function GET(_req: NextRequest) {
       )
       .all(session.userId) as BookmarkRow[];
 
-    return NextResponse.json<ApiResponse>(
-      { ok: true, data: rows },
-      {
-        headers: {
-          "Cache-Control": "private, max-age=10, stale-while-revalidate=30",
-        },
-      },
-    );
+    return apiOk(rows, { headers: CACHE_HEADERS });
   } catch (err) {
     console.error("Bookmarks GET error:", err);
-    return NextResponse.json<ApiResponse>(
-      { ok: false, error: "Внутренняя ошибка сервера" },
-      { status: 500 },
-    );
+    return apiError("Внутренняя ошибка сервера", 500);
   }
 }
 
@@ -54,10 +43,7 @@ export async function PUT(req: NextRequest) {
   try {
     const session = await getSession();
     if (!session) {
-      return NextResponse.json<ApiResponse>(
-        { ok: false, error: "Не авторизован" },
-        { status: 401 },
-      );
+      return apiError("Не авторизован", 401);
     }
 
     const ip =
@@ -69,10 +55,7 @@ export async function PUT(req: NextRequest) {
 
     const { bookmarks } = await req.json();
     if (!Array.isArray(bookmarks) || bookmarks.length > 200) {
-      return NextResponse.json<ApiResponse>(
-        { ok: false, error: "Некорректные данные" },
-        { status: 400 },
-      );
+      return apiError("Некорректные данные", 400);
     }
 
     const VALID_TYPES = [
@@ -132,15 +115,9 @@ export async function PUT(req: NextRequest) {
     });
     tx();
 
-    return NextResponse.json<ApiResponse>({
-      ok: true,
-      data: { added: toAdd.length, removed: toRemove.length },
-    });
+    return apiOk({ added: toAdd.length, removed: toRemove.length });
   } catch (err) {
     console.error("Bookmarks PUT error:", err);
-    return NextResponse.json<ApiResponse>(
-      { ok: false, error: "Внутренняя ошибка сервера" },
-      { status: 500 },
-    );
+    return apiError("Внутренняя ошибка сервера", 500);
   }
 }

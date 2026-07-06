@@ -1,17 +1,18 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { getDb } from '@/lib/auth/db'
 import { getSession } from '@/lib/auth/utils'
+import { apiOk, apiError } from '@/lib/auth/api-response'
+
 export async function POST(_request: NextRequest) {
   try {
     const session = await getSession()
     if (!session) {
-      return NextResponse.json({ ok: false, error: 'Не авторизован' }, { status: 401 })
+      return apiError('Не авторизован', 401)
     }
 
     const db = getDb()
     const now = new Date().toISOString()
 
-    // Check if user already has active subscription
     const activeSub = db.prepare(`
       SELECT id FROM subscriptions
       WHERE user_id = ? AND status = 'active' AND expires_at > ?
@@ -19,10 +20,9 @@ export async function POST(_request: NextRequest) {
     `).get(session.userId, now)
 
     if (activeSub) {
-      return NextResponse.json({ ok: false, error: 'Подписка уже активна' }, { status: 400 })
+      return apiError('Подписка уже активна', 400)
     }
 
-    // Check if there's a paid subscription ready to activate
     const paidSub = db.prepare(`
       SELECT id FROM subscriptions
       WHERE user_id = ? AND status = 'pending' AND payment_id IN (
@@ -32,7 +32,7 @@ export async function POST(_request: NextRequest) {
     `).get(session.userId, session.userId) as { id: string } | undefined
 
     if (!paidSub) {
-      return NextResponse.json({ ok: false, error: 'Нет оплаченной подписки для активации' }, { status: 400 })
+      return apiError('Нет оплаченной подписки для активации', 400)
     }
 
     const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
@@ -44,12 +44,9 @@ export async function POST(_request: NextRequest) {
       `).run(now, expiresAt, paidSub.id)
     })()
 
-    return NextResponse.json({
-      ok: true,
-      data: { message: 'Подписка активирована', expiresAt },
-    })
+    return apiOk({ message: 'Подписка активирована', expiresAt })
   } catch (err) {
     console.error('POST /api/subscription/confirm error:', err)
-    return NextResponse.json({ ok: false, error: 'Ошибка сервера' }, { status: 500 })
+    return apiError('Ошибка сервера', 500)
   }
 }

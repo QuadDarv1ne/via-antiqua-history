@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { getDb } from '@/lib/auth/db'
 import { getSession } from '@/lib/auth/utils'
 import { SUBSCRIPTION_PRICE } from '@/lib/constants'
+import { apiOk, apiError } from '@/lib/auth/api-response'
 import { checkRateLimit, rateLimitResponse } from '@/lib/auth/rate-limit'
 import { randomUUID } from 'crypto'
 
@@ -11,7 +12,7 @@ export async function POST(_request: NextRequest) {
   try {
     const session = await getSession()
     if (!session) {
-      return NextResponse.json({ ok: false, error: 'Не авторизован' }, { status: 401 })
+      return apiError('Не авторизован', 401)
     }
 
     const ip = _request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
@@ -22,9 +23,8 @@ export async function POST(_request: NextRequest) {
 
     const db = getDb()
     const now = new Date().toISOString()
-    const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString() // 15 min to pay
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString()
 
-    // Check if user already has active subscription
     const existingSub = db.prepare(`
       SELECT id FROM subscriptions
       WHERE user_id = ? AND status = 'active' AND expires_at > ?
@@ -32,13 +32,9 @@ export async function POST(_request: NextRequest) {
     `).get(session.userId, now)
 
     if (existingSub) {
-      return NextResponse.json({
-        ok: false,
-        error: 'У вас уже есть активная подписка',
-      })
+      return apiError('У вас уже есть активная подписка', 400)
     }
 
-    // Check for pending payment
     const pendingPayment = db.prepare(`
       SELECT id FROM payments
       WHERE user_id = ? AND status = 'pending' AND created_at > datetime('now', '-30 minutes')
@@ -46,31 +42,24 @@ export async function POST(_request: NextRequest) {
     `).get(session.userId) as { id: string } | undefined
 
     if (pendingPayment) {
-      return NextResponse.json({
-        ok: true,
-        data: {
-          paymentId: pendingPayment.id,
-          qrData: null,
-          message: 'Используйте предыдущий QR-код',
-        },
+      return apiOk({
+        paymentId: pendingPayment.id,
+        qrData: null,
+        message: 'Используйте предыдущий QR-код',
       })
     }
 
-    // Create payment record
     const paymentId = randomUUID()
     const amount = Number(process.env.SUBSCRIPTION_PRICE) || SUBSCRIPTION_PRICE
     const phone = process.env.FASTPAY_SBP_PHONE || ''
 
-    // Generate SBP QR data (STUB format for SBP)
-    // Format: https://qr.nspk.ru/[Account]/[Amount]/[Comment]
-    // For simplicity, we use a direct SBP payment link
     const sbpQrData = JSON.stringify({
       type: 'sbp',
-      phone: phone,
-      amount: amount,
+      phone,
+      amount,
       currency: 'RUB',
       description: 'Подписка «Исторический Лабиринт» — образовательный контент',
-      paymentId: paymentId,
+      paymentId,
     })
 
     db.prepare(`
@@ -78,7 +67,6 @@ export async function POST(_request: NextRequest) {
       VALUES (?, ?, ?, ?, 'pending', 'sbp', ?, ?)
     `).run(paymentId, session.userId, amount, 'RUB', phone, sbpQrData)
 
-    // Create pending subscription
     const subId = randomUUID()
 
     db.prepare(`
@@ -86,24 +74,20 @@ export async function POST(_request: NextRequest) {
       VALUES (?, ?, 'pending', ?, ?, datetime('now'), datetime('now', '+30 days'))
     `).run(subId, session.userId, paymentId, amount)
 
-    // Generate QR code URL (using a QR code API)
     const qrApiBase = process.env.QR_CODE_API_URL || 'https://api.qrserver.com/v1/create-qr-code/'
     const qrCodeUrl = `${qrApiBase}?size=300x300&data=${encodeURIComponent(sbpQrData)}`
 
-    return NextResponse.json({
-      ok: true,
-      data: {
-        paymentId,
-        subId,
-        amount,
-        phone,
-        qrCodeUrl,
-        qrData: sbpQrData,
-        expiresAt,
-      },
+    return apiOk({
+      paymentId,
+      subId,
+      amount,
+      phone,
+      qrCodeUrl,
+      qrData: sbpQrData,
+      expiresAt,
     })
   } catch (err) {
     console.error('POST /api/subscription/create error:', err)
-    return NextResponse.json({ ok: false, error: 'Ошибка сервера' }, { status: 500 })
+    return apiError('Ошибка сервера', 500)
   }
 }

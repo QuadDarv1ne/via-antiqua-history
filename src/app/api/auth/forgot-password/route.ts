@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { getDb } from "@/lib/auth/db";
 import { generateNumericCode, generateToken } from "@/lib/auth/utils";
 import { sendPasswordResetEmail } from "@/lib/auth/email";
+import { apiOk, apiError } from "@/lib/auth/api-response";
 import { checkRateLimit, rateLimitResponse } from "@/lib/auth/rate-limit";
-import type { ApiResponse } from "@/lib/auth/types";
 
 const RATE_LIMIT = { windowMs: 15 * 60 * 1000, max: 3 };
 const USER_RATE_LIMIT = { windowMs: 60 * 60 * 1000, max: 5 };
@@ -13,10 +13,7 @@ export async function POST(req: NextRequest) {
     const { email } = await req.json();
 
     if (!email) {
-      return NextResponse.json<ApiResponse>(
-        { ok: false, error: "Укажите email" },
-        { status: 400 },
-      );
+      return apiError("Укажите email", 400);
     }
 
     const ip =
@@ -43,12 +40,7 @@ export async function POST(req: NextRequest) {
       .get(email.toLowerCase()) as Record<string, unknown> | undefined;
 
     if (!user) {
-      return NextResponse.json<ApiResponse>({
-        ok: true,
-        data: {
-          message: "Если пользователь с таким email существует, код отправлен",
-        },
-      });
+      return apiOk({ message: "Если пользователь с таким email существует, код отправлен" });
     }
 
     const code = generateNumericCode(6);
@@ -68,18 +60,12 @@ export async function POST(req: NextRequest) {
 
     const testMode = process.env.NODE_ENV !== "production";
 
-    return NextResponse.json<ApiResponse>({
-      ok: true,
-      data: {
-        message: "Если пользователь с таким email существует, код отправлен",
-        ...(testMode ? { testCode: code } : {}),
-      },
+    return apiOk({
+      message: "Если пользователь с таким email существует, код отправлен",
+      ...(testMode ? { testCode: code } : {}),
     });
   } catch (err) {
     console.error("Forgot password error:", err);
-    return NextResponse.json<ApiResponse>(
-      { ok: false, error: "Внутренняя ошибка сервера" },
-      { status: 500 },
-    );
+    return apiError("Внутренняя ошибка сервера", 500);
   }
 }
