@@ -230,7 +230,7 @@ export function SearchDialog({
                   return (
                     <button
                       type="button"
-                      key={i}
+                      key={`${r.type}-${r.title}`}
                       id={`search-result-${i}`}
                       role="option"
                       aria-selected={activeIdx === i}

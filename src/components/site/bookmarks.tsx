@@ -70,7 +70,7 @@ export function BookmarksProvider({ children }: { children: React.ReactNode }) {
     const sync = async () => {
       try {
         const res = await fetch('/api/bookmarks')
-        if (!res.ok) { console.warn('Bookmarks sync: server returned', res.status); return }
+        if (!res.ok) return
         const json = await res.json()
         if (json.ok && Array.isArray(json.data)) {
           const server = json.data.map(serverToItem)
@@ -87,7 +87,7 @@ export function BookmarksProvider({ children }: { children: React.ReactNode }) {
           requestAnimationFrame(() => { syncRef.current = false })
         }
       } catch {
-        console.warn('Bookmarks sync: connection error')
+        // Network error — silently ignore
       }
     }
     sync()
@@ -126,9 +126,9 @@ export function BookmarksProvider({ children }: { children: React.ReactNode }) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ bookmarks }),
         })
-        if (!res.ok) console.warn('Bookmarks save: server returned', res.status)
+        if (!res.ok) return
       } catch {
-        console.warn('Bookmarks save: connection error')
+        // Network error — silently ignore
       }
     }, 1500)
     return () => clearTimeout(timer)

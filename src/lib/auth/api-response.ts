@@ -1,5 +1,10 @@
 import { NextResponse } from 'next/server'
-import type { ApiResponse } from './types'
+
+type ApiResponse<T = unknown> = {
+  ok: boolean
+  error?: string
+  data?: T
+}
 
 export function apiOk<T>(data?: T, init?: ResponseInit) {
   const status = init?.status ?? 200

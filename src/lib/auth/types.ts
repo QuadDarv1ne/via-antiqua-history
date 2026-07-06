@@ -17,8 +17,4 @@ export type BookmarkRow = {
   createdAt: string
 }
 
-export type ApiResponse<T = unknown> = {
-  ok: boolean
-  error?: string
-  data?: T
-}
+

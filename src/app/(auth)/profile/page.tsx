@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useBookmarks } from '@/components/site/bookmarks'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
 import { passwordStrength, validatePassword } from '@/lib/utils'
+import { SUBSCRIPTION_PRICE } from '@/lib/constants'
 
 export default function ProfilePage() {
   const router = useRouter()
@@ -528,7 +529,7 @@ export default function ProfilePage() {
                     </div>
                   </div>
                   <div className="flex items-baseline gap-1">
-                    <span className="text-2xl font-bold text-foreground">999</span>
+                    <span className="text-2xl font-bold text-foreground">{SUBSCRIPTION_PRICE}</span>
                     <span className="text-lg text-muted-foreground">₽/мес</span>
                   </div>
                 </div>
