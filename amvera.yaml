@@ -1,14 +1,5 @@
 meta:
-  environment: node
-  toolchain:
-    name: npm
-    version: "22"
-
-build:
-  additionalCommands:
-    - npm run build
-    - cp -r .next/static .next/standalone/.next/static
-    - cp -r public .next/standalone/public
+  environment: docker
 
 run:
   command: HOST=0.0.0.0 node .next/standalone/server.js

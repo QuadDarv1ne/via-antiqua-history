@@ -6,11 +6,17 @@ type ApiResponse<T = unknown> = {
   data?: T
 }
 
+const NO_CACHE_HEADERS: Record<string, string> = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate',
+}
+
 export function apiOk<T>(data?: T, init?: ResponseInit) {
   const status = init?.status ?? 200
-  return NextResponse.json<ApiResponse<T>>({ ok: true, data }, { ...init, status })
+  const headers = { ...NO_CACHE_HEADERS, ...init?.headers }
+  return NextResponse.json<ApiResponse<T>>({ ok: true, data }, { ...init, headers, status })
 }
 
 export function apiError(error: string, status: number, init?: ResponseInit) {
-  return NextResponse.json<ApiResponse>({ ok: false, error }, { ...init, status })
+  const headers = { ...NO_CACHE_HEADERS, ...init?.headers }
+  return NextResponse.json<ApiResponse>({ ok: false, error }, { ...init, headers, status })
 }
