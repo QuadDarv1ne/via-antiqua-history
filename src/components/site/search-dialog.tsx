@@ -250,7 +250,7 @@ export function SearchDialog({
                           color,
                         }}
                       >
-                        {React.createElement(iconMap[r.iconType], { className: "h-3.5 w-3.5 sm:h-4 sm:w-4" })}
+                        {React.createElement(iconMap[r.iconType], { className: 'h-3.5 w-3.5 sm:h-4 sm:w-4' })}
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className="flex items-center gap-1.5 sm:gap-2 mb-0.5 flex-wrap">

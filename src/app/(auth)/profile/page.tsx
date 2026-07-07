@@ -82,8 +82,8 @@ export default function ProfilePage() {
         if (json.ok && !cancelled) {
           setSubscription(json.data)
         }
-      } catch (err) {
-        console.error('Failed to load subscription:', err)
+      } catch {
+        // Network error — silently ignore
       } finally {
         if (!cancelled) setSubLoading(false)
       }
@@ -305,11 +305,12 @@ export default function ProfilePage() {
   const copyCode = async (code: string, idx: number) => {
     try {
       await navigator.clipboard.writeText(code)
-      setCopiedIdx(idx)
-      setTimeout(() => setCopiedIdx(-1), 2000)
     } catch {
-      // Clipboard access denied or unavailable
+      window.prompt('Скопируйте код вручную:', code)
+      return
     }
+    setCopiedIdx(idx)
+    setTimeout(() => setCopiedIdx(-1), 2000)
   }
 
   return (
