@@ -281,6 +281,7 @@ export function Navbar() {
                     size="sm"
                     className="justify-start gap-2 h-9 text-sm"
                     onClick={toggleTheme}
+                    aria-label={theme === 'dark' ? 'Переключить на светлую тему' : 'Переключить на тёмную тему'}
                   >
                     {mounted && (theme === 'dark' ? <><Sun className="h-4 w-4" /> Свет</> : <><Moon className="h-4 w-4" /> Тёмный</>)}
                   </Button>

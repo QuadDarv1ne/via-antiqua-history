@@ -161,6 +161,7 @@ export function GlossarySection() {
             exit={{ opacity: 0, y: 4 }}
             transition={{ duration: 0.15 }}
             className="mt-6 text-xs text-muted-foreground text-center"
+            aria-live="polite"
           >
             Найдено терминов: {filtered.length} из {glossary.length}
           </motion.div>

@@ -17,7 +17,10 @@ export function useSubscription(enabled = true) {
     let cancelled = false
 
     fetch('/api/subscription/status')
-      .then(r => r.json())
+      .then(r => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`)
+        return r.json()
+      })
       .then(data => {
         if (!cancelled) {
           setHasSubscription(data.ok && data.data?.status === 'active')

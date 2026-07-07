@@ -38,20 +38,12 @@ export function ShareButton({ title, href, className }: ShareButtonProps) {
   const handleCopy = React.useCallback(async () => {
     try {
       await navigator.clipboard.writeText(shareUrl)
-      setCopied(true)
-      setTimeout(() => setCopied(false), COPIED_DURATION)
     } catch {
-      const textarea = document.createElement('textarea')
-      textarea.value = shareUrl
-      textarea.style.position = 'fixed'
-      textarea.style.opacity = '0'
-      document.body.appendChild(textarea)
-      textarea.select()
-      document.execCommand('copy')
-      document.body.removeChild(textarea)
-      setCopied(true)
-      setTimeout(() => setCopied(false), COPIED_DURATION)
+      window.prompt('Скопируйте ссылку вручную:', shareUrl)
+      return
     }
+    setCopied(true)
+    setTimeout(() => setCopied(false), COPIED_DURATION)
   }, [shareUrl])
 
   const socials = [
