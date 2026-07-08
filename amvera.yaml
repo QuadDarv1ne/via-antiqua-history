@@ -1,10 +1,16 @@
 meta:
-  environment: docker
+  environment: node
   toolchain:
-    name: docker
+    name: npm
     version: "22"
 
+build:
+  additionalCommands:
+    - cp -r public .next/standalone/public 2>/dev/null || true
+    - cp -r .next/static .next/standalone/.next/static 2>/dev/null || true
+
 run:
+  command: HOST=0.0.0.0 node .next/standalone/server.js
   containerPort: 3000
   persistenceMount: /data
 
