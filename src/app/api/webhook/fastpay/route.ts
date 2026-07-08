@@ -58,16 +58,10 @@ export async function POST(request: NextRequest) {
 function verifyWebhookSignature(payload: unknown, signature: string): boolean {
   const webhookSecret = process.env.FASTPAY_WEBHOOK_SECRET;
   if (!webhookSecret) {
-    if (process.env.NODE_ENV === "production") {
-      console.error(
-        "FASTPAY_WEBHOOK_SECRET not configured in production — webhook rejected",
-      );
-      return false;
-    }
-    console.warn(
-      "FASTPAY_WEBHOOK_SECRET not configured — webhook verification disabled in development",
+    console.error(
+      "FASTPAY_WEBHOOK_SECRET not configured — webhook rejected",
     );
-    return true;
+    return false;
   }
 
   try {

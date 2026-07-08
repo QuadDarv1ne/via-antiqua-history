@@ -82,7 +82,12 @@ export async function PUT(req: NextRequest) {
     const upsert = db.prepare(`
       INSERT INTO bookmarks (id, user_id, type, title, subtitle, href, region)
       VALUES (?, ?, ?, ?, ?, ?, ?)
-      ON CONFLICT(user_id, id) DO NOTHING
+      ON CONFLICT(user_id, id) DO UPDATE SET
+        type = excluded.type,
+        title = excluded.title,
+        subtitle = excluded.subtitle,
+        href = excluded.href,
+        region = excluded.region
     `);
     const remove = db.prepare(
       "DELETE FROM bookmarks WHERE user_id = ? AND id = ?",

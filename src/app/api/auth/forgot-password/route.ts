@@ -64,11 +64,8 @@ export async function POST(req: NextRequest) {
 
     await sendPasswordResetEmail(email.toLowerCase(), code);
 
-    const testMode = process.env.EMAIL_TEST_MODE === "true";
-
     return apiOk({
       message: "Если пользователь с таким email существует, код отправлен",
-      ...(testMode ? { testCode: code } : {}),
     });
   } catch (err) {
     console.error("Forgot password error:", err);

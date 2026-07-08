@@ -41,16 +41,10 @@ export function RegionSection({
   const [activeLandmark, setActiveLandmark] = React.useState<Landmark | null>(
     null,
   );
-  const [fadeKey, setFadeKey] = React.useState(0);
   const activeCity =
     region.cities.find((c) => c.id === activeCityId) ?? region.cities[0];
   const { user } = useAuth();
   const { hasSubscription } = useSubscription(!!restricted);
-
-  const handleCityChange = React.useCallback((cityId: string) => {
-    setFadeKey((k) => k + 1);
-    setActiveCityId(cityId);
-  }, []);
 
   if (!region.cities.length) {
     return null;
@@ -207,7 +201,7 @@ export function RegionSection({
           <div className="lg:col-span-9">
             <AnimatePresence mode="wait">
               <motion.div
-                key={fadeKey}
+                key={activeCityId}
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}

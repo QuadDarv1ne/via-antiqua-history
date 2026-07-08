@@ -15,6 +15,13 @@ export async function POST(req: NextRequest) {
       return apiError('Заполните все поля', 400)
     }
 
+    if (typeof email !== 'string' || email.length > 320) {
+      return apiError('Некорректный email', 400)
+    }
+    if (typeof password !== 'string' || password.length > 128) {
+      return apiError('Некорректный пароль', 400)
+    }
+
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
     const rl = checkRateLimit(`register:${ip}`, RATE_LIMIT)
     if (!rl.allowed) {

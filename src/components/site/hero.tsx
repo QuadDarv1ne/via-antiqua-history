@@ -220,6 +220,7 @@ function StatCard({
   React.useEffect(() => {
     if (value <= 0) return;
     let start: number | null = null;
+    let rafId: number;
     const duration = 1400;
 
     const tick = (now: number) => {
@@ -229,12 +230,12 @@ function StatCard({
       const eased = 1 - Math.pow(1 - progress, 3);
       setDisplayValue(Math.round(value * eased));
       if (progress < 1) {
-        requestAnimationFrame(tick);
+        rafId = requestAnimationFrame(tick);
       }
     };
 
-    requestAnimationFrame(tick);
-    return () => {};
+    rafId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafId);
   }, [value]);
 
   return (

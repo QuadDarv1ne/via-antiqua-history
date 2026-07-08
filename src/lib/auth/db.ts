@@ -108,12 +108,4 @@ function closeDb() {
 
 if (typeof process !== "undefined") {
   process.on("exit", closeDb);
-  process.on("SIGINT", () => {
-    closeDb();
-    process.exit();
-  });
-  process.on("SIGTERM", () => {
-    closeDb();
-    process.exit();
-  });
 }
