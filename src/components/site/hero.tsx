@@ -5,7 +5,6 @@ import { motion, useScroll, useTransform } from 'framer-motion'
 import Image from 'next/image'
 import { ChevronDown, BookOpen, Map as MapIcon, Landmark, Building2, Calendar, Users } from 'lucide-react'
 import Link from 'next/link'
-import { allRegions, timeline, persons } from '@/lib/history-data'
 import { useAnimatedCounter } from '@/hooks/use-animated-counter'
 import { REGION_COLORS } from '@/lib/constants'
 import { ShareButton } from '@/components/site/share-button'
@@ -19,29 +18,26 @@ const regionChips = [
 
 const sectionIds = ['#greece', '#rome', '#mesopotamia', '#kuban']
 
-export function Hero() {
+interface HeroStats {
+  citiesCount: number
+  landmarksCount: number
+  eventsCount: number
+  personsCount: number
+}
+
+export function Hero({ stats: heroStats }: { stats?: HeroStats }) {
   const { scrollY } = useScroll()
   const parallaxY1 = useTransform(scrollY, [0, 500], [0, -80])
   const parallaxY2 = useTransform(scrollY, [0, 500], [0, 60])
   const parallaxY3 = useTransform(scrollY, [0, 500], [0, -40])
   const opacity1 = useTransform(scrollY, [0, 300], [1, 0.6])
 
-  const stats = React.useMemo(() => {
-    const citiesCount = allRegions.reduce(
-      (acc, r) => acc + r.cities.length,
-      0
-    )
-    const landmarksCount = allRegions.reduce(
-      (acc, r) => acc + r.cities.reduce((a, c) => a + c.landmarks.length, 0),
-      0
-    )
-    return [
-      { icon: <Building2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />, value: citiesCount, label: 'городов' },
-      { icon: <Landmark className="h-3.5 w-3.5 sm:h-4 sm:w-4" />, value: landmarksCount, label: 'памятников' },
-      { icon: <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4" />, value: timeline.length, label: 'событий' },
-      { icon: <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4" />, value: persons.length, label: 'персоналий' },
-    ]
-  }, [])
+  const stats = React.useMemo(() => [
+    { icon: <Building2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />, value: heroStats?.citiesCount ?? 0, label: 'городов' },
+    { icon: <Landmark className="h-3.5 w-3.5 sm:h-4 sm:w-4" />, value: heroStats?.landmarksCount ?? 0, label: 'памятников' },
+    { icon: <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4" />, value: heroStats?.eventsCount ?? 0, label: 'событий' },
+    { icon: <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4" />, value: heroStats?.personsCount ?? 0, label: 'персоналий' },
+  ], [heroStats])
 
   return (
     <section
