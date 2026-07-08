@@ -1,15 +1,14 @@
-'use client'
+"use client";
 
-import { motion } from 'framer-motion'
-import React from 'react'
+import React from "react";
 
 interface SectionHeaderProps {
-  icon: React.ReactNode
-  label: string
-  title: string
-  description?: string
-  readingTime?: React.ReactNode
-  className?: string
+  icon: React.ReactNode;
+  label: string;
+  title: string;
+  description?: string;
+  readingTime?: React.ReactNode;
+  className?: string;
 }
 
 export const SectionHeader = React.memo(function SectionHeader({
@@ -20,13 +19,33 @@ export const SectionHeader = React.memo(function SectionHeader({
   readingTime,
   className,
 }: SectionHeaderProps) {
+  const ref = React.useRef<HTMLDivElement | null>(null);
+  const [inView, setInView] = React.useState(false);
+
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setInView(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.2, rootMargin: "-100px" },
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-100px' }}
-      transition={{ duration: 0.6 }}
-      className={`mb-6 sm:mb-8 md:mb-10 text-center ${className ?? ''}`}
+    <div
+      ref={ref}
+      className={`mb-6 sm:mb-8 md:mb-10 text-center transition-all duration-700 ${
+        inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-5"
+      } ${className ?? ""}`}
     >
       <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-full border border-primary/30 bg-primary/5 mb-3 sm:mb-4">
         {icon}
@@ -43,6 +62,6 @@ export const SectionHeader = React.memo(function SectionHeader({
         </p>
       )}
       {readingTime}
-    </motion.div>
-  )
-})
+    </div>
+  );
+});
