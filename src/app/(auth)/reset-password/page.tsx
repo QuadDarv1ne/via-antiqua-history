@@ -306,6 +306,7 @@ function ResetPasswordForm() {
                     placeholder="Повторите пароль"
                     required
                     autoComplete="new-password"
+                    aria-describedby={passwordsMismatch ? 'confirm-password-error' : undefined}
                     className={`w-full h-11 pl-10 pr-4 rounded-xl border bg-background/60 text-sm focus:outline-none focus:ring-2 transition-all placeholder:text-muted-foreground/40 ${
                       passwordsMismatch
                         ? 'border-destructive/40 focus:ring-destructive/20 focus:border-destructive/50'
@@ -316,7 +317,7 @@ function ResetPasswordForm() {
                   />
                 </div>
                 {passwordsMismatch && (
-                  <p className="text-[11px] text-destructive/70 mt-1.5">Пароли не совпадают</p>
+                  <p id="confirm-password-error" className="text-[11px] text-destructive/70 mt-1.5">Пароли не совпадают</p>
                 )}
                 {passwordsMatch && (
                   <p className="text-[11px] text-green-600/70 dark:text-green-400/70 mt-1.5">Пароли совпадают</p>

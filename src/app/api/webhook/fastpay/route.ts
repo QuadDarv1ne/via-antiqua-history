@@ -14,11 +14,12 @@ import { apiOk, apiError } from "@/lib/auth/api-response";
  */
 export async function POST(request: NextRequest) {
   try {
-    const payload = await request.json();
+    const rawBody = await request.text();
+    const payload = JSON.parse(rawBody);
     const signature = request.headers.get("X-FastPay-Signature") || "";
 
     // Проверка подписи webhook (защита от поддельных запросов)
-    const isValidSignature = verifyWebhookSignature(payload, signature);
+    const isValidSignature = verifyWebhookSignature(rawBody, signature);
 
     if (!isValidSignature) {
       console.error("Invalid webhook signature");
@@ -55,7 +56,7 @@ export async function POST(request: NextRequest) {
 /**
  * Проверка подписи webhook (HMAC-SHA256)
  */
-function verifyWebhookSignature(payload: unknown, signature: string): boolean {
+function verifyWebhookSignature(rawBody: string, signature: string): boolean {
   const webhookSecret = process.env.FASTPAY_WEBHOOK_SECRET;
   if (!webhookSecret) {
     console.error(
@@ -66,7 +67,7 @@ function verifyWebhookSignature(payload: unknown, signature: string): boolean {
 
   try {
     const expectedSignature = createHmac("sha256", webhookSecret)
-      .update(JSON.stringify(payload))
+      .update(rawBody)
       .digest("hex");
 
     const received = Buffer.from(signature);
@@ -81,23 +82,41 @@ function verifyWebhookSignature(payload: unknown, signature: string): boolean {
   }
 }
 
+interface PaymentData {
+  paymentId: string;
+  externalPaymentId: string;
+  amount?: number;
+  currency?: string;
+  reason?: string;
+  refundAmount?: number;
+  metadata?: unknown;
+}
+
+function isValidPaymentData(data: unknown): data is PaymentData {
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    typeof (data as Record<string, unknown>).paymentId === 'string' &&
+    typeof (data as Record<string, unknown>).externalPaymentId === 'string'
+  );
+}
+
 /**
  * Обработка успешного платежа
  */
 async function handlePaymentCompleted(data: unknown) {
+  if (!isValidPaymentData(data)) {
+    console.error('Invalid payment.completed payload:', data);
+    return;
+  }
+
   const db = getDb();
   const now = new Date().toISOString();
   const expiresAt = new Date(
     Date.now() + 30 * 24 * 60 * 60 * 1000,
   ).toISOString();
 
-  const paymentData = data as {
-    paymentId: string; // ID платежа в FastPay
-    externalPaymentId: string; // Внешний ID платежа (наш payment_id)
-    amount?: number;
-    currency?: string;
-    metadata?: unknown;
-  };
+  const paymentData = data;
 
   // Ищем платеж по externalPaymentId (наш payment_id)
   const payment = db
@@ -155,14 +174,15 @@ async function handlePaymentCompleted(data: unknown) {
  * Обработка неудачного платежа
  */
 async function handlePaymentFailed(data: unknown) {
+  if (!isValidPaymentData(data)) {
+    console.error('Invalid payment.failed payload:', data);
+    return;
+  }
+
   const db = getDb();
   const now = new Date().toISOString();
 
-  const paymentData = data as {
-    paymentId: string;
-    externalPaymentId: string;
-    reason?: string;
-  };
+  const paymentData = data;
 
   db.prepare(
     `
@@ -183,14 +203,15 @@ async function handlePaymentFailed(data: unknown) {
  * Обработка возврата средств
  */
 async function handlePaymentRefunded(data: unknown) {
+  if (!isValidPaymentData(data)) {
+    console.error('Invalid payment.refunded payload:', data);
+    return;
+  }
+
   const db = getDb();
   const now = new Date().toISOString();
 
-  const paymentData = data as {
-    paymentId: string;
-    externalPaymentId: string;
-    refundAmount?: number;
-  };
+  const paymentData = data;
 
   // Look up the payment to get the internal ID
   const payment = db

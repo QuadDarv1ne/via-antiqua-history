@@ -8,8 +8,7 @@
   "scripts": {
     "dev": "next dev -p 3000",
     "build": "next build",
-    "postbuild": "cp -r .next/static .next/standalone/.next/static && cp -r public .next/standalone/public",
-    "start": "node .next/standalone/server.js",
+    "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",

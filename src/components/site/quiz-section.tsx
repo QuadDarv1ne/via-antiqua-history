@@ -55,21 +55,27 @@ export function QuizSection() {
     } else {
       setCurrent((c) => {
         const next = c + 1
-        setSelected(answers[next] ?? null)
+        setAnswers((prev) => {
+          setSelected(prev[next] ?? null)
+          return prev
+        })
         return next
       })
     }
-  }, [current, answers])
+  }, [current])
 
   const goPrev = React.useCallback(() => {
     if (current > 0) {
       setCurrent((c) => {
         const prev = c - 1
-        setSelected(answers[prev] ?? null)
+        setAnswers((a) => {
+          setSelected(a[prev] ?? null)
+          return a
+        })
         return prev
       })
     }
-  }, [current, answers])
+  }, [current])
 
   React.useEffect(() => {
     if (finished) return

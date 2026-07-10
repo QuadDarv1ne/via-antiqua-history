@@ -21,6 +21,9 @@ export async function POST(req: NextRequest) {
     if (typeof password !== "string" || password.length > 128) {
       return apiError("Некорректный пароль", 400);
     }
+    if (totpCode !== undefined && (typeof totpCode !== "string" || !/^\d{6}$/.test(totpCode))) {
+      return apiError("Некорректный код 2FA", 400);
+    }
 
     const ip =
       req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";

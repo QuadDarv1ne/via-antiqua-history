@@ -32,30 +32,31 @@ interface HeroStats {
 }
 
 export function Hero({ stats: heroStats }: { stats?: HeroStats }) {
+  const { citiesCount = 0, landmarksCount = 0, eventsCount = 0, personsCount = 0 } = heroStats ?? {};
   const stats = React.useMemo(
     () => [
       {
         icon: <Building2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />,
-        value: heroStats?.citiesCount ?? 0,
+        value: citiesCount,
         label: "городов",
       },
       {
         icon: <Landmark className="h-3.5 w-3.5 sm:h-4 sm:w-4" />,
-        value: heroStats?.landmarksCount ?? 0,
+        value: landmarksCount,
         label: "памятников",
       },
       {
         icon: <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4" />,
-        value: heroStats?.eventsCount ?? 0,
+        value: eventsCount,
         label: "событий",
       },
       {
         icon: <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4" />,
-        value: heroStats?.personsCount ?? 0,
+        value: personsCount,
         label: "персоналий",
       },
     ],
-    [heroStats],
+    [citiesCount, landmarksCount, eventsCount, personsCount],
   );
 
   return (

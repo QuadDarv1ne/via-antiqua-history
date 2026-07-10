@@ -27,6 +27,22 @@ export default function ProfilePage() {
   const [copiedIdx, setCopiedIdx] = React.useState(-1)
   const [loggingOut, setLoggingOut] = React.useState(false)
   const [totpPassword, setTotpPassword] = React.useState('')
+  const [paymentQrError, setPaymentQrError] = React.useState(false)
+  const timerRef = React.useRef<ReturnType<typeof setTimeout>[]>([])
+
+  React.useEffect(() => {
+    return () => {
+      for (const t of timerRef.current) clearTimeout(t)
+    }
+  }, [])
+
+  const scheduleReset = React.useCallback((ms: number, fn: () => void) => {
+    const t = setTimeout(() => {
+      timerRef.current = timerRef.current.filter((x) => x !== t)
+      fn()
+    }, ms)
+    timerRef.current.push(t)
+  }, [])
 
   // Subscription state
   const [subscription, setSubscription] = React.useState<{
@@ -294,7 +310,7 @@ export default function ProfilePage() {
         setNewPassword('')
         setConfirmNewPassword('')
         setShowChangePassword(false)
-        setTimeout(() => setChangePasswordSuccess(false), 3000)
+        scheduleReset(3000, () => setChangePasswordSuccess(false))
       } else {
         setChangePasswordError(json.error || 'Ошибка')
       }
@@ -313,7 +329,7 @@ export default function ProfilePage() {
       return
     }
     setCopiedIdx(idx)
-    setTimeout(() => setCopiedIdx(-1), 2000)
+    scheduleReset(2000, () => setCopiedIdx(-1))
   }
 
   return (
@@ -466,11 +482,20 @@ export default function ProfilePage() {
 
                   <div className="flex justify-center mb-4">
                     <div className="p-3 rounded-xl bg-white border-2 border-border/50 shadow-lg">
-                      <img
-                        src={paymentData.qrCodeUrl}
-                        alt="QR-код для оплаты через СБП"
-                        className="h-48 w-48"
-                      />
+                      {paymentQrError ? (
+                        <div className="h-48 w-48 flex items-center justify-center text-sm text-muted-foreground">
+                          Не удалось загрузить QR-код
+                        </div>
+                      ) : (
+                        <img
+                          src={paymentData.qrCodeUrl}
+                          alt="QR-код для оплаты через СБП"
+                          width={192}
+                          height={192}
+                          className="h-48 w-48"
+                          onError={() => setPaymentQrError(true)}
+                        />
+                      )}
                     </div>
                   </div>
 
@@ -679,7 +704,7 @@ export default function ProfilePage() {
                     onClick={() => {
                       navigator.clipboard.writeText(recoveryCodes.join('\n'))
                       setCopiedIdx(-2)
-                      setTimeout(() => setCopiedIdx(-1), 2000)
+                      scheduleReset(2000, () => setCopiedIdx(-1))
                     }}
                     className="shrink-0 inline-flex items-center gap-1.5 h-8 px-3 rounded-lg border border-border text-xs font-medium hover:bg-accent/10 transition-colors"
                   >

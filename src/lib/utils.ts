@@ -9,6 +9,12 @@ export function withAlpha(color: string, alpha: number): string {
   if (color.startsWith('oklch(')) {
     return color.replace(')', ` / ${alpha})`)
   }
+  if (color.startsWith('rgb(')) {
+    return color.replace('rgb(', 'rgba(').replace(')', `, ${alpha})`)
+  }
+  if (color.startsWith('hsl(')) {
+    return color.replace('hsl(', 'hsla(').replace(')', `, ${alpha})`)
+  }
   return color
 }
 

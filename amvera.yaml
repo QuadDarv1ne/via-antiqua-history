@@ -8,7 +8,7 @@ build:
   additionalCommands: npm run build
 
 run:
-  command: NODE_ENV=production npm run start
+  command: NODE_ENV=production npx next start
   containerPort: 3000
   persistenceMount: /data
 

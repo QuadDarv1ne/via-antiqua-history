@@ -26,13 +26,22 @@ export function useSectionProgress(sectionIds: string[]) {
     }
   }, []);
 
+  // Persist to localStorage when completed changes
+  React.useEffect(() => {
+    if (!initialized) return;
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(completed));
+    } catch {
+      // Ignore storage errors
+    }
+  }, [completed, initialized]);
+
   // Mark section as completed when it scrolls into view
   React.useEffect(() => {
     if (!initialized) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
-        // Collect all new sections to avoid multiple state updates
         const newSections = new Set<string>();
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
@@ -47,20 +56,11 @@ export function useSectionProgress(sectionIds: string[]) {
 
         setCompleted((prev) => {
           const updated = { ...prev };
-          let changed = false;
           newSections.forEach((id) => {
             if (!updated[id]) {
               updated[id] = true;
-              changed = true;
             }
           });
-          if (changed) {
-            try {
-              localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-            } catch {
-              // Ignore storage errors
-            }
-          }
           return updated;
         });
       },

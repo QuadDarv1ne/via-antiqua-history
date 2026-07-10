@@ -196,7 +196,7 @@ export function SearchDialog({
             className="border-0 focus-visible:ring-0 h-12 sm:h-14 text-sm sm:text-base"
             role="combobox"
             aria-expanded={query.trim().length > 0 && results.length > 0}
-            aria-controls="search-results-list"
+            aria-controls={query.trim() && results.length > 0 ? "search-results-list" : undefined}
             aria-activedescendant={results.length > 0 ? `search-result-${activeIdx}` : undefined}
             aria-label="Поиск по сайту"
           />

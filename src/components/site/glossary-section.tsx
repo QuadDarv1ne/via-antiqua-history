@@ -81,11 +81,13 @@ export function GlossarySection() {
               )}
             </AnimatePresence>
           </div>
-          <div className="flex flex-wrap gap-1.5 sm:gap-2">
+          <div className="flex flex-wrap gap-1.5 sm:gap-2" role="radiogroup" aria-label="Фильтр по происхождению">
             {filterOptions.map((opt) => (
               <button
                 type="button"
                 key={opt.key}
+                role="radio"
+                aria-checked={filter === opt.key}
                 onClick={() => setFilter(opt.key)}
                 className={cn(
                   'px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-medium border transition-all whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1',

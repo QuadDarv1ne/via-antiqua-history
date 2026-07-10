@@ -22,8 +22,15 @@ export function ShareButton({ title, href, className }: ShareButtonProps) {
   const [copied, setCopied] = React.useState(false)
   const [open, setOpen] = React.useState(false)
   const [mounted, setMounted] = React.useState(false)
+  const timerRef = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   React.useEffect(() => { setMounted(true) }, [])
+
+  React.useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current)
+    }
+  }, [])
 
   const shareUrl = React.useMemo(
     () => typeof window !== 'undefined' ? (href ? new URL(href, window.location.origin).href : window.location.href) : '',
@@ -43,7 +50,8 @@ export function ShareButton({ title, href, className }: ShareButtonProps) {
       return
     }
     setCopied(true)
-    setTimeout(() => setCopied(false), COPIED_DURATION)
+    if (timerRef.current) clearTimeout(timerRef.current)
+    timerRef.current = setTimeout(() => setCopied(false), COPIED_DURATION)
   }, [shareUrl])
 
   const socials = [

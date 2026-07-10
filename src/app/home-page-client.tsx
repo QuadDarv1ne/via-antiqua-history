@@ -117,35 +117,49 @@ export default function HomePageClient({
         <main id="main-content" role="main" className="flex-1">
           <ErrorBoundary>
             <Hero stats={heroStats} />
-            <SectionDivider />
+          </ErrorBoundary>
+          <SectionDivider />
 
-            {/* Раздел: Древняя Греция */}
+          {/* Раздел: Древняя Греция */}
+          <ErrorBoundary>
             <RegionSection region={greece} />
-            <SectionDivider />
+          </ErrorBoundary>
+          <SectionDivider />
 
-            {/* Раздел: Римская империя */}
+          {/* Раздел: Римская империя */}
+          <ErrorBoundary>
             <RegionSection region={rome} restricted />
-            <SectionDivider />
+          </ErrorBoundary>
+          <SectionDivider />
 
-            {/* Раздел: Месопотамия */}
+          {/* Раздел: Месопотамия */}
+          <ErrorBoundary>
             <RegionSection region={mesopotamia} restricted />
-            <SectionDivider />
+          </ErrorBoundary>
+          <SectionDivider />
 
-            {/* Раздел: Кубань */}
+          {/* Раздел: Кубань */}
+          <ErrorBoundary>
             <RegionSection region={kuban} />
-            <SectionDivider />
+          </ErrorBoundary>
+          <SectionDivider />
 
-            {/* Ключевые персоналии */}
+          {/* Ключевые персоналии */}
+          <ErrorBoundary>
             <Suspense fallback={<DynamicSectionSkeleton variant="grid" />}>
               <PersonsSection />
             </Suspense>
+          </ErrorBoundary>
 
-            {/* Семь чудес света */}
+          {/* Семь чудес света */}
+          <ErrorBoundary>
             <Suspense fallback={<DynamicSectionSkeleton variant="grid" />}>
               <WondersSection />
             </Suspense>
+          </ErrorBoundary>
 
-            {/* Архитектурные ордера */}
+          {/* Архитектурные ордера */}
+          <ErrorBoundary>
             <ContentGate
               title="Архитектурные ордера"
               subtitle="Дорийский, ионический и коринфский — система пропорций, определившая облик античной архитектуры."
@@ -155,8 +169,10 @@ export default function HomePageClient({
                 <OrdersSection />
               </Suspense>
             </ContentGate>
+          </ErrorBoundary>
 
-            {/* Исторические эпохи */}
+          {/* Исторические эпохи */}
+          <ErrorBoundary>
             <ContentGate
               title="Исторические эпохи"
               subtitle="Восемь ключевых эпох — от шумерских городов до падения Константинополя."
@@ -166,8 +182,10 @@ export default function HomePageClient({
                 <EpochsSection />
               </Suspense>
             </ContentGate>
+          </ErrorBoundary>
 
-            {/* Интерактивная лента времени */}
+          {/* Интерактивная лента времени */}
+          <ErrorBoundary>
             <ContentGate
               title="Интерактивная лента времени"
               subtitle="Хронология античных цивилизаций от Древнего Египта до поздней Римской империи."
@@ -177,8 +195,10 @@ export default function HomePageClient({
                 <TimelineSection />
               </Suspense>
             </ContentGate>
+          </ErrorBoundary>
 
-            {/* Интерактивная карта */}
+          {/* Интерактивная карта */}
+          <ErrorBoundary>
             <ContentGate
               title="Интерактивная карта"
               subtitle="Нажмите на город, чтобы узнать о нём больше. Используйте фильтры для подсветки регионов."
@@ -188,8 +208,10 @@ export default function HomePageClient({
                 <MapSection />
               </Suspense>
             </ContentGate>
+          </ErrorBoundary>
 
-            {/* Сравнительная таблица цивилизаций */}
+          {/* Сравнительная таблица цивилизаций */}
+          <ErrorBoundary>
             <ContentGate
               title="Сравнение цивилизаций"
               subtitle="Сопоставление Древней Греции, Рима, Месопотамии и Кубани по восьми ключевым параметрам."
@@ -199,8 +221,10 @@ export default function HomePageClient({
                 <ComparisonSection />
               </Suspense>
             </ContentGate>
+          </ErrorBoundary>
 
-            {/* Авторский раздел: исторический анализ */}
+          {/* Авторский раздел: исторический анализ */}
+          <ErrorBoundary>
             <ContentGate
               title="Исторический анализ"
               subtitle="Авторские размышления о связях между цивилизациями и их влиянии на современный мир."
@@ -210,18 +234,24 @@ export default function HomePageClient({
                 <AnalysisSection />
               </Suspense>
             </ContentGate>
+          </ErrorBoundary>
 
-            {/* Глоссарий ключевых терминов */}
+          {/* Глоссарий ключевых терминов */}
+          <ErrorBoundary>
             <Suspense fallback={<DynamicSectionSkeleton variant="grid" />}>
               <GlossarySection />
             </Suspense>
+          </ErrorBoundary>
 
-            {/* Интерактивный квиз */}
+          {/* Интерактивный квиз */}
+          <ErrorBoundary>
             <Suspense fallback={<DynamicSectionSkeleton variant="full" />}>
               <QuizSection />
             </Suspense>
+          </ErrorBoundary>
 
-            {/* Источники и ссылки */}
+          {/* Источники и ссылки */}
+          <ErrorBoundary>
             <Suspense fallback={<DynamicSectionSkeleton variant="grid" />}>
               <SourcesSection />
             </Suspense>

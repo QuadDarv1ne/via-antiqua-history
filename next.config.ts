@@ -1,11 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: "standalone",
   reactStrictMode: true,
   poweredByHeader: false,
   compress: true,
-  serverExternalPackages: ["better-sqlite3"],
   images: {
     formats: ["image/avif", "image/webp"],
     deviceSizes: [640, 768, 1024, 1280, 1536],

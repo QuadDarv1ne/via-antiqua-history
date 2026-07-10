@@ -1,5 +1,5 @@
 const TEST_MODE =
-  process.env.NODE_ENV !== "production" ||
+  process.env.NODE_ENV !== "production" &&
   process.env.EMAIL_TEST_MODE === "true";
 
 export type EmailMessage = {

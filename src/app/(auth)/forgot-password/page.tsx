@@ -9,7 +9,6 @@ import { validateEmail } from '@/lib/utils'
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = React.useState('')
-  const [code, setCode] = React.useState('')
   const [sent, setSent] = React.useState(false)
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState('')
@@ -39,7 +38,6 @@ export default function ForgotPasswordPage() {
       })
       const json = await res.json()
       if (json.ok) {
-        setCode(json.data?.testCode || '')
         setSent(true)
       } else {
         setError(json.error || 'Ошибка')
@@ -107,13 +105,6 @@ export default function ForgotPasswordPage() {
               className="relative rounded-2xl border border-border/60 bg-card/60 backdrop-blur-xl p-6 sm:p-7 shadow-xl shadow-black/[0.03]"
             >
               <div className="absolute top-0 left-6 right-6 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
-
-              {code && (
-                <motion.div variants={item} className="mb-5 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3.5 text-center">
-                  <p className="text-[11px] text-muted-foreground/70 mb-1.5">Режим разработки — код сброса:</p>
-                  <p className="text-2xl font-bold tracking-[12px] text-primary font-mono">{code}</p>
-                </motion.div>
-              )}
 
               <motion.div variants={item} className="text-center">
                 <Link

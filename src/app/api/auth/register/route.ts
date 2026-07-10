@@ -21,6 +21,9 @@ export async function POST(req: NextRequest) {
     if (typeof password !== 'string' || password.length > 128) {
       return apiError('Некорректный пароль', 400)
     }
+    if (typeof name !== 'string' || name.length > 100) {
+      return apiError('Некорректное имя', 400)
+    }
 
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
     const rl = checkRateLimit(`register:${ip}`, RATE_LIMIT)

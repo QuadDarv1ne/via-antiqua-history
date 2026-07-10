@@ -25,6 +25,9 @@ export async function POST(req: NextRequest) {
     if (!currentPassword || !newPassword) {
       return apiError('Заполните все поля', 400)
     }
+    if (typeof currentPassword !== 'string' || typeof newPassword !== 'string') {
+      return apiError('Некорректные данные', 400)
+    }
 
     if (currentPassword === newPassword) {
       return apiError('Новый пароль должен отличаться от текущего', 400)

@@ -140,6 +140,12 @@ export function BookmarksProvider({ children }: { children: React.ReactNode }) {
   const [toast, setToast] = React.useState<{ show: boolean; title: string; added: boolean }>({ show: false, title: '', added: false })
   const toastTimer = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
+  React.useEffect(() => {
+    return () => {
+      if (toastTimer.current) clearTimeout(toastTimer.current)
+    }
+  }, [])
+
   const showToast = React.useCallback((title: string, added: boolean) => {
     setToast({ show: true, title, added })
     clearTimeout(toastTimer.current)
@@ -147,12 +153,12 @@ export function BookmarksProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const toggle = React.useCallback((item: BookmarkItem) => {
-    setBookmarks((cur) => {
-      const exists = cur.some((b) => b.id === item.id)
-      showToast(item.title, !exists)
-      return exists ? cur.filter((b) => b.id !== item.id) : [item, ...cur]
-    })
-  }, [showToast])
+    const exists = bookmarks.some((b) => b.id === item.id)
+    setBookmarks((cur) =>
+      exists ? cur.filter((b) => b.id !== item.id) : [item, ...cur]
+    )
+    showToast(item.title, !exists)
+  }, [bookmarks, showToast])
 
   const remove = React.useCallback((id: string) => {
     setBookmarks((cur) => cur.filter((b) => b.id !== id))

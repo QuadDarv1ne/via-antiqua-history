@@ -78,7 +78,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const json = await res.json()
 
       if (json.ok && json.data) {
-        setUser(json.data as User)
+        await refresh()
       }
 
       return { ok: json.ok, error: json.error }

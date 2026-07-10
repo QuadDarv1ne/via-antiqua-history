@@ -15,6 +15,9 @@ export async function POST(req: NextRequest) {
     if (!email || !code || !password) {
       return apiError('Заполните все поля', 400)
     }
+    if (typeof email !== 'string' || typeof code !== 'string' || typeof password !== 'string') {
+      return apiError('Некорректные данные', 400)
+    }
 
     const passwordError = validatePassword(password)
     if (passwordError) {

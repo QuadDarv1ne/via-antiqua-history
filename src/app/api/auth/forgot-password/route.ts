@@ -16,6 +16,9 @@ export async function POST(req: NextRequest) {
     if (!email) {
       return apiError("Укажите email", 400);
     }
+    if (typeof email !== "string") {
+      return apiError("Некорректный email", 400);
+    }
 
     const emailError = validateEmail(email);
     if (emailError) {

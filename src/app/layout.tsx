@@ -141,12 +141,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ru" suppressHydrationWarning>
-      {/* Tu fortis in sternum Domine, Ameno, Ameno, Ameno, Metatron */}
-      <script
-        dangerouslySetInnerHTML={{
-          __html: "console.log('Tu fortis in sternum Domine, Ameno, Ameno, Ameno, Metatron')",
-        }}
-      />
       <body className="font-body antialiased bg-background text-foreground">
         <script
           type="application/ld+json"
@@ -160,6 +154,17 @@ export default function RootLayout({
         <a href="#main-content" className="skip-link">
           Перейти к основному содержанию
         </a>
+        <noscript>
+          <div style={{ padding: '2rem', textAlign: 'center', fontFamily: 'system-ui, sans-serif' }}>
+            <h1 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>История Древнего Пути</h1>
+            <p style={{ color: '#666', marginBottom: '1rem' }}>
+              Для полного использования сайта необходим JavaScript.
+            </p>
+            <p style={{ color: '#999', fontSize: '0.875rem' }}>
+              Интерактивная историческая энциклопедия античного мира — Древняя Греция, Римская империя, Месопотамия и Кубань.
+            </p>
+          </div>
+        </noscript>
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
