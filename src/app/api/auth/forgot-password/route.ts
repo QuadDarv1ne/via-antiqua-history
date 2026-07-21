@@ -5,12 +5,17 @@ import { sendPasswordResetEmail } from "@/lib/auth/email";
 import { apiOk, apiError } from "@/lib/auth/api-response";
 import { checkRateLimit, rateLimitResponse } from "@/lib/auth/rate-limit";
 import { validateEmail } from "@/lib/utils";
+import { validateCsrf } from "@/lib/auth/csrf";
+import { getClientIp } from "@/lib/auth/get-ip";
 
 const RATE_LIMIT = { windowMs: 15 * 60 * 1000, max: 3 };
 const USER_RATE_LIMIT = { windowMs: 60 * 60 * 1000, max: 5 };
 
 export async function POST(req: NextRequest) {
   try {
+    const csrfError = validateCsrf(req);
+    if (csrfError) return csrfError;
+
     const { email } = await req.json();
 
     if (!email) {
@@ -25,8 +30,7 @@ export async function POST(req: NextRequest) {
       return apiError(emailError, 400);
     }
 
-    const ip =
-      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    const ip = getClientIp(req);
     const rl = checkRateLimit(
       `forgot:${ip}:${email.toLowerCase()}`,
       RATE_LIMIT,

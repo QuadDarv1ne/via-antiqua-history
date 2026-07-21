@@ -4,12 +4,17 @@ import { hashPassword } from '@/lib/auth/utils'
 import { validatePassword } from '@/lib/utils'
 import { apiOk, apiError } from '@/lib/auth/api-response'
 import { checkRateLimit, rateLimitResponse } from '@/lib/auth/rate-limit'
+import { validateCsrf } from '@/lib/auth/csrf'
+import { getClientIp } from '@/lib/auth/get-ip'
 
 const RATE_LIMIT = { windowMs: 15 * 60 * 1000, max: 5 }
 const USER_RATE_LIMIT = { windowMs: 15 * 60 * 1000, max: 3 }
 
 export async function POST(req: NextRequest) {
   try {
+    const csrfError = validateCsrf(req);
+    if (csrfError) return csrfError;
+
     const { email, code, password } = await req.json()
 
     if (!email || !code || !password) {
@@ -24,7 +29,7 @@ export async function POST(req: NextRequest) {
       return apiError(passwordError, 400)
     }
 
-    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
+    const ip = getClientIp(req)
     const rl = checkRateLimit(`reset:${ip}:${email.toLowerCase()}`, RATE_LIMIT)
     if (!rl.allowed) {
       return rateLimitResponse(rl.resetMs)

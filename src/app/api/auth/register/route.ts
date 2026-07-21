@@ -4,11 +4,16 @@ import { hashPassword, generateToken, createSession } from "@/lib/auth/utils";
 import { validateEmail, validatePassword } from "@/lib/utils";
 import { apiOk, apiError } from "@/lib/auth/api-response";
 import { checkRateLimit, rateLimitResponse } from "@/lib/auth/rate-limit";
+import { validateCsrf } from "@/lib/auth/csrf";
+import { getClientIp } from "@/lib/auth/get-ip";
 
 const RATE_LIMIT = { windowMs: 60 * 60 * 1000, max: 5 };
 
 export async function POST(req: NextRequest) {
   try {
+    const csrfError = validateCsrf(req);
+    if (csrfError) return csrfError;
+
     const { email, password, name } = await req.json();
 
     if (!email || !password || !name) {
@@ -25,8 +30,7 @@ export async function POST(req: NextRequest) {
       return apiError("Некорректное имя", 400);
     }
 
-    const ip =
-      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    const ip = getClientIp(req);
     const rl = checkRateLimit(`register:${ip}`, RATE_LIMIT);
     if (!rl.allowed) {
       return rateLimitResponse(rl.resetMs);

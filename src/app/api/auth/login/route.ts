@@ -4,11 +4,16 @@ import { verifyPassword, createSession } from "@/lib/auth/utils";
 import { apiOk, apiError } from "@/lib/auth/api-response";
 import { totp } from "@/lib/auth/totp";
 import { checkRateLimit, rateLimitResponse } from "@/lib/auth/rate-limit";
+import { validateCsrf } from "@/lib/auth/csrf";
+import { getClientIp } from "@/lib/auth/get-ip";
 
 const RATE_LIMIT = { windowMs: 15 * 60 * 1000, max: 10 };
 
 export async function POST(req: NextRequest) {
   try {
+    const csrfError = validateCsrf(req);
+    if (csrfError) return csrfError;
+
     const { email, password, totpCode } = await req.json();
 
     if (!email || !password) {
@@ -31,8 +36,7 @@ export async function POST(req: NextRequest) {
       return apiError("Некорректный код 2FA", 400);
     }
 
-    const ip =
-      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    const ip = getClientIp(req);
     const rl = checkRateLimit(`login:${ip}:${email.toLowerCase()}`, RATE_LIMIT);
     if (!rl.allowed) {
       return rateLimitResponse(rl.resetMs);

@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { getDb } from "@/lib/auth/db";
 import { getSession } from "@/lib/auth/utils";
 import { apiOk, apiError } from "@/lib/auth/api-response";
+import { validateCsrf } from "@/lib/auth/csrf";
 
 export async function POST(_request: NextRequest) {
   try {
@@ -9,6 +10,9 @@ export async function POST(_request: NextRequest) {
     if (!session) {
       return apiError("Не авторизован", 401);
     }
+
+    const csrfError = validateCsrf(_request);
+    if (csrfError) return csrfError;
 
     const db = getDb();
     const now = new Date().toISOString();

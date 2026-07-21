@@ -4,6 +4,8 @@ import { getSession } from "@/lib/auth/utils";
 import { SUBSCRIPTION_PRICE } from "@/lib/constants";
 import { apiOk, apiError } from "@/lib/auth/api-response";
 import { checkRateLimit, rateLimitResponse } from "@/lib/auth/rate-limit";
+import { validateCsrf } from "@/lib/auth/csrf";
+import { getClientIp } from "@/lib/auth/get-ip";
 import { randomUUID } from "crypto";
 
 const RATE_LIMIT = { windowMs: 15 * 60 * 1000, max: 5 };
@@ -15,9 +17,10 @@ export async function POST(_request: NextRequest) {
       return apiError("Не авторизован", 401);
     }
 
-    const ip =
-      _request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-      "unknown";
+    const csrfError = validateCsrf(_request);
+    if (csrfError) return csrfError;
+
+    const ip = getClientIp(_request);
     const rl = checkRateLimit(`sub-create:${ip}:${session.userId}`, RATE_LIMIT);
     if (!rl.allowed) {
       return rateLimitResponse(rl.resetMs);
