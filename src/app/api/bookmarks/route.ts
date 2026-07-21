@@ -5,7 +5,7 @@ import { apiOk, apiError } from "@/lib/auth/api-response";
 import { checkRateLimit, rateLimitResponse } from "@/lib/auth/rate-limit";
 import { validateCsrf } from "@/lib/auth/csrf";
 import { getClientIp } from "@/lib/auth/get-ip";
-import type { BookmarkRow } from "@/lib/auth/types";
+import { BookmarkRowSchema, type ValidatedBookmarkRow } from "@/lib/auth/schemas";
 
 const RATE_LIMIT = { windowMs: 60 * 1000, max: 20 };
 const CACHE_HEADERS = { "Cache-Control": "private, max-age=10, stale-while-revalidate=30" };
@@ -27,11 +27,16 @@ export async function GET(_req: NextRequest) {
     }
 
     const db = getDb();
-    const rows = db
+    const rawRows = db
       .prepare(
         "SELECT * FROM bookmarks WHERE user_id = ? ORDER BY created_at DESC",
       )
-      .all(session.userId) as BookmarkRow[];
+      .all(session.userId);
+
+    const rows = rawRows
+      .map((r) => BookmarkRowSchema.safeParse(r))
+      .filter((r) => r.success)
+      .map((r) => r.data) as ValidatedBookmarkRow[];
 
     return apiOk(rows, { headers: CACHE_HEADERS });
   } catch (err) {

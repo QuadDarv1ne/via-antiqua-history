@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { getDb } from "@/lib/auth/db";
 import { getSession } from "@/lib/auth/utils";
 import { apiOk, apiError } from "@/lib/auth/api-response";
+import { SubscriptionSchema, safeParse } from "@/lib/auth/schemas";
 
 export async function GET(_request: NextRequest) {
   try {
@@ -12,7 +13,7 @@ export async function GET(_request: NextRequest) {
 
     const db = getDb();
 
-    const sub = db
+    const rawSub = db
       .prepare(
         `
       SELECT * FROM subscriptions
@@ -21,15 +22,9 @@ export async function GET(_request: NextRequest) {
       LIMIT 1
     `,
       )
-      .get(session.userId) as
-      | {
-          id: string;
-          status: string;
-          amount: number;
-          started_at: string;
-          expires_at: string;
-        }
-      | undefined;
+      .get(session.userId);
+
+    const sub = safeParse(SubscriptionSchema, rawSub, "subscription:status");
 
     const data = sub
       ? {

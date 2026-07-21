@@ -6,6 +6,7 @@ import { totp } from "@/lib/auth/totp";
 import { checkRateLimit, rateLimitResponse } from "@/lib/auth/rate-limit";
 import { validateCsrf } from "@/lib/auth/csrf";
 import { getClientIp } from "@/lib/auth/get-ip";
+import { UserSchema, safeParse } from "@/lib/auth/schemas";
 
 const RATE_LIMIT = { windowMs: 15 * 60 * 1000, max: 10 };
 
@@ -43,17 +44,18 @@ export async function POST(req: NextRequest) {
     }
 
     const db = getDb();
-    const user = db
+    const rawUser = db
       .prepare(
         "SELECT id, email, password_hash, name, email_verified, totp_secret, totp_enabled, password_changed_at, created_at FROM users WHERE email = ?",
       )
-      .get(email.toLowerCase()) as Record<string, unknown> | undefined;
+      .get(email.toLowerCase());
 
+    const user = safeParse(UserSchema, rawUser, "login:user");
     if (!user) {
       return apiError("Неверный email или пароль", 401);
     }
 
-    const valid = await verifyPassword(password, user.password_hash as string);
+    const valid = await verifyPassword(password, user.password_hash);
     if (!valid) {
       return apiError("Неверный email или пароль", 401);
     }
@@ -71,9 +73,9 @@ export async function POST(req: NextRequest) {
     }
 
     await createSession(
-      user.id as string,
-      user.email as string,
-      (user.password_changed_at as string | null) || undefined,
+      user.id,
+      user.email,
+      user.password_changed_at || undefined,
     );
 
     return apiOk({
