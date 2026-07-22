@@ -1,6 +1,8 @@
 meta:
   environment: docker
-  toolchain: docker
+  toolchain:
+    name: docker
+    version: "latest"
 
 run:
   containerPort: 3000
