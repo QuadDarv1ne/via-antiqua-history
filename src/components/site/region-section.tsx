@@ -230,6 +230,7 @@ export function RegionSection({
                   ))}
                   </div>
               </div>
+              </div>
 
           {/* Правая колонка: контент активного города */}
           <div
@@ -365,8 +366,6 @@ export function RegionSection({
                 </AnimatePresence>
               </div>
             </div>
-
-          </div>
 
             {/* Описание региона в конце */}
             <motion.div
