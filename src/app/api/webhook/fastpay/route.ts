@@ -135,7 +135,7 @@ async function handlePaymentCompleted(data: unknown) {
     console.error(
       `Payment not found: ${paymentData.externalPaymentId} / ${paymentData.paymentId}`,
     );
-    return;
+    throw new Error("Payment not found — FastPay will retry");
   }
 
   // Обновляем статус платежа и активируем подписку атомарно
@@ -227,7 +227,7 @@ async function handlePaymentRefunded(data: unknown) {
     console.error(
       `Refund: payment not found: ${paymentData.externalPaymentId} / ${paymentData.paymentId}`,
     );
-    return;
+    throw new Error("Payment not found — FastPay will retry");
   }
 
   // Обновляем статус платежа и отменяем подписку атомарно

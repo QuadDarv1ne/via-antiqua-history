@@ -239,6 +239,21 @@
     scrollbar-width: thin;
     scrollbar-color: oklch(0.6 0.08 60 / 0.4) transparent;
   }
+  /* Comparison table column hover — pure CSS, no React state */
+  .comparison-table th[data-col]:hover,
+  .comparison-table th[data-col]:focus-visible {
+    background-color: oklch(0.93 0.018 75 / 0.4);
+  }
+  .comparison-table:has(th[data-col="greece"]:hover) td[data-col="greece"],
+  .comparison-table:has(th[data-col="rome"]:hover) td[data-col="rome"],
+  .comparison-table:has(th[data-col="mesopotamia"]:hover) td[data-col="mesopotamia"],
+  .comparison-table:has(th[data-col="kuban"]:hover) td[data-col="kuban"],
+  .comparison-table:has(th[data-col="greece"]:focus-visible) td[data-col="greece"],
+  .comparison-table:has(th[data-col="rome"]:focus-visible) td[data-col="rome"],
+  .comparison-table:has(th[data-col="mesopotamia"]:focus-visible) td[data-col="mesopotamia"],
+  .comparison-table:has(th[data-col="kuban"]:focus-visible) td[data-col="kuban"] {
+    background-color: oklch(0.93 0.018 75 / 0.4);
+  }
 }
 
 html {

@@ -90,7 +90,7 @@ export const mesopotamia: Region = {
           ],
         },
         {
-          id: 'hanging-gardens',
+          id: 'hanging-gardens-babylon',
           name: 'Висячие сады Семирамиды',
           period: 'VII–VI в. до н. э.',
           shortDesc:

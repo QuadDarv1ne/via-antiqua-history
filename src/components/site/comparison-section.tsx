@@ -4,7 +4,6 @@ import * as React from 'react'
 import { motion } from 'framer-motion'
 import { GitCompareArrows } from 'lucide-react'
 import { comparisonRows } from '@/lib/history-data'
-import { cn } from '@/lib/utils'
 import { ReadingTime } from '@/components/site/reading-time'
 import { REGION_COLORS, REGION_LABELS } from '@/lib/constants'
 import { SectionHeader } from '@/components/site/section-header'
@@ -17,7 +16,10 @@ const columns = [
 ] as const
 
 export function ComparisonSection() {
-  const [activeCol, setActiveCol] = React.useState<string | null>(null)
+  const readingText = React.useMemo(
+    () => comparisonRows.map((r) => `${r.criterion} ${r.greece} ${r.rome} ${r.mesopotamia} ${r.kuban}`),
+    [],
+  )
 
   return (
     <section
@@ -30,7 +32,7 @@ export function ComparisonSection() {
           label="Сравнительный анализ"
           title="Четыре цивилизации бок о бок"
           description="Сопоставление Древней Греции, Рима, Месопотамии и Кубани по восьми ключевым параметрам. Наведите на колонку, чтобы её подсветить."
-          readingTime={<ReadingTime text={comparisonRows.map((r) => `${r.criterion} ${r.greece} ${r.rome} ${r.mesopotamia} ${r.kuban}`)} className="justify-center mt-2" />}
+          readingTime={<ReadingTime text={readingText} className="justify-center mt-2" />}
         />
 
         <motion.div
@@ -42,7 +44,7 @@ export function ComparisonSection() {
         >
           {/* Desktop: table */}
           <div className="hidden md:block overflow-x-auto custom-scroll">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm comparison-table">
               <caption className="sr-only">Сравнение четырёх цивилизаций: Греция, Рим, Месопотамия и Кубань по восьми ключевым параметрам</caption>
               <thead>
                 <tr className="border-b border-border">
@@ -53,15 +55,9 @@ export function ComparisonSection() {
                     <th
                       scope="col"
                       key={col.key}
-                      onMouseEnter={() => setActiveCol(col.key)}
-                      onMouseLeave={() => setActiveCol(null)}
-                      onFocus={() => setActiveCol(col.key)}
-                      onBlur={() => setActiveCol(null)}
+                      data-col={col.key}
                       tabIndex={0}
-                      className={cn(
-                        'text-left p-3 sm:p-4 font-display font-semibold transition-colors cursor-default min-w-[180px] sm:min-w-[200px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary',
-                        activeCol === col.key ? 'bg-muted/40' : 'bg-card'
-                      )}
+                      className="text-left p-3 sm:p-4 font-display font-semibold transition-colors cursor-default min-w-[180px] sm:min-w-[200px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
                     >
                       <div className="flex items-center gap-1.5 sm:gap-2">
                         <span
@@ -78,10 +74,8 @@ export function ComparisonSection() {
                 {comparisonRows.map((row, idx) => (
                   <tr
                     key={row.criterion}
-                    className={cn(
-                      'border-b border-border/60 transition-colors',
-                      idx % 2 === 0 ? 'bg-card/50' : 'bg-card'
-                    )}
+                    className="border-b border-border/60 transition-colors"
+                    style={{ backgroundColor: idx % 2 === 0 ? 'oklch(0.99 0.008 80 / 0.5)' : undefined }}
                   >
                     <td className="p-3 sm:p-4 font-medium sticky left-0 bg-card z-10 text-xs sm:text-sm">
                       {row.criterion}
@@ -89,12 +83,8 @@ export function ComparisonSection() {
                     {columns.map((col) => (
                       <td
                         key={col.key}
-                        onMouseEnter={() => setActiveCol(col.key)}
-                        onMouseLeave={() => setActiveCol(null)}
-                        className={cn(
-                          'p-3 sm:p-4 text-foreground/85 transition-colors text-xs sm:text-sm',
-                          activeCol === col.key && 'bg-muted/40'
-                        )}
+                        data-col={col.key}
+                        className="p-3 sm:p-4 text-foreground/85 transition-colors text-xs sm:text-sm"
                       >
                         {row[col.key]}
                       </td>
