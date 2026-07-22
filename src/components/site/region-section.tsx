@@ -154,7 +154,7 @@ export function RegionSection({
             <div className="grid lg:grid-cols-12 gap-8 lg:gap-12">
               {/* Левая колонка: переключение городов */}
               <div className="lg:col-span-3">
-                <div className="lg:sticky lg:top-24 relative flex lg:flex-col gap-2 overflow-x-auto lg:overflow-visible custom-scroll pb-2 lg:pb-0 -mx-4 px-4 lg:mx-0 lg:px-0">
+                <div className="lg:sticky lg:top-24 lg:z-10 relative flex lg:flex-col gap-2 overflow-x-auto lg:overflow-visible custom-scroll pb-2 lg:pb-0 -mx-4 px-4 lg:mx-0 lg:px-0">
                   <div className="pointer-events-none absolute right-0 top-0 bottom-2 w-8 bg-gradient-to-l from-background to-transparent lg:hidden" />
                   <span className="hidden lg:block text-xs uppercase tracking-widest text-muted-foreground mb-3 shrink-0" id={`region-tablist-label-${region.id}`}>
                     Города и памятники
