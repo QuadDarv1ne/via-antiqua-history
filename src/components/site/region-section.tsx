@@ -151,94 +151,90 @@ export function RegionSection({
           </div>
         ) : (
           <>
-            <div className="grid lg:grid-cols-12 gap-8 lg:gap-12">
-              {/* Левая колонка: переключение городов */}
-              <div className="lg:col-span-3">
-                <div className="lg:sticky lg:top-24 lg:z-10 relative flex lg:flex-col gap-2 overflow-x-auto lg:overflow-visible custom-scroll pb-2 lg:pb-0 -mx-4 px-4 lg:mx-0 lg:px-0">
-                  <div className="pointer-events-none absolute right-0 top-0 bottom-2 w-8 bg-gradient-to-l from-background to-transparent lg:hidden" />
-                  <span className="hidden lg:block text-xs uppercase tracking-widest text-muted-foreground mb-3 shrink-0" id={`region-tablist-label-${region.id}`}>
-                    Города и памятники
-                  </span>
-                  <div
-                    role="tablist"
-                    aria-labelledby={`region-tablist-label-${region.id}`}
-                    className="contents"
-                    onKeyDown={(e) => {
-                      const tabs = region.cities.map((c) => c.id);
-                      const currentIdx = tabs.indexOf(activeCityId);
-                      if (currentIdx === -1) return;
-                      let nextIdx = currentIdx;
-                      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-                        e.preventDefault();
-                        nextIdx = (currentIdx + 1) % tabs.length;
-                      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-                        e.preventDefault();
-                        nextIdx = (currentIdx - 1 + tabs.length) % tabs.length;
-                      } else if (e.key === 'Home') {
-                        e.preventDefault();
-                        nextIdx = 0;
-                      } else if (e.key === 'End') {
-                        e.preventDefault();
-                        nextIdx = tabs.length - 1;
-                      }
-                      if (nextIdx !== currentIdx) {
-                        setActiveCityId(tabs[nextIdx]);
-                        const nextTab = e.currentTarget.querySelector<HTMLElement>(
-                          `[data-tab-id="${tabs[nextIdx]}"]`,
-                        );
-                        nextTab?.focus();
-                      }
-                    }}
-                  >
-                  {region.cities.map((city) => (
-                    <button
-                      type="button"
-                      key={city.id}
-                      data-tab-id={city.id}
-                      role="tab"
-                      id={`tab-${region.id}-${city.id}`}
-                      aria-selected={activeCityId === city.id}
-                      aria-controls={`tabpanel-${region.id}-${city.id}`}
-                      tabIndex={activeCityId === city.id ? 0 : -1}
-                      onClick={() => setActiveCityId(city.id)}
-                      className={cn(
-                        "text-left whitespace-nowrap lg:whitespace-normal pl-4 pr-3 py-3 rounded-lg border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 shrink-0 lg:shrink relative overflow-hidden",
-                        activeCityId === city.id
-                          ? "bg-card border-primary shadow-sm"
-                          : "bg-card/50 border-border hover:bg-card hover:border-primary/40",
-                      )}
-                    >
-                      {activeCityId === city.id && (
-                        <motion.span
-                          layoutId={`activeCity-${region.id}`}
-                          className="absolute left-0 top-1 bottom-1 w-0.5 rounded-full"
-                          style={{ backgroundColor: region.color }}
-                          transition={{
-                            type: "spring",
-                            stiffness: 500,
-                            damping: 35,
-                          }}
-                        />
-                      )}
-                      <div className="font-display text-base font-semibold">
-                        {city.name}
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-0.5">
-                        {city.era}
-                      </div>
-                    </button>
-                  ))}
-                  </div>
-              </div>
-              </div>
-
-              {/* Правая колонка: контент активного города */}
+            {/* Города и памятники: табы городов */}
+            <div className="mb-8 sm:mb-10 md:mb-14">
+              <span className="text-xs uppercase tracking-widest text-muted-foreground mb-3 block" id={`region-tablist-label-${region.id}`}>
+                Города и памятники
+              </span>
               <div
-                role="tabpanel"
-                id={`tabpanel-${region.id}-${activeCityId}`}
-                aria-labelledby={`tab-${region.id}-${activeCityId}`}
-                className="lg:col-span-9"
+                role="tablist"
+                aria-labelledby={`region-tablist-label-${region.id}`}
+                className="relative flex gap-2 overflow-x-auto custom-scroll pb-2 -mx-4 px-4 sm:mx-0 sm:px-0"
+                onKeyDown={(e) => {
+                  const tabs = region.cities.map((c) => c.id);
+                  const currentIdx = tabs.indexOf(activeCityId);
+                  if (currentIdx === -1) return;
+                  let nextIdx = currentIdx;
+                  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    nextIdx = (currentIdx + 1) % tabs.length;
+                  } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    nextIdx = (currentIdx - 1 + tabs.length) % tabs.length;
+                  } else if (e.key === 'Home') {
+                    e.preventDefault();
+                    nextIdx = 0;
+                  } else if (e.key === 'End') {
+                    e.preventDefault();
+                    nextIdx = tabs.length - 1;
+                  }
+                  if (nextIdx !== currentIdx) {
+                    setActiveCityId(tabs[nextIdx]);
+                    const nextTab = e.currentTarget.querySelector<HTMLElement>(
+                      `[data-tab-id="${tabs[nextIdx]}"]`,
+                    );
+                    nextTab?.focus();
+                  }
+                }}
               >
+                <div className="pointer-events-none absolute right-0 top-0 bottom-2 w-8 bg-gradient-to-l from-background to-transparent sm:hidden" />
+                {region.cities.map((city) => (
+                  <button
+                    type="button"
+                    key={city.id}
+                    data-tab-id={city.id}
+                    role="tab"
+                    id={`tab-${region.id}-${city.id}`}
+                    aria-selected={activeCityId === city.id}
+                    aria-controls={`tabpanel-${region.id}-${city.id}`}
+                    tabIndex={activeCityId === city.id ? 0 : -1}
+                    onClick={() => setActiveCityId(city.id)}
+                    className={cn(
+                      "text-left whitespace-nowrap pl-4 pr-3 py-3 rounded-lg border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 shrink-0 relative overflow-hidden",
+                      activeCityId === city.id
+                        ? "bg-card border-primary shadow-sm"
+                        : "bg-card/50 border-border hover:bg-card hover:border-primary/40",
+                    )}
+                  >
+                    {activeCityId === city.id && (
+                      <motion.span
+                        layoutId={`activeCity-${region.id}`}
+                        className="absolute left-0 top-1 bottom-1 w-0.5 rounded-full"
+                        style={{ backgroundColor: region.color }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 500,
+                          damping: 35,
+                        }}
+                      />
+                    )}
+                    <div className="font-display text-base font-semibold">
+                      {city.name}
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-0.5">
+                      {city.era}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Контент активного города на всю ширину */}
+            <div
+              role="tabpanel"
+              id={`tabpanel-${region.id}-${activeCityId}`}
+              aria-labelledby={`tab-${region.id}-${activeCityId}`}
+            >
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={activeCityId}
@@ -365,9 +361,8 @@ export function RegionSection({
                       </motion.div>
                     </AnimatePresence>
                   </div>
-                </div>
 
-            {/* Описание региона в конце */}
+              {/* Описание региона в конце */}
             <motion.div
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
