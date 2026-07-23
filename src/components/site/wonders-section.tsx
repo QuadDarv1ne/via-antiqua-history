@@ -16,7 +16,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { BookmarkButton } from '@/components/site/bookmarks'
 import { ReadingTime } from '@/components/site/reading-time'
 import { REGION_COLORS, REGION_LABELS } from '@/lib/constants'
-import { withAlpha } from '@/lib/utils'
+import { withAlpha, getRegionColor } from '@/lib/utils'
 import { SectionHeader } from '@/components/site/section-header'
 
 export function WondersSection() {
@@ -42,7 +42,7 @@ export function WondersSection() {
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {wonders.map((w, idx) => {
-            const color = REGION_COLORS[w.region] || REGION_COLORS.greece
+            const color = getRegionColor(w.region, REGION_COLORS.greece)
             return (
               <motion.button
                 key={w.id}

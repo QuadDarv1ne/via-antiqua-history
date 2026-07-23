@@ -102,6 +102,21 @@ export function QuizSection() {
 
   const progress = (answeredCount / quizQuestions.length) * 100
 
+  const regionStats = React.useMemo(() => {
+    if (!finished) return {}
+    const stats: Record<string, { total: number; correct: number }> = {}
+    quizQuestions.forEach((q, index) => {
+      if (!stats[q.region]) {
+        stats[q.region] = { total: 0, correct: 0 }
+      }
+      stats[q.region].total++
+      if (answers[index] !== null && answers[index] === q.correct) {
+        stats[q.region].correct++
+      }
+    })
+    return stats
+  }, [finished, answers])
+
   if (finished) {
     const percent = Math.round((correctCount / quizQuestions.length) * 100)
 
@@ -117,17 +132,6 @@ export function QuizSection() {
                 emoji: '🕯️',
                 color: 'text-muted-foreground',
               }
-
-    const regionStats: Record<string, { total: number; correct: number }> = {}
-    quizQuestions.forEach((q, index) => {
-      if (!regionStats[q.region]) {
-        regionStats[q.region] = { total: 0, correct: 0 }
-      }
-      regionStats[q.region].total++
-      if (answers[index] !== null && answers[index] === q.correct) {
-        regionStats[q.region].correct++
-      }
-    })
 
     return (
       <section

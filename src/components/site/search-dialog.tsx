@@ -15,8 +15,7 @@ import {
   persons,
   mapRegions,
 } from '@/lib/history-data'
-import { cn, withAlpha } from '@/lib/utils'
-import { REGION_COLORS } from '@/lib/constants'
+import { cn, withAlpha, getRegionColor } from '@/lib/utils'
 
 type SearchResult = {
   type: 'city' | 'landmark' | 'term' | 'person' | 'map-city'
@@ -241,7 +240,7 @@ export function SearchDialog({
                 </div>
                 <div id="search-results-list" role="listbox" aria-label="Результаты поиска">
                   {results.map((r, i) => {
-                  const color = REGION_COLORS[r.region] || REGION_COLORS.general
+                  const color = getRegionColor(r.region)
                   return (
                     <button
                       type="button"

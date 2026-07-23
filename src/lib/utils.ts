@@ -1,8 +1,13 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { REGION_COLORS } from "@/lib/constants"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
+}
+
+export function getRegionColor(region: string, fallback: string = REGION_COLORS.general): string {
+  return REGION_COLORS[region] || fallback
 }
 
 export function withAlpha(color: string, alpha: number): string {

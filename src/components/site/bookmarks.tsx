@@ -3,7 +3,7 @@
 import * as React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Bookmark, BookmarkCheck, X, Trash2, BookOpen, Check, Undo2 } from 'lucide-react'
-import { cn, withAlpha } from '@/lib/utils'
+import { cn, withAlpha, getRegionColor } from '@/lib/utils'
 import {
   Dialog,
   DialogContent,
@@ -11,7 +11,6 @@ import {
 } from '@/components/ui/dialog'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Button } from '@/components/ui/button'
-import { REGION_COLORS } from '@/lib/constants'
 import { useAuth } from '@/contexts/AuthContext'
 
 export type BookmarkItem = {
@@ -212,8 +211,6 @@ const typeLabels: Record<BookmarkItem['type'], string> = {
   'map-city': 'Город на карте',
   order: 'Архитектурный ордер',
 }
-
-const getRegionColor = (region: string) => REGION_COLORS[region] || REGION_COLORS.general
 
 // Кнопка-переключатель закладки
 export const BookmarkButton = React.memo(function BookmarkButton({ item }: { item: BookmarkItem }) {

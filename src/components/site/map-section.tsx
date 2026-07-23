@@ -193,7 +193,7 @@ export function MapSection() {
                     {/* Подпись */}
                     <span
                       className={cn(
-                        'absolute left-1/2 -translate-x-1/2 top-full mt-1 whitespace-nowrap rounded px-1.5 py-0.5 text-[10px] sm:text-xs font-medium transition-opacity pointer-events-none',
+                        'absolute left-1/2 -translate-x-1/2 top-full mt-1 whitespace-nowrap rounded px-1.5 py-0.5 text-[10px] sm:text-xs font-medium transition-opacity pointer-events-none backdrop-blur-sm',
                         isHovered || isSelected
                           ? 'opacity-100'
                           : 'opacity-70 group-hover:opacity-100'
@@ -201,7 +201,6 @@ export function MapSection() {
                       style={{
                         backgroundColor: 'oklch(1 0 0 / 0.85)',
                         color: 'oklch(0.2 0 0)',
-                        backdropFilter: 'blur(4px)',
                       }}
                     >
                       {r.name}
