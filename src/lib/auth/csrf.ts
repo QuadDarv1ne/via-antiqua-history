@@ -1,10 +1,22 @@
 import { NextRequest } from 'next/server'
 
-const TRUSTED_ORIGINS = new Set([
-  'https://via-antiqua.maestro7it.ru',
+const BASE_TRUSTED = new Set([
   'http://localhost:3000',
   'http://localhost:3001',
 ])
+
+function getTrustedOrigins(): Set<string> {
+  const origins = new Set(BASE_TRUSTED)
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
+  if (siteUrl) {
+    try {
+      origins.add(new URL(siteUrl).origin)
+    } catch { /* ignore malformed env */ }
+  }
+  return origins
+}
+
+const TRUSTED_ORIGINS = getTrustedOrigins()
 
 /**
  * Validate Origin/Referer headers to prevent CSRF attacks.

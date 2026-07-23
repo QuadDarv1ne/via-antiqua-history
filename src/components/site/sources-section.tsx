@@ -76,36 +76,46 @@ export function SourcesSection() {
                   {meta.label}
                 </h3>
                 <div className="grid sm:grid-cols-2 gap-2.5 sm:gap-3">
-                  {items.map((src, idx) => {
-                    const Wrapper = src.url ? 'a' : 'div'
-                    return (
-                    <Wrapper
-                      key={src.title + idx}
-                      {...(src.url ? { href: src.url, target: '_blank', rel: 'noopener noreferrer' } : {})}
-                      className={cn(
-                        'rounded-lg border border-border bg-card p-3 sm:p-4 transition-shadow hover:shadow-sm relative overflow-hidden',
-                        src.url && 'cursor-pointer'
-                      )}
-                      style={{ borderLeftColor: meta.color, borderLeftWidth: 3 }}
-                    >
-                      <div className="flex items-start justify-between gap-2 mb-1">
-                        <h4 className="font-display font-semibold text-sm sm:text-base leading-tight line-clamp-2">
-                          {src.title}
-                        </h4>
-                        {src.url && (
-                          <ExternalLink className="h-4 w-4 text-muted-foreground shrink-0 mt-1" />
+                  {items.map((src) => {
+                    const card = (
+                      <div
+                        key={src.title}
+                        className={cn(
+                          'rounded-lg border border-border bg-card p-3 sm:p-4 transition-shadow hover:shadow-sm relative overflow-hidden',
+                          src.url && 'cursor-pointer'
                         )}
-                      </div>
-                      {src.author && (
-                        <p className="text-xs sm:text-sm text-primary font-medium mb-1.5 sm:mb-2">
-                          {src.author}
+                        style={{ borderLeftColor: meta.color, borderLeftWidth: 3 }}
+                      >
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                          <h4 className="font-display font-semibold text-sm sm:text-base leading-tight line-clamp-2">
+                            {src.title}
+                          </h4>
+                          {src.url && (
+                            <ExternalLink className="h-4 w-4 text-muted-foreground shrink-0 mt-1" />
+                          )}
+                        </div>
+                        {src.author && (
+                          <p className="text-xs sm:text-sm text-primary font-medium mb-1.5 sm:mb-2">
+                            {src.author}
+                          </p>
+                        )}
+                        <p className="text-xs sm:text-sm text-foreground/75 leading-relaxed line-clamp-2">
+                          {src.description}
                         </p>
-                      )}
-                      <p className="text-xs sm:text-sm text-foreground/75 leading-relaxed line-clamp-2">
-                        {src.description}
-                      </p>
-                    </Wrapper>
-                  )})}
+                      </div>
+                    )
+                    return src.url ? (
+                      <a
+                        key={src.title}
+                        href={src.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="contents"
+                      >
+                        {card}
+                      </a>
+                    ) : card
+                  })}
                 </div>
               </motion.div>
             )

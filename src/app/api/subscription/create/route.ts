@@ -91,10 +91,8 @@ export async function POST(_request: NextRequest) {
     `,
     ).run(subId, session.userId, paymentId, amount);
 
-    const qrApiBase =
-      process.env.QR_CODE_API_URL ||
-      "https://api.qrserver.com/v1/create-qr-code/";
-    const qrCodeUrl = `${qrApiBase}?size=300x300&data=${encodeURIComponent(sbpQrData)}`;
+    const { toDataURL } = await import("qrcode");
+    const qrCodeUrl = await toDataURL(sbpQrData, { width: 300, margin: 2 });
 
     return apiOk({
       paymentId,
