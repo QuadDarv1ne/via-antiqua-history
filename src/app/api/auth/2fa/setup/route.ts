@@ -10,53 +10,6 @@ import { getClientIp } from "@/lib/auth/get-ip";
 
 const RATE_LIMIT = { windowMs: 15 * 60 * 1000, max: 3 };
 
-export async function GET(req: NextRequest) {
-  try {
-    const session = await getSession();
-    if (!session) {
-      return apiError("Не авторизован", 401);
-    }
-
-    const csrfError = validateCsrf(req);
-    if (csrfError) return csrfError;
-
-    const ip = getClientIp(req);
-    const rl = checkRateLimit(`2fa-setup-get:${ip}:${session.userId}`, RATE_LIMIT);
-    if (!rl.allowed) {
-      return rateLimitResponse(rl.resetMs);
-    }
-
-    const db = getDb();
-    const user = db
-      .prepare("SELECT totp_enabled, totp_secret FROM users WHERE id = ?")
-      .get(session.userId) as Record<string, unknown> | undefined;
-
-    if (user?.totp_enabled) {
-      return apiError("2FA уже включена. Сначала отключите её в профиле", 400);
-    }
-
-    const secret = totp.generateSecret();
-    const uri = totp.toURI({
-      label: session.email,
-      issuer: "Исторический Лабиринт",
-      secret,
-    });
-    const { toDataURL } = await import("qrcode");
-    const qrCode = await toDataURL(uri);
-
-    // Сохраняем secret с меткой времени — удаляем через 15 минут если не подтверждён
-    const secretExpiresAt = Date.now() + 15 * 60 * 1000;
-    db.prepare(
-      "UPDATE users SET totp_secret = ?, totp_secret_expires_at = ? WHERE id = ?",
-    ).run(secret, String(secretExpiresAt), session.userId);
-
-    return apiOk({ qrCode });
-  } catch (err) {
-    console.error("2FA setup error:", err);
-    return apiError("Внутренняя ошибка сервера", 500);
-  }
-}
-
 export async function POST(req: NextRequest) {
   try {
     const session = await getSession();
@@ -68,12 +21,58 @@ export async function POST(req: NextRequest) {
     if (csrfError) return csrfError;
 
     const ip = getClientIp(req);
-    const rl = checkRateLimit(`2fa-setup:${ip}:${session.userId}`, RATE_LIMIT);
+
+    // Parse body — may be empty (setup) or contain code+password (confirm)
+    let body: Record<string, unknown> = {};
+    try {
+      body = await req.json();
+    } catch {
+      // Empty body is valid for setup step
+    }
+
+    const { code, password } = body as { code?: string; password?: string };
+    const isConfirmStep = Boolean(code);
+
+    const db = getDb();
+
+    if (!isConfirmStep) {
+      // --- SETUP STEP: generate QR code ---
+      const rl = checkRateLimit(`2fa-setup:${ip}:${session.userId}`, RATE_LIMIT);
+      if (!rl.allowed) {
+        return rateLimitResponse(rl.resetMs);
+      }
+
+      const user = db
+        .prepare("SELECT totp_enabled FROM users WHERE id = ?")
+        .get(session.userId) as Record<string, unknown> | undefined;
+
+      if (user?.totp_enabled) {
+        return apiError("2FA уже включена. Сначала отключите её в профиле", 400);
+      }
+
+      const secret = totp.generateSecret();
+      const uri = totp.toURI({
+        label: session.email,
+        issuer: "Исторический Лабиринт",
+        secret,
+      });
+      const { toDataURL } = await import("qrcode");
+      const qrCode = await toDataURL(uri);
+
+      const secretExpiresAt = Date.now() + 15 * 60 * 1000;
+      db.prepare(
+        "UPDATE users SET totp_secret = ?, totp_secret_expires_at = ? WHERE id = ?",
+      ).run(secret, String(secretExpiresAt), session.userId);
+
+      return apiOk({ qrCode });
+    }
+
+    // --- CONFIRM STEP: verify code and enable 2FA ---
+    const rl = checkRateLimit(`2fa-confirm:${ip}:${session.userId}`, RATE_LIMIT);
     if (!rl.allowed) {
       return rateLimitResponse(rl.resetMs);
     }
 
-    const { code, password } = await req.json();
     if (!code || typeof code !== "string") {
       return apiError("Укажите код", 400);
     }
@@ -82,7 +81,6 @@ export async function POST(req: NextRequest) {
       return apiError("Введите пароль для подтверждения", 400);
     }
 
-    const db = getDb();
     const user = db
       .prepare(
         "SELECT totp_secret, totp_secret_expires_at, password_hash FROM users WHERE id = ?",

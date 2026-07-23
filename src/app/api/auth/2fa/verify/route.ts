@@ -43,6 +43,9 @@ export async function POST(req: NextRequest) {
       if (result.valid) {
         return apiOk()
       }
+    } else if (user.totp_enabled) {
+      // Inconsistent state: 2FA enabled but no secret — reject
+      return apiError('2FA настроен некорректно. Обратитесь к администратору', 500)
     }
 
     let recoveryCodes: string[] = []

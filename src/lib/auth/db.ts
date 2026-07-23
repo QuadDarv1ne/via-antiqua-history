@@ -22,6 +22,7 @@ export function getDb(): Database.Database {
   instance.pragma("journal_mode = WAL");
   instance.pragma("foreign_keys = ON");
   initSchema(instance);
+  // Assign after initSchema so a half-initialized DB is never cached
   db = instance;
   return instance;
 }

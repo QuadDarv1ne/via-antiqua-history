@@ -196,7 +196,11 @@ export default function ProfilePage() {
     setError2fa('')
     setSetupLoading(true)
     try {
-      const res = await fetch('/api/auth/2fa/setup')
+      const res = await fetch('/api/auth/2fa/setup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      })
       const json = await res.json()
       if (json.ok) {
         setQrCode(json.data.qrCode)
