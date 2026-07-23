@@ -28,11 +28,7 @@ export const REGION_SHORT: Record<string, string> = {
 }
 
 export const FILTER_LABELS: Record<string, string> = {
-  greece: 'Греция',
-  rome: 'Рим',
-  mesopotamia: 'Месопотамия',
-  kuban: 'Кубань',
-  general: 'Общее',
+  ...REGION_LABELS,
   all: 'Все',
 }
 
