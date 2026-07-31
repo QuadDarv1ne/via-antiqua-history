@@ -47,6 +47,11 @@ export function ReadingProgress() {
       <div
         className="fixed top-0 left-0 right-0 h-1 z-[40] origin-left bg-primary transition-[transform] duration-150 ease-out"
         style={{ transform: `scaleX(${percentage / 100})` }}
+        role="progressbar"
+        aria-valuenow={percentage}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label="Прогресс чтения"
       />
       {isVisible && (
         <div

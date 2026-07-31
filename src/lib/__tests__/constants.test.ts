@@ -11,6 +11,11 @@ import {
   SITE_NAV,
   FOOTER_NAV,
   SOCIAL_LINKS,
+  SITE_NAME,
+  SITE_FULL_NAME,
+  AUTHOR_NAME,
+  AUTHOR_SHORT_NAME,
+  REGION_KEYS,
 } from "../constants";
 
 describe("constants", () => {
@@ -158,6 +163,44 @@ describe("constants", () => {
     it("all nav items have unique labels", () => {
       const labels = SITE_NAV.map((n) => n.label.toLowerCase());
       expect(new Set(labels).size).toBe(labels.length);
+    });
+  });
+
+  describe("site identity", () => {
+    it("SITE_NAME is a non-empty string", () => {
+      expect(typeof SITE_NAME).toBe("string");
+      expect(SITE_NAME.length).toBeGreaterThan(0);
+    });
+
+    it("SITE_FULL_NAME is a non-empty string", () => {
+      expect(typeof SITE_FULL_NAME).toBe("string");
+      expect(SITE_FULL_NAME.length).toBeGreaterThan(0);
+    });
+
+    it("AUTHOR_NAME is a non-empty string", () => {
+      expect(typeof AUTHOR_NAME).toBe("string");
+      expect(AUTHOR_NAME.length).toBeGreaterThan(0);
+    });
+
+    it("AUTHOR_SHORT_NAME is a non-empty string", () => {
+      expect(typeof AUTHOR_SHORT_NAME).toBe("string");
+      expect(AUTHOR_SHORT_NAME.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe("REGION_KEYS", () => {
+    it("contains exactly greece, rome, mesopotamia, kuban", () => {
+      expect(REGION_KEYS).toEqual(["greece", "rome", "mesopotamia", "kuban"]);
+    });
+
+    it("does not include 'general'", () => {
+      expect(REGION_KEYS).not.toContain("general");
+    });
+
+    it("every key has a corresponding REGION_LABELS entry", () => {
+      for (const key of REGION_KEYS) {
+        expect(REGION_LABELS).toHaveProperty(key);
+      }
     });
   });
 });

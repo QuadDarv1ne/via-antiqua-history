@@ -7,13 +7,80 @@ import { timeline, additionalTimelineEvents } from '@/lib/history-data'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { ReadingTime } from '@/components/site/reading-time'
-import { REGION_COLORS, REGION_LABELS, REGION_SHORT } from '@/lib/constants'
+import { REGION_COLORS, REGION_LABELS, REGION_SHORT, REGION_KEYS } from '@/lib/constants'
 import { SectionHeader } from '@/components/site/section-header'
 
 // Объединяем и сортируем события по году
 const allTimeline = [...timeline, ...additionalTimelineEvents].sort(
   (a, b) => a.year - b.year,
 );
+
+interface TimelineDotProps {
+  yearLabel: string
+  isActive: boolean
+  isLast: boolean
+  onClick: () => void
+}
+
+const TimelineDot = React.memo(function TimelineDot({
+  yearLabel,
+  isActive,
+  isLast,
+  onClick,
+}: TimelineDotProps) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={`Событие: ${yearLabel}`}
+      aria-current={isActive ? 'true' : undefined}
+      className={cn(
+        'group relative flex flex-col items-stretch transition-all',
+        'min-w-[110px] sm:min-w-[150px] md:min-w-[190px]',
+      )}
+    >
+      {/* Точки на дорожке */}
+      <div className="h-12 flex items-center">
+        <div className="flex-1 h-px bg-border" />
+        <div
+          className={cn(
+            'mx-1 flex items-center justify-center h-8 w-8 rounded-full border-2 transition-all',
+            isActive
+              ? 'border-primary bg-primary text-primary-foreground scale-110 shadow-lg'
+              : 'border-border bg-card group-hover:border-primary/50 group-hover:scale-105',
+          )}
+        >
+          <span
+            className={cn(
+              'h-2 w-2 rounded-full',
+              isActive
+                ? 'bg-primary-foreground'
+                : 'bg-primary/50',
+            )}
+          />
+        </div>
+        <div
+          className={cn(
+            'flex-1 h-px',
+            isLast
+              ? 'opacity-0'
+              : 'bg-border',
+          )}
+        />
+      </div>
+      <div
+        className={cn(
+          'px-2 text-center text-xs leading-tight transition-colors',
+          isActive
+            ? 'text-foreground font-semibold'
+            : 'text-muted-foreground group-hover:text-foreground/80',
+        )}
+      >
+        {yearLabel}
+      </div>
+    </button>
+  )
+})
 
 export function TimelineSection() {
   const [activeIdx, setActiveIdx] = React.useState(0)
@@ -128,60 +195,16 @@ export function TimelineSection() {
           <div className="relative overflow-x-auto custom-scroll pb-4">
             <div className="flex items-stretch gap-0 min-w-max px-2">
               {allTimeline.map((ev, i) => (
-                <button
-                  type="button"
+                <TimelineDot
                   key={i}
+                  yearLabel={ev.yearLabel}
+                  isActive={activeIdx === i}
+                  isLast={i === allTimeline.length - 1}
                   onClick={() => {
                     setAutoPlay(false);
                     setActiveIdx(i);
                   }}
-                  aria-label={`Событие: ${ev.yearLabel}`}
-                  aria-current={activeIdx === i ? 'true' : undefined}
-                  className={cn(
-                    'group relative flex flex-col items-stretch transition-all',
-                    'min-w-[110px] sm:min-w-[150px] md:min-w-[190px]',
-                  )}
-                >
-                  {/* Точки на дорожке */}
-                  <div className="h-12 flex items-center">
-                    <div className="flex-1 h-px bg-border" />
-                    <div
-                      className={cn(
-                        'mx-1 flex items-center justify-center h-8 w-8 rounded-full border-2 transition-all',
-                        activeIdx === i
-                          ? 'border-primary bg-primary text-primary-foreground scale-110 shadow-lg'
-                          : 'border-border bg-card group-hover:border-primary/50 group-hover:scale-105',
-                      )}
-                    >
-                      <span
-                        className={cn(
-                          'h-2 w-2 rounded-full',
-                          activeIdx === i
-                            ? 'bg-primary-foreground'
-                            : 'bg-primary/50',
-                        )}
-                      />
-                    </div>
-                    <div
-                      className={cn(
-                        'flex-1 h-px',
-                        i === allTimeline.length - 1
-                          ? 'opacity-0'
-                          : 'bg-border',
-                      )}
-                    />
-                  </div>
-                  <div
-                    className={cn(
-                      'px-2 text-center text-xs leading-tight transition-colors',
-                      activeIdx === i
-                        ? 'text-foreground font-semibold'
-                        : 'text-muted-foreground group-hover:text-foreground/80',
-                    )}
-                  >
-                    {ev.yearLabel}
-                  </div>
-                </button>
+                />
               ))}
             </div>
           </div>
@@ -225,12 +248,13 @@ export function TimelineSection() {
                   size="sm"
                   onClick={() => setAutoPlay((v) => !v)}
                   disabled={activeIdx === allTimeline.length - 1}
+                  aria-label={autoPlay ? 'Пауза' : 'Автовоспроизведение'}
                   className="flex-none text-xs sm:text-sm"
                 >
                   {autoPlay ? (
-                    <Pause className="h-3.5 w-3.5" />
+                    <Pause className="h-3.5 w-3.5" aria-hidden="true" />
                   ) : (
-                    <Play className="h-3.5 w-3.5" />
+                    <Play className="h-3.5 w-3.5" aria-hidden="true" />
                   )}
                 </Button>
                 <Button
@@ -252,7 +276,7 @@ export function TimelineSection() {
           {/* Правая колонка: события по регионам */}
           <div className="md:col-span-8">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 md:gap-4">
-              {(['greece', 'rome', 'mesopotamia', 'kuban'] as const).map(
+              {(REGION_KEYS).map(
                 (regionKey) => {
                   const text = event[regionKey]
                   const meta = {

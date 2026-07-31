@@ -20,7 +20,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/use-subscription";
 
-export function RegionSection({
+export const RegionSection = React.memo(function RegionSection({
   region,
   restricted,
 }: {
@@ -46,6 +46,24 @@ export function RegionSection({
   const { user } = useAuth();
   const { hasSubscription } = useSubscription(!!restricted);
 
+  const cityBookmarkItem = React.useMemo(() => ({
+    id: `city:${activeCity.id}`,
+    type: "city" as const,
+    title: activeCity.name,
+    subtitle: `${activeCity.region} — ${activeCity.era}`,
+    href: `#${region.id}`,
+    region: region.id,
+  }), [activeCity.id, activeCity.name, activeCity.region, activeCity.era, region.id]);
+
+  const landmarkBookmarkItem = React.useMemo(() => activeLandmark ? {
+    id: `landmark:${activeLandmark.id}`,
+    type: "landmark" as const,
+    title: activeLandmark.name,
+    subtitle: `${activeCity.name} — ${activeLandmark.period}`,
+    href: `#${region.id}`,
+    region: region.id,
+  } : null, [activeLandmark, activeCity.name, region.id]);
+
   if (!region.cities.length) {
     return null;
   }
@@ -53,6 +71,7 @@ export function RegionSection({
   return (
     <section
       id={region.id}
+      aria-label={region.name}
       className="py-20 md:py-28 scroll-mt-20"
       style={{
         background: `linear-gradient(180deg, transparent 0%, ${withAlpha(region.color, 0.04)} 50%, transparent 100%)`,
@@ -91,7 +110,7 @@ export function RegionSection({
 
         {restricted && (!user || !hasSubscription) ? (
           <div className="relative rounded-xl border border-border bg-card overflow-hidden min-h-[360px] sm:min-h-[420px] md:min-h-[480px]">
-            <div className="blur-[3px] opacity-25 pointer-events-none overflow-hidden">
+            <div className="blur-[3px] opacity-25 pointer-events-none overflow-hidden" aria-hidden="true">
               <div className="grid lg:grid-cols-12 gap-6 sm:gap-8 p-5 sm:p-8">
                 <div className="lg:col-span-3">
                   {region.cities.slice(0, 3).map((city) => (
@@ -251,30 +270,23 @@ export function RegionSection({
                           </h3>
                           <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-1.5 sm:mt-2 text-xs sm:text-sm text-muted-foreground">
                             <span className="flex items-center gap-1">
-                              <MapPin className="h-3.5 w-3.5" />
+                              <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
                               {activeCity.region}
                             </span>
                             {activeCity.modernName && (
                               <span className="flex items-center gap-1">
-                                <Info className="h-3.5 w-3.5" />
+                                <Info className="h-3.5 w-3.5" aria-hidden="true" />
                                 Совр. {activeCity.modernName}
                               </span>
                             )}
                             <span className="flex items-center gap-1">
-                              <Calendar className="h-3.5 w-3.5" />
+                              <Calendar className="h-3.5 w-3.5" aria-hidden="true" />
                               {activeCity.era}
                             </span>
                           </div>
                         </div>
                         <BookmarkButton
-                          item={{
-                            id: `city:${activeCity.id}`,
-                            type: "city",
-                            title: activeCity.name,
-                            subtitle: `${activeCity.region} — ${activeCity.era}`,
-                            href: `#${region.id}`,
-                            region: region.id,
-                          }}
+                          item={cityBookmarkItem}
                         />
                       </div>
 
@@ -421,16 +433,9 @@ export function RegionSection({
                     href={`#${region.id}`}
                   />
                 )}
-                {activeLandmark && (
+                {landmarkBookmarkItem && (
                   <BookmarkButton
-                    item={{
-                      id: `landmark:${activeLandmark.id}`,
-                      type: "landmark",
-                      title: activeLandmark.name,
-                      subtitle: `${activeCity.name} — ${activeLandmark.period}`,
-                      href: `#${region.id}`,
-                      region: region.id,
-                    }}
+                    item={landmarkBookmarkItem}
                   />
                 )}
               </div>
@@ -475,4 +480,4 @@ export function RegionSection({
       </Dialog>
     </section>
   );
-}
+})

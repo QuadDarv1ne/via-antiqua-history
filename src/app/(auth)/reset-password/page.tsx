@@ -5,9 +5,11 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 import { motion } from 'framer-motion'
-import { Landmark, Eye, EyeOff, Loader2, AlertCircle, CheckCircle2, Mail, KeyRound, Lock } from 'lucide-react'
+import { Landmark, Loader2, AlertCircle, CheckCircle2, Mail, KeyRound, Lock } from 'lucide-react'
 import { passwordStrength, validatePassword, validateEmail } from '@/lib/utils'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
+import { PasswordStrengthBar } from '@/components/ui/password-strength'
+import { PasswordToggle } from '@/components/ui/password-toggle'
 
 function ResetPasswordForm() {
   const searchParams = useSearchParams()
@@ -179,7 +181,7 @@ function ResetPasswordForm() {
                 transition={{ type: 'spring', stiffness: 200, damping: 14, delay: 0.15 }}
                 className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-accent text-primary-foreground shadow-lg shadow-primary/25"
               >
-                <Landmark className="h-6 w-6" />
+                <Landmark className="h-6 w-6" aria-hidden="true" />
                 <span className="absolute inset-0 rounded-2xl bg-white/10 opacity-0 hover:opacity-100 transition-opacity" />
               </motion.span>
             </Link>
@@ -207,7 +209,7 @@ function ResetPasswordForm() {
                   role="alert"
                   className="flex items-center gap-2.5 rounded-xl border border-destructive/20 bg-destructive/8 px-4 py-3 text-sm text-destructive"
                 >
-                  <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+                  <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" aria-hidden="true" />
                   {error}
                 </motion.div>
               )}
@@ -268,27 +270,13 @@ function ResetPasswordForm() {
                     autoComplete="new-password"
                     className="w-full h-11 pl-10 pr-11 rounded-xl border border-border/60 bg-background/60 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary/50 transition-all placeholder:text-muted-foreground/40"
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-foreground/80 transition-colors"
-                    tabIndex={-1}
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
+                  <PasswordToggle
+                    visible={showPassword}
+                    onToggle={() => setShowPassword(!showPassword)}
+                  />
                 </div>
                 {password && (
-                  <div className="mt-2.5">
-                    <div className="flex gap-1 mb-1.5">
-                      {[1, 2, 3, 4, 5].map((i) => (
-                        <div
-                          key={i}
-                          className={`h-1 flex-1 rounded-full transition-all duration-300 ${i <= strength.score ? strength.color : 'bg-muted/60'}`}
-                        />
-                      ))}
-                    </div>
-                    <p className="text-[11px] text-muted-foreground/60">{strength.label}</p>
-                  </div>
+                  <PasswordStrengthBar score={strength.score} label={strength.label} color={strength.color} />
                 )}
               </motion.div>
 

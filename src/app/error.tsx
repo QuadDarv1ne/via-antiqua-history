@@ -20,7 +20,7 @@ export default function Error({
       <div className="text-center max-w-md">
         <div className="flex justify-center mb-6">
           <span className="flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
-            <AlertTriangle className="h-8 w-8 text-destructive" />
+            <AlertTriangle className="h-8 w-8 text-destructive" aria-hidden="true" />
           </span>
         </div>
         <h1 className="font-display text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold mb-3 sm:mb-4">
@@ -41,7 +41,7 @@ export default function Error({
             onClick={reset}
             className="inline-flex items-center justify-center gap-2 h-10 sm:h-11 px-5 sm:px-6 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium text-sm sm:text-base"
           >
-            <RotateCcw className="h-4 w-4" />
+            <RotateCcw className="h-4 w-4" aria-hidden="true" />
             Попробовать снова
           </button>
           <Link

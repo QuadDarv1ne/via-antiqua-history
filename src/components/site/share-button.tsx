@@ -54,7 +54,7 @@ export function ShareButton({ title, href, className }: ShareButtonProps) {
     timerRef.current = setTimeout(() => setCopied(false), COPIED_DURATION)
   }, [shareUrl])
 
-  const socials = [
+  const socials = React.useMemo(() => [
     {
       name: 'Telegram',
       url: `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareData.text)}`,
@@ -70,7 +70,7 @@ export function ShareButton({ title, href, className }: ShareButtonProps) {
       url: `https://wa.me/?text=${encodeURIComponent(shareData.text + ' ' + shareUrl)}`,
       color: '#25D366',
     },
-  ]
+  ], [shareUrl, shareData])
 
   if (!mounted) {
     return <span className="inline-block h-8 w-8" aria-hidden="true" />
@@ -85,7 +85,7 @@ export function ShareButton({ title, href, className }: ShareButtonProps) {
           className={cn('h-8 w-8 p-0 shrink-0', className)}
           aria-label="Поделиться"
         >
-          <Share2 className="h-4 w-4" />
+          <Share2 className="h-4 w-4" aria-hidden="true" />
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-52 p-3">
@@ -100,6 +100,7 @@ export function ShareButton({ title, href, className }: ShareButtonProps) {
                 rel="noopener noreferrer"
                 className="flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-accent/50 transition-colors text-xs"
                 style={{ color: s.color }}
+                onClick={() => setOpen(false)}
               >
                 {s.name}
               </a>
@@ -114,9 +115,9 @@ export function ShareButton({ title, href, className }: ShareButtonProps) {
             )}
           >
             {copied ? (
-              <Check className="h-3.5 w-3.5" />
+              <Check className="h-3.5 w-3.5" aria-hidden="true" />
             ) : (
-              <Link2 className="h-3.5 w-3.5" />
+              <Link2 className="h-3.5 w-3.5" aria-hidden="true" />
             )}
             {copied ? 'Скопировано' : 'Копировать ссылку'}
           </button>

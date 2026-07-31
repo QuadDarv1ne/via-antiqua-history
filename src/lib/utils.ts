@@ -53,3 +53,7 @@ export function validateEmail(email: string): string | null {
   if (!EMAIL_REGEX.test(email)) return 'Укажите корректный email'
   return null
 }
+
+export function getSectionGradient(opacity = 0.04): string {
+  return `linear-gradient(180deg, oklch(0.55 0.1 60 / ${opacity}) 0%, transparent 100%)`
+}

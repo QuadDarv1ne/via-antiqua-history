@@ -28,7 +28,7 @@ const personFilters = [
   { key: 'kuban', label: 'Кубань', color: REGION_COLORS.kuban },
 ]
 
-export function PersonsSection() {
+export const PersonsSection = React.memo(function PersonsSection() {
   const [filter, setFilter] = React.useState('all')
   const [active, setActive] = React.useState<Person | null>(null)
 
@@ -36,6 +36,15 @@ export function PersonsSection() {
     () => persons.filter((p) => filter === 'all' || p.region === filter),
     [filter],
   )
+
+  const personBookmarkItem = React.useMemo(() => active ? {
+    id: `person:${active.id}`,
+    type: 'person' as const,
+    title: active.name,
+    subtitle: `${active.role} · ${active.era}`,
+    href: '#persons',
+    region: active.region,
+  } : null, [active])
 
   return (
     <section
@@ -63,7 +72,7 @@ export function PersonsSection() {
         />
 
         {/* Сетка персоналий */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           <AnimatePresence mode="popLayout">
             {filtered.map((p, idx) => {
               const color = REGION_COLORS[p.region]
@@ -116,6 +125,14 @@ export function PersonsSection() {
             })}
           </AnimatePresence>
         </div>
+
+        {filtered.length === 0 && (
+          <div className="text-center py-12 text-muted-foreground">
+            <Users className="h-8 w-8 mx-auto mb-3 opacity-40" />
+            <p className="text-sm">Ничего не найдено для этого региона</p>
+            <p className="text-xs text-muted-foreground/60 mt-1">Попробуйте изменить фильтр</p>
+          </div>
+        )}
       </div>
 
       {/* Модальное окно с биографией */}
@@ -153,16 +170,9 @@ export function PersonsSection() {
                     href="#persons"
                   />
                 )}
-                {active && (
+                {personBookmarkItem && (
                   <BookmarkButton
-                    item={{
-                      id: `person:${active.id}`,
-                      type: 'person',
-                      title: active.name,
-                      subtitle: `${active.role} · ${active.era}`,
-                      href: '#persons',
-                      region: active.region,
-                    }}
+                    item={personBookmarkItem}
                   />
                 )}
               </div>
@@ -216,4 +226,4 @@ export function PersonsSection() {
       </Dialog>
     </section>
   )
-}
+})

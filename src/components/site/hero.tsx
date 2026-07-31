@@ -12,7 +12,7 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
-import { REGION_COLORS } from "@/lib/constants";
+import { REGION_COLORS, SITE_NAME, AUTHOR_NAME, AUTHOR_SHORT_NAME } from "@/lib/constants";
 import { ShareButton } from "@/components/site/share-button";
 
 const regionChips = [
@@ -36,22 +36,22 @@ export function Hero({ stats: heroStats }: { stats?: HeroStats }) {
   const stats = React.useMemo(
     () => [
       {
-        icon: <Building2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />,
+        icon: <Building2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />,
         value: citiesCount,
         label: "городов",
       },
       {
-        icon: <Landmark className="h-3.5 w-3.5 sm:h-4 sm:w-4" />,
+        icon: <Landmark className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />,
         value: landmarksCount,
         label: "памятников",
       },
       {
-        icon: <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4" />,
+        icon: <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />,
         value: eventsCount,
         label: "событий",
       },
       {
-        icon: <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4" />,
+        icon: <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />,
         value: personsCount,
         label: "персоналий",
       },
@@ -62,7 +62,7 @@ export function Hero({ stats: heroStats }: { stats?: HeroStats }) {
   return (
     <section id="top" className="relative overflow-hidden parchment-bg">
       {/* Бэкграунд-декорации */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
         {/* Основное свечение слева вверху */}
         <div
           style={{
@@ -95,34 +95,34 @@ export function Hero({ stats: heroStats }: { stats?: HeroStats }) {
         <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border/40 to-transparent" />
       </div>
 
-      <div className="relative z-10 container mx-auto max-w-6xl px-4 pt-20 sm:pt-24 md:pt-28 pb-10 sm:pb-14 md:pb-18">
+      <div className="relative z-10 container mx-auto max-w-7xl px-4 pt-20 sm:pt-24 md:pt-28 pb-10 sm:pb-14 md:pb-18">
         {/* Автор — компактная полоса */}
         <div className="mb-5 sm:mb-7 animate-fade-slide-down">
           <div className="inline-flex items-center gap-2 sm:gap-2.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full border border-border/60 bg-card/40 backdrop-blur-sm">
             <Image
               src="/img/dupley_maxim.jpg"
-              alt="Дуплей Максим Игоревич"
+              alt={AUTHOR_NAME}
               width={28}
               height={28}
               priority
               className="rounded-full object-cover ring-2 ring-primary/15 shrink-0"
             />
             <span className="text-[11px] sm:text-xs font-medium text-foreground/70">
-              Дуплей М.И.
+              {AUTHOR_SHORT_NAME}
             </span>
             <span className="text-border">·</span>
             <span className="text-[10px] sm:text-[11px] text-muted-foreground/70">
               Образовательный ресурс
             </span>
             <span className="text-border">·</span>
-            <ShareButton title="Исторический Лабиринт — От Эллады до Римских Пределов" />
+            <ShareButton title={`${SITE_NAME} — От Эллады до Римских Пределов`} />
           </div>
         </div>
 
         {/* Заголовок */}
         <div className="animate-fade-slide-up">
           <h1 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-semibold leading-[1.08] tracking-tight">
-            <span className="block tracking-wide">Исторический Лабиринт</span>
+            <span className="block tracking-wide">{SITE_NAME}</span>
             <span className="relative inline-block mt-1 sm:mt-1.5">
               <span className="block gold-text text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-normal">
                 От Эллады до Римских Пределов
@@ -179,14 +179,14 @@ export function Hero({ stats: heroStats }: { stats?: HeroStats }) {
                 href="#greece"
                 className="group inline-flex items-center justify-center gap-2 h-9 sm:h-10 px-4 sm:px-5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 font-medium text-[13px] sm:text-sm shadow-sm shadow-primary/20"
               >
-                <BookOpen className="h-3.5 w-3.5 transition-transform group-hover:-rotate-6" />
+                <BookOpen className="h-3.5 w-3.5 transition-transform group-hover:-rotate-6" aria-hidden="true" />
                 Начать путешествие
               </Link>
               <Link
                 href="#map"
                 className="inline-flex items-center justify-center gap-2 h-9 sm:h-10 px-4 sm:px-5 rounded-lg border border-border/60 bg-card/40 backdrop-blur-sm hover:bg-card/70 hover:border-border transition-all duration-200 font-medium text-[13px] sm:text-sm"
               >
-                <MapIcon className="h-3.5 w-3.5" />
+                <MapIcon className="h-3.5 w-3.5" aria-hidden="true" />
                 Открыть карту
               </Link>
             </div>

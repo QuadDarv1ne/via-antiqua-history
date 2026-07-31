@@ -2,7 +2,7 @@
 
 import { Landmark, BookOpen, ExternalLink, Heart } from 'lucide-react'
 import Link from 'next/link'
-import { FOOTER_NAV, SOCIAL_LINKS } from '@/lib/constants'
+import { FOOTER_NAV, SOCIAL_LINKS, SITE_NAME, AUTHOR_NAME } from '@/lib/constants'
 import { GitHubIcon, RutubeIcon, VKIcon, ORCIDIcon, SchoolIcon, StepikIcon, ChessIcon } from '@/lib/icons'
 import { useInView } from '@/hooks/use-in-view'
 
@@ -36,11 +36,11 @@ export function Footer() {
           >
             <div className="flex items-center gap-3 mb-4">
               <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20">
-                <Landmark className="h-6 w-6" />
+                <Landmark className="h-6 w-6" aria-hidden="true" />
               </span>
               <div>
                 <span className="font-display text-lg font-semibold block leading-tight">
-                  Исторический Лабиринт
+                  {SITE_NAME}
                 </span>
                 <span className="text-[10px] uppercase tracking-widest text-muted-foreground/60">
                   Via Antiqua
@@ -59,7 +59,7 @@ export function Footer() {
               </div>
               <div className="min-w-0">
                 <p className="text-sm font-medium text-foreground truncate">
-                  Дуплей Максим Игоревич
+                  {AUTHOR_NAME}
                 </p>
                 <a
                   href="https://github.com/QuadDarv1ne"
@@ -80,9 +80,9 @@ export function Footer() {
             style={{ opacity: inView ? 1 : 0, transform: inView ? 'translateY(0)' : 'translateY(20px)', transitionDelay: '220ms' }}
           >
             <h4 className="font-display text-sm font-semibold mb-4 flex items-center gap-2 text-foreground/90">
-              <BookOpen className="h-4 w-4 text-primary" /> Разделы
+              <BookOpen className="h-4 w-4 text-primary" aria-hidden="true" /> Разделы
             </h4>
-            <ul className="grid grid-cols-2 gap-x-4 gap-y-2.5">
+            <ul className="grid grid-cols-2 gap-x-4 gap-y-2.5" aria-label="Разделы сайта">
               {FOOTER_NAV.map((item) => (
                 <li key={item.href}>
                   <Link
@@ -104,7 +104,7 @@ export function Footer() {
             style={{ opacity: inView ? 1 : 0, transform: inView ? 'translateY(0)' : 'translateY(20px)', transitionDelay: '340ms' }}
           >
             <h4 className="font-display text-sm font-semibold mb-4 flex items-center gap-2 text-foreground/90">
-              <svg className="h-4 w-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg className="h-4 w-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
                 <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
               </svg>
@@ -122,10 +122,10 @@ export function Footer() {
                   style={{ transitionDelay: `${i * 50}ms` }}
                 >
                   <span className="transition-colors duration-200 group-hover:text-primary">
-                    {socialIcons[link.label] || <ExternalLink className="h-4 w-4" />}
+                    {socialIcons[link.label] || <ExternalLink className="h-4 w-4" aria-hidden="true" />}
                   </span>
                   <span className="text-xs font-medium truncate">{link.label}</span>
-                  <ExternalLink className="h-3 w-3 ml-auto opacity-0 group-hover:opacity-60 transition-opacity shrink-0" />
+                  <ExternalLink className="h-3 w-3 ml-auto opacity-0 group-hover:opacity-60 transition-opacity shrink-0" aria-hidden="true" />
                 </a>
               ))}
             </div>
@@ -139,10 +139,10 @@ export function Footer() {
           style={{ opacity: bottomInView ? 1 : 0, transform: bottomInView ? 'translateY(0)' : 'translateY(12px)', transitionDelay: '500ms' }}
         >
           <p className="text-xs text-muted-foreground/60 text-center md:text-left">
-            © {new Date().getFullYear()} «Исторический Лабиринт». Все права защищены.
+            © {new Date().getFullYear()} «{SITE_NAME}». Все права защищены.
           </p>
           <p className="text-xs text-muted-foreground/50 flex items-center gap-1.5">
-            Сделано с <Heart className="h-3 w-3 text-red-400 fill-red-400" /> для образования
+            Сделано с <Heart className="h-3 w-3 text-red-400 fill-red-400" aria-hidden="true" /> для образования
           </p>
         </div>
       </div>

@@ -14,7 +14,7 @@ interface ContentGateProps {
   restricted?: boolean // Если true, требуется подписка, а не просто авторизация
 }
 
-export function ContentGate({
+export const ContentGate = React.memo(function ContentGate({
   title,
   subtitle,
   children,
@@ -67,7 +67,7 @@ export function ContentGate({
 
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-b from-card/70 via-card/85 to-card/95 backdrop-blur-[2px]">
             <span className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 mb-5">
-              {restricted ? <Crown className="h-7 w-7 text-primary" /> : <Lock className="h-7 w-7 text-primary" />}
+              {restricted ? <Crown className="h-7 w-7 text-primary" aria-hidden="true" /> : <Lock className="h-7 w-7 text-primary" aria-hidden="true" />}
             </span>
             <p className="font-display text-2xl md:text-3xl font-semibold mb-3 text-center px-4">
               {title}
@@ -84,7 +84,7 @@ export function ContentGate({
                     href="/profile"
                     className="inline-flex items-center justify-center gap-2 h-11 px-5 sm:px-7 rounded-lg bg-gradient-to-r from-amber-500 to-yellow-500 text-white font-medium hover:from-amber-600 hover:to-yellow-600 transition-colors text-sm sm:text-base flex-1"
                   >
-                    <CreditCard className="h-4 w-4" />
+                    <CreditCard className="h-4 w-4" aria-hidden="true" />
                     Оформить подписку
                   </Link>
                   <p className="text-xs text-center text-muted-foreground mt-2">
@@ -97,7 +97,7 @@ export function ContentGate({
                     href="/login"
                     className="inline-flex items-center justify-center gap-2 h-11 px-5 sm:px-7 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors text-sm sm:text-base flex-1"
                   >
-                    <BookOpen className="h-4 w-4" />
+                    <BookOpen className="h-4 w-4" aria-hidden="true" />
                     Войти
                   </Link>
                   <Link
@@ -114,4 +114,4 @@ export function ContentGate({
       </div>
     </section>
   )
-}
+})

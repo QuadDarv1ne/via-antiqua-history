@@ -111,8 +111,17 @@ function Capital({ id }: { id: string }) {
   return <Component />
 }
 
-export function OrdersSection() {
+export const OrdersSection = React.memo(function OrdersSection() {
   const [active, setActive] = React.useState<ArchitecturalOrder | null>(null)
+
+  const orderBookmarkItem = React.useMemo(() => active ? {
+    id: `order:${active.id}`,
+    type: 'term' as const,
+    title: active.name,
+    subtitle: `${active.originalName} · ${active.period}`,
+    href: '#orders',
+    region: 'general',
+  } : null, [active])
 
   return (
     <section
@@ -199,16 +208,9 @@ export function OrdersSection() {
                   {active?.originalName} · {active?.period}
                 </DialogDescription>
               </div>
-              {active && (
+              {orderBookmarkItem && (
                 <BookmarkButton
-                  item={{
-                    id: `order:${active.id}`,
-                    type: 'term',
-                    title: active.name,
-                    subtitle: `${active.originalName} · ${active.period}`,
-                    href: '#orders',
-                    region: 'general',
-                  }}
+                  item={orderBookmarkItem}
                 />
               )}
             </div>
@@ -274,4 +276,4 @@ export function OrdersSection() {
       </Dialog>
     </section>
   )
-}
+})

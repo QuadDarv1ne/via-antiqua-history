@@ -7,6 +7,7 @@ import { apiOk, apiError } from "@/lib/auth/api-response";
 import { checkRateLimit, rateLimitResponse } from "@/lib/auth/rate-limit";
 import { validateCsrf } from "@/lib/auth/csrf";
 import { getClientIp } from "@/lib/auth/get-ip";
+import { SITE_NAME } from "@/lib/constants";
 
 const RATE_LIMIT = { windowMs: 15 * 60 * 1000, max: 3 };
 
@@ -53,7 +54,7 @@ export async function POST(req: NextRequest) {
       const secret = totp.generateSecret();
       const uri = totp.toURI({
         label: session.email,
-        issuer: "Исторический Лабиринт",
+        issuer: SITE_NAME,
         secret,
       });
       const { toDataURL } = await import("qrcode");
@@ -76,9 +77,15 @@ export async function POST(req: NextRequest) {
     if (!code || typeof code !== "string") {
       return apiError("Укажите код", 400);
     }
+    if (!/^\d{6}$/.test(code)) {
+      return apiError("Код должен содержать 6 цифр", 400);
+    }
 
     if (!password || typeof password !== "string") {
       return apiError("Введите пароль для подтверждения", 400);
+    }
+    if (password.length > 128) {
+      return apiError("Некорректный пароль", 400);
     }
 
     const user = db

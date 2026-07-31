@@ -1,3 +1,5 @@
+import { SITE_NAME } from '@/lib/constants'
+
 const TEST_MODE =
   process.env.NODE_ENV !== "production" &&
   process.env.EMAIL_TEST_MODE === "true";
@@ -52,7 +54,7 @@ export async function sendEmail(msg: EmailMessage): Promise<boolean> {
 export function sendPasswordResetEmail(to: string, code: string) {
   return sendEmail({
     to,
-    subject: "Восстановление пароля — Исторический Лабиринт",
+    subject: `Восстановление пароля — ${SITE_NAME}`,
     text: `Код для восстановления пароля: ${code}\n\nКод действителен в течение 15 минут.\n\nЕсли вы не запрашивали восстановление пароля, проигнорируйте это письмо.`,
     html: `
       <div style="font-family: 'EB Garamond', Georgia, serif; max-width: 480px; margin: 0 auto; padding: 24px; background: #faf8f4; border-radius: 8px;">
@@ -62,7 +64,7 @@ export function sendPasswordResetEmail(to: string, code: string) {
         <p style="color: #7a6a5a; font-size: 13px; margin-top: 16px;">Код действителен в течение 15 минут.</p>
         <hr style="border: none; border-top: 1px solid #d4c5b0; margin: 16px 0;" />
         <p style="color: #7a6a5a; font-size: 12px;">Если вы не запрашивали восстановление пароля, проигнорируйте это письмо.</p>
-        <p style="color: #7a6a5a; font-size: 12px;">— Исторический Лабиринт</p>
+        <p style="color: #7a6a5a; font-size: 12px;">— ${SITE_NAME}</p>
       </div>
     `,
   });

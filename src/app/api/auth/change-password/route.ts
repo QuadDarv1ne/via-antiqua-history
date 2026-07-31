@@ -33,6 +33,9 @@ export async function POST(req: NextRequest) {
     if (typeof currentPassword !== 'string' || typeof newPassword !== 'string') {
       return apiError('Некорректные данные', 400)
     }
+    if (currentPassword.length > 128 || newPassword.length > 128) {
+      return apiError('Некорректные данные', 400)
+    }
 
     if (currentPassword === newPassword) {
       return apiError('Новый пароль должен отличаться от текущего', 400)

@@ -14,6 +14,7 @@ import {
   authorAnalysis,
   FAQ_DATA,
 } from "@/lib/history-data";
+import { AUTHOR_NAME } from "@/lib/constants";
 
 describe("search-index data completeness", () => {
   it("all regions have valid icon values", () => {
@@ -149,5 +150,11 @@ describe("search-index data completeness", () => {
         }
       }
     }
+  });
+
+  describe("author consistency", () => {
+    it("authorAnalysis.author matches AUTHOR_NAME constant", () => {
+      expect(authorAnalysis.author).toBe(AUTHOR_NAME);
+    });
   });
 });

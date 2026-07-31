@@ -12,6 +12,8 @@ export function useSectionProgress(sectionIds: string[]) {
   const [completed, setCompleted] = React.useState<SectionProgress>({});
   const [initialized, setInitialized] = React.useState(false);
 
+  const sectionIdSet = React.useMemo(() => new Set(sectionIds), [sectionIds]);
+
   // Load from localStorage on mount
   React.useEffect(() => {
     try {
@@ -46,7 +48,7 @@ export function useSectionProgress(sectionIds: string[]) {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             const sectionId = entry.target.id;
-            if (sectionId && sectionIds.includes(sectionId)) {
+            if (sectionId && sectionIdSet.has(sectionId)) {
               newSections.add(sectionId);
             }
           }
@@ -73,7 +75,7 @@ export function useSectionProgress(sectionIds: string[]) {
     });
 
     return () => observer.disconnect();
-  }, [sectionIds, initialized]);
+  }, [sectionIds, sectionIdSet, initialized]);
 
   // Reset progress
   const resetProgress = React.useCallback(() => {
@@ -85,11 +87,10 @@ export function useSectionProgress(sectionIds: string[]) {
     }
   }, []);
 
-  const completedCount = Object.values(completed).filter(Boolean).length;
-  const progressPercent =
-    sectionIds.length > 0
-      ? Math.round((completedCount / sectionIds.length) * 100)
-      : 0;
+  const progressPercent = React.useMemo(() => {
+    const count = Object.values(completed).filter(Boolean).length;
+    return sectionIds.length > 0 ? Math.round((count / sectionIds.length) * 100) : 0;
+  }, [completed, sectionIds]);
 
   return { completed, progressPercent, resetProgress };
 }

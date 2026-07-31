@@ -30,6 +30,9 @@ export async function POST(req: NextRequest) {
     if (!code || typeof code !== 'string') {
       return apiError('Укажите код', 400)
     }
+    if (code.length > 20) {
+      return apiError('Некорректный код', 400)
+    }
 
     const db = getDb()
     const user = db.prepare('SELECT totp_secret, totp_enabled, recovery_codes FROM users WHERE id = ?').get(session.userId) as Record<string, unknown> | undefined
@@ -54,7 +57,7 @@ export async function POST(req: NextRequest) {
     } catch {
       // Corrupted recovery codes — fall through to generic error
     }
-    const idx = recoveryCodes.indexOf(code)
+    const idx = recoveryCodes.indexOf(code.toUpperCase())
     if (idx !== -1) {
       recoveryCodes.splice(idx, 1)
       db.prepare('UPDATE users SET recovery_codes = ? WHERE id = ?').run(JSON.stringify(recoveryCodes), session.userId)
@@ -87,6 +90,9 @@ export async function DELETE(req: NextRequest) {
     const { password } = await req.json().catch(() => ({}))
     if (!password || typeof password !== 'string') {
       return apiError('Введите пароль для отключения 2FA', 400)
+    }
+    if (password.length > 128) {
+      return apiError('Некорректный пароль', 400)
     }
 
     const db = getDb()

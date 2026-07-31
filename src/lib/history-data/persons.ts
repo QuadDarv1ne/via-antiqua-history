@@ -115,6 +115,7 @@ export const persons: Person[] = [
   {
     id: 'hammurabi-person',
     name: 'Хаммурапи',
+    originalName: 'Ḫammurapi',
     region: 'mesopotamia',
     era: '1792–1750 до н. э.',
     role: 'Царь Вавилона, автор первого подробного кодекса законов',
@@ -132,6 +133,7 @@ export const persons: Person[] = [
   {
     id: 'nebuchadnezzar',
     name: 'Навуходоносор II',
+    originalName: 'Nabû-kudurri-uṣur',
     region: 'mesopotamia',
     era: '605–562 до н. э.',
     role: 'Царь Нововавилонского царства, строитель Висячих садов',
@@ -149,6 +151,7 @@ export const persons: Person[] = [
   {
     id: 'sargon',
     name: 'Саргон Древний',
+    originalName: 'Šarru-kīn',
     region: 'mesopotamia',
     era: 'около 2334–2279 до н. э.',
     role: 'Царь Аккада, создатель первой в истории территориальной державы',

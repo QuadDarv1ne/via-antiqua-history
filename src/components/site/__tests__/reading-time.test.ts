@@ -2,9 +2,9 @@ import { describe, it, expect } from 'vitest'
 import { computeReadingTime } from '../reading-time'
 
 describe('computeReadingTime', () => {
-  it('returns 1 minute and 0 words for empty string', () => {
+  it('returns 0 minutes and 0 words for empty string', () => {
     const result = computeReadingTime('')
-    expect(result.minutes).toBe(1)
+    expect(result.minutes).toBe(0)
     expect(result.wordCount).toBe(0)
   })
 

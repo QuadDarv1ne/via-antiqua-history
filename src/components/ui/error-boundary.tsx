@@ -43,7 +43,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
           <div className="text-center max-w-md">
             <div className="flex justify-center mb-4">
               <span className="flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
-                <AlertTriangle className="h-6 w-6 text-destructive" />
+                <AlertTriangle className="h-6 w-6 text-destructive" aria-hidden="true" />
               </span>
             </div>
             <h3 className="font-display text-lg font-semibold mb-2">
@@ -58,7 +58,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
                 onClick={this.handleReset}
                 className="inline-flex items-center gap-2 h-9 px-4 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
               >
-                <RotateCcw className="h-3.5 w-3.5" />
+                <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
                 Попробовать снова
               </button>
               <Link

@@ -8,10 +8,11 @@ import { cn, withAlpha } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { ReadingTime } from '@/components/site/reading-time'
-import { REGION_COLORS, REGION_LABELS } from '@/lib/constants'
+import { REGION_COLORS, REGION_LABELS, REGION_KEYS } from '@/lib/constants'
+import { getSectionGradient } from '@/lib/utils'
 import { SectionHeader } from '@/components/site/section-header'
 
-export function QuizSection() {
+export const QuizSection = React.memo(function QuizSection() {
   const [current, setCurrent] = React.useState(0)
   const [answers, setAnswers] = React.useState<(number | null)[]>(
     Array(quizQuestions.length).fill(null),
@@ -136,13 +137,13 @@ export function QuizSection() {
     return (
       <section
         id="quiz"
+        aria-label="Исторический квиз — результаты"
         className="py-20 md:py-28 scroll-mt-20"
         style={{
-          background:
-            'linear-gradient(180deg, oklch(0.55 0.1 60 / 0.04) 0%, transparent 100%)',
+          background: getSectionGradient(),
         }}
       >
-        <div className="container mx-auto max-w-2xl px-4">
+        <div className="container mx-auto max-w-3xl px-4">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -220,7 +221,7 @@ export function QuizSection() {
               }}
               className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-6 sm:mb-8"
             >
-              {(['greece', 'rome', 'mesopotamia', 'kuban'] as const).map(
+              {(REGION_KEYS).map(
                 (key) => {
                   const total = regionStats[key].total
                   const correct = regionStats[key].correct
@@ -270,10 +271,10 @@ export function QuizSection() {
   return (
     <section
       id="quiz"
+      aria-label="Исторический квиз"
       className="py-20 md:py-28 scroll-mt-20"
       style={{
-        background:
-          'linear-gradient(180deg, oklch(0.55 0.1 60 / 0.04) 0%, transparent 100%)',
+        background: getSectionGradient(),
       }}
     >
       <div className="container mx-auto max-w-3xl px-4">
@@ -302,7 +303,7 @@ export function QuizSection() {
             </span>
           </div>
           <Progress value={progress} className="h-1.5 sm:h-2" />
-          <div className="flex gap-1 mt-1.5 sm:mt-2 justify-center">
+          <div className="flex gap-0.5 sm:gap-1 mt-1.5 sm:mt-2 justify-center">
             {quizQuestions.map((_, i) => {
               const a = answers[i]
               const isCorrectQ = a !== null && a === quizQuestions[i].correct
@@ -315,17 +316,21 @@ export function QuizSection() {
                       setCurrent(i)
                     }
                   }}
-                  className={cn(
-                    'h-1.5 sm:h-2 rounded-full transition-all cursor-pointer',
-                    i === current ? 'w-5 sm:w-6 bg-primary' : 'w-1.5 sm:w-2',
-                    a === null
-                      ? 'bg-border'
-                      : isCorrectQ
-                        ? 'bg-green-500'
-                        : 'bg-red-400',
-                  )}
+                  className="flex items-center justify-center p-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 rounded"
                   aria-label={`Вопрос ${i + 1}${a !== null ? (isCorrectQ ? ', верно' : ', неверно') : ', не отвечен'}`}
-                />
+                >
+                  <span
+                    className={cn(
+                      'block h-1.5 sm:h-2 rounded-full transition-all',
+                      i === current ? 'w-5 sm:w-6 bg-primary' : 'w-1.5 sm:w-2',
+                      a === null
+                        ? 'bg-border'
+                        : isCorrectQ
+                          ? 'bg-green-500'
+                          : 'bg-red-400',
+                    )}
+                  />
+                </button>
               )
             })}
           </div>
@@ -468,4 +473,4 @@ export function QuizSection() {
       </div>
     </section>
   )
-}
+})

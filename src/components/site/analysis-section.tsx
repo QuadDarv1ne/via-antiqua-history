@@ -1,14 +1,16 @@
 'use client'
 
+import * as React from 'react'
 import { motion } from 'framer-motion'
 import { Quote, Feather } from 'lucide-react'
 import { authorAnalysis } from '@/lib/history-data'
 import { ReadingTime } from '@/components/site/reading-time'
 
-export function AnalysisSection() {
+export const AnalysisSection = React.memo(function AnalysisSection() {
   return (
     <section
       id="analysis"
+      aria-label="Авторский анализ"
       className="py-20 md:py-28 scroll-mt-20 relative overflow-hidden"
       style={{
         background:
@@ -27,7 +29,7 @@ export function AnalysisSection() {
           className="text-center mb-8 sm:mb-10 md:mb-16"
         >
           <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-full border border-primary/30 bg-primary/5 mb-3 sm:mb-4">
-            <Feather className="h-3.5 w-3.5 text-primary" />
+            <Feather className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
             <span className="text-[10px] sm:text-xs uppercase tracking-widest font-medium">
               Авторский раздел
             </span>
@@ -111,4 +113,4 @@ export function AnalysisSection() {
       </div>
     </section>
   )
-}
+})

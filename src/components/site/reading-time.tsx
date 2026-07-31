@@ -21,7 +21,7 @@ function pluralize(n: number, labels: readonly [string, string, string]): string
 
 export function computeReadingTime(raw: string) {
   const wordCount = raw.trim() === '' ? 0 : raw.trim().split(/\s+/).length
-  const minutes = Math.max(1, Math.ceil(wordCount / (WORDS_PER_SECOND * SECONDS_PER_MINUTE)))
+  const minutes = wordCount === 0 ? 0 : Math.max(1, Math.ceil(wordCount / (WORDS_PER_SECOND * SECONDS_PER_MINUTE)))
   return { wordCount, minutes }
 }
 

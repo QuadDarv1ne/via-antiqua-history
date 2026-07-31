@@ -1,5 +1,9 @@
 import { FAQ_DATA } from '@/lib/history-data'
 
+function safeJson(obj: unknown): string {
+  return JSON.stringify(obj).replace(/</g, '\\u003C')
+}
+
 export function FAQSchema() {
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -17,7 +21,7 @@ export function FAQSchema() {
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      dangerouslySetInnerHTML={{ __html: safeJson(jsonLd) }}
     />
   )
 }

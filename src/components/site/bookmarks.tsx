@@ -22,6 +22,17 @@ export type BookmarkItem = {
   region: string
 }
 
+export function createBookmarkItem(
+  id: string,
+  type: BookmarkItem['type'],
+  title: string,
+  subtitle: string,
+  href: string,
+  region: string,
+): BookmarkItem {
+  return { id, type, title, subtitle, href, region }
+}
+
 const STORAGE_KEY = 'historical-labyrinth-bookmarks'
 const TOAST_DURATION = 2000
 
@@ -152,12 +163,10 @@ export function BookmarksProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const toggle = React.useCallback((item: BookmarkItem) => {
-    setBookmarks((cur) => {
-      const exists = cur.some((b) => b.id === item.id)
-      showToast(item.title, !exists)
-      return exists ? cur.filter((b) => b.id !== item.id) : [item, ...cur]
-    })
-  }, [showToast])
+    const exists = bookmarks.some((b) => b.id === item.id)
+    setBookmarks(exists ? bookmarks.filter((b) => b.id !== item.id) : [item, ...bookmarks])
+    showToast(item.title, !exists)
+  }, [bookmarks, showToast])
 
   const remove = React.useCallback((id: string) => {
     setBookmarks((cur) => cur.filter((b) => b.id !== id))
@@ -180,7 +189,7 @@ export function BookmarksProvider({ children }: { children: React.ReactNode }) {
             animate={{ opacity: 1, y: 0, x: '-50%' }}
             exit={{ opacity: 0, y: 50, x: '-50%' }}
             transition={{ duration: 0.25 }}
-            className="fixed bottom-6 left-1/2 z-[70] flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-3 shadow-lg"
+            className="fixed bottom-6 left-1/2 z-60 flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-3 shadow-lg"
             role="status"
             aria-live="polite"
             aria-atomic="true"
@@ -261,7 +270,7 @@ export function BookmarksFloatingButton({
       aria-label="Закладки"
       className="bookmarks-floating-button fixed bottom-4 left-4 sm:bottom-6 sm:left-6 z-40 flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-card border border-border text-foreground shadow-lg hover:shadow-xl hover:bg-accent/10 transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
     >
-      <Bookmark className="h-5 w-5" />
+      <Bookmark className="h-5 w-5" aria-hidden="true" />
       {count > 0 && (
         <span className="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold">
           {count}
@@ -296,7 +305,7 @@ export function BookmarksDialog({
         <DialogTitle className="sr-only">Сохранённые закладки</DialogTitle>
         <div className="flex items-center justify-between px-3 sm:px-4 h-12 sm:h-14 border-b border-border">
           <div className="flex items-center gap-2">
-            <Bookmark className="h-4.5 w-4.5 sm:h-5 sm:w-5 text-primary" />
+            <Bookmark className="h-4.5 w-4.5 sm:h-5 sm:w-5 text-primary" aria-hidden="true" />
             <span className="font-display text-base sm:text-lg font-semibold">
               Закладки
             </span>
@@ -309,9 +318,10 @@ export function BookmarksDialog({
               variant="ghost"
               size="sm"
               onClick={clear}
+              aria-label="Очистить все закладки"
               className="text-muted-foreground hover:text-destructive h-8 px-2 text-xs sm:text-sm"
             >
-              <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
+              <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" aria-hidden="true" />
               <span className="hidden sm:inline">Очистить</span>
             </Button>
           )}
@@ -321,7 +331,7 @@ export function BookmarksDialog({
           <div className="p-2">
             {bookmarks.length === 0 ? (
               <div className="p-6 sm:p-8 text-center">
-                <BookOpen className="h-8 w-8 sm:h-10 sm:w-10 mx-auto text-muted-foreground mb-2 sm:mb-3 opacity-40" />
+                <BookOpen className="h-8 w-8 sm:h-10 sm:w-10 mx-auto text-muted-foreground mb-2 sm:mb-3 opacity-40" aria-hidden="true" />
                 <p className="text-xs sm:text-sm text-muted-foreground mb-1.5 sm:mb-2">
                   У вас пока нет закладок
                 </p>
@@ -351,7 +361,7 @@ export function BookmarksDialog({
                             color,
                           }}
                         >
-                          <Bookmark className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                          <Bookmark className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
                         </span>
                         <span className="min-w-0 flex-1">
                           <span className="flex items-center gap-1.5 sm:gap-2 mb-0.5 flex-wrap">

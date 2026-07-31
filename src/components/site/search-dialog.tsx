@@ -155,7 +155,7 @@ export function SearchDialog({
     if (!open) setQuery('')
   }, [open])
 
-  const handleSelect = (r: SearchResult) => {
+  const handleSelect = React.useCallback((r: SearchResult) => {
     if (r.href) {
       const id = r.href.slice(1)
       const el = document.getElementById(id)
@@ -165,9 +165,9 @@ export function SearchDialog({
     }
     onOpenChange(false)
     setQuery('')
-  }
+  }, [onOpenChange])
 
-  const onKeyDown = (e: React.KeyboardEvent) => {
+  const onKeyDown = React.useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'ArrowDown') {
       e.preventDefault()
       setActiveIdx((i) => Math.min(results.length - 1, i + 1))
@@ -178,14 +178,14 @@ export function SearchDialog({
       e.preventDefault()
       if (results[activeIdx]) handleSelect(results[activeIdx])
     }
-  }
+  }, [results, activeIdx, handleSelect])
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[80vh] p-0 gap-0 overflow-hidden mx-4 sm:mx-auto">
         <DialogTitle className="sr-only">Поиск по сайту</DialogTitle>
         <div className="flex items-center gap-2 px-3 sm:px-4 border-b border-border">
-          <Search className="h-5 w-5 text-muted-foreground shrink-0" />
+          <Search className="h-5 w-5 text-muted-foreground shrink-0" aria-hidden="true" />
           <Input
             autoFocus
             value={query}
@@ -208,7 +208,7 @@ export function SearchDialog({
           <div className="p-2">
             {!query.trim() ? (
               <div className="p-5 sm:p-8 text-center">
-                <Search className="h-8 w-8 sm:h-10 sm:w-10 mx-auto text-muted-foreground mb-2 sm:mb-3 opacity-40" />
+                <Search className="h-8 w-8 sm:h-10 sm:w-10 mx-auto text-muted-foreground mb-2 sm:mb-3 opacity-40" aria-hidden="true" />
                 <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
                   Начните вводить запрос, чтобы найти город, памятник, термин
                   или исторического деятеля.

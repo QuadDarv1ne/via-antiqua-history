@@ -48,7 +48,7 @@ export const FilterBar = React.memo(function FilterBar({
 
   return (
     <div
-      className={`flex flex-wrap gap-1.5 sm:gap-2 ${className ?? ''}`}
+      className={cn("flex flex-wrap gap-1.5 sm:gap-2", className)}
       role="radiogroup"
       aria-label={label || 'Фильтр'}
       onKeyDown={handleKeyDown}

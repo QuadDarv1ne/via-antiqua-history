@@ -20,6 +20,7 @@ export const wonders: Wonder[] = [
   {
     id: 'hanging-gardens',
     name: 'Висячие сады Семирамиды',
+    originalName: 'Kirimāḫu',
     location: 'Вавилон, Месопотамия',
     region: 'mesopotamia',
     built: 'Около 600 до н. э.',

@@ -5,20 +5,22 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { BookmarksProvider } from "@/components/site/bookmarks";
 import { ScrollToTop } from "@/components/site/scroll-to-top";
 import { ServiceWorkerRegistration } from "@/components/site/service-worker-registration";
-import { DEFAULT_SITE_URL } from "@/lib/constants";
+import { DEFAULT_SITE_URL, SITE_FULL_NAME, AUTHOR_NAME } from "@/lib/constants";
 import { FAQSchema } from "@/components/seo/faq-schema";
+
+const AUTHOR_2 = "Дуплей Игорь Викторович";
 
 const JSON_LD = {
   "@context": "https://schema.org",
   "@type": "WebApplication",
-  name: "История Древнего Пути",
+  name: SITE_FULL_NAME,
   description: "Интерактивная историческая энциклопедия античного мира — Древняя Греция, Римская империя, Месопотамия и Кубань как единое культурное пространство.",
   url: process.env.NEXT_PUBLIC_SITE_URL || DEFAULT_SITE_URL,
   applicationCategory: "EducationalApplication",
   operatingSystem: "Web Browser",
   author: [
-    { "@type": "Person", name: "Дуплей Максим Игоревич" },
-    { "@type": "Person", name: "Дуплей Игорь Викторович" },
+    { "@type": "Person", name: AUTHOR_NAME },
+    { "@type": "Person", name: AUTHOR_2 },
   ],
   offers: {
     "@type": "Offer",
@@ -48,8 +50,8 @@ const BREADCRUMB_LIST = {
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || DEFAULT_SITE_URL),
   title: {
-    default: "История Древнего Пути — Интерактивный исторический лабиринт",
-    template: "%s | История Древнего Пути"
+    default: `${SITE_FULL_NAME} — Интерактивный исторический лабиринт`,
+    template: `%s | ${SITE_FULL_NAME}`
   },
   description:
     "Интерактивная историческая энциклопедия античного мира — Древняя Греция, Римская империя, Месопотамия и Кубань как единое культурное пространство. 18 городов, 32+ памятников, 12 персоналий, 7 чудес света.",
@@ -64,18 +66,18 @@ export const metadata: Metadata = {
     "история античности",
     "античные цивилизации",
     "Чудеса света",
-    "Дуплей Максим Игоревич",
+    AUTHOR_NAME,
     "исторический лабиринт",
     "via antiqua",
     "эллинизм",
     "Pax Romana",
   ],
   authors: [
-    { name: "Дуплей Максим Игоревич" },
-    { name: "Дуплей Игорь Викторович" },
+    { name: AUTHOR_NAME },
+    { name: AUTHOR_2 },
   ],
-  creator: "Дуплей Максим Игоревич",
-  publisher: "Дуплей Максим Игоревич",
+  creator: AUTHOR_NAME,
+  publisher: AUTHOR_NAME,
   robots: {
     index: true,
     follow: true,
@@ -87,26 +89,26 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
-  applicationName: "История Древнего Пути",
+  applicationName: SITE_FULL_NAME,
   openGraph: {
-    title: "История Древнего Пути — Интерактивный исторический лабиринт",
+    title: `${SITE_FULL_NAME} — Интерактивный исторический лабиринт`,
     description:
       "Интерактивная историческая энциклопедия античного мира — Греция, Рим, Междуречье и Кубань как единое культурное пространство.",
     type: "website",
     locale: "ru_RU",
-    siteName: "История Древнего Пути",
+    siteName: SITE_FULL_NAME,
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "История Древнего Пути",
+        alt: SITE_FULL_NAME,
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "История Древнего Пути — Интерактивный исторический лабиринт",
+    title: `${SITE_FULL_NAME} — Интерактивный исторический лабиринт`,
     description:
       "Интерактивная энциклопедия античного мира — 18 городов, 32+ памятников, 12 персоналий, 7 чудес света.",
     images: ["/og-image.png"],
@@ -134,6 +136,10 @@ export const viewport: Viewport = {
   ],
 };
 
+function safeJson(obj: unknown): string {
+  return JSON.stringify(obj).replace(/</g, '\\u003C')
+}
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -144,23 +150,23 @@ export default function RootLayout({
       <body className="font-body antialiased bg-background text-foreground">
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
+          dangerouslySetInnerHTML={{ __html: safeJson(JSON_LD) }}
         />
         <FAQSchema />
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(BREADCRUMB_LIST) }}
+          dangerouslySetInnerHTML={{ __html: safeJson(BREADCRUMB_LIST) }}
         />
         <a href="#main-content" className="skip-link">
           Перейти к основному содержанию
         </a>
         <noscript>
-          <div style={{ padding: '2rem', textAlign: 'center', fontFamily: 'system-ui, sans-serif' }}>
-            <h1 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>История Древнего Пути</h1>
-            <p style={{ color: '#666', marginBottom: '1rem' }}>
+          <div className="p-8 text-center font-sans">
+            <h1 className="text-2xl mb-4">{SITE_FULL_NAME}</h1>
+            <p className="text-gray-500 mb-4">
               Для полного использования сайта необходим JavaScript.
             </p>
-            <p style={{ color: '#999', fontSize: '0.875rem' }}>
+            <p className="text-gray-400 text-sm">
               Интерактивная историческая энциклопедия античного мира — Древняя Греция, Римская империя, Месопотамия и Кубань.
             </p>
           </div>

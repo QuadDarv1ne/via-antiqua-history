@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { cn, withAlpha, passwordStrength, validateEmail, validatePassword } from '../utils'
+import { cn, withAlpha, passwordStrength, validateEmail, validatePassword, getSectionGradient, getRegionColor } from '../utils'
 
 describe('cn', () => {
   it('merges class names', () => {
@@ -103,5 +103,39 @@ describe('validatePassword', () => {
 
   it('rejects passwords longer than 128 characters', () => {
     expect(validatePassword('A'.repeat(130) + '1')).toContain('128 символов')
+  })
+})
+
+describe('getSectionGradient', () => {
+  it('returns a linear-gradient string', () => {
+    expect(getSectionGradient()).toContain('linear-gradient')
+  })
+
+  it('uses the default opacity of 0.04', () => {
+    const result = getSectionGradient()
+    expect(result).toContain('0.04')
+  })
+
+  it('accepts custom opacity', () => {
+    const result = getSectionGradient(0.1)
+    expect(result).toContain('0.1')
+  })
+})
+
+describe('getRegionColor', () => {
+  it('returns color from REGION_COLORS for known region', () => {
+    const result = getRegionColor('greece')
+    expect(result).toBeTruthy()
+    expect(result).toMatch(/^oklch\(/)
+  })
+
+  it('returns fallback for unknown region', () => {
+    const result = getRegionColor('unknown', '#ff0000')
+    expect(result).toBe('#ff0000')
+  })
+
+  it('returns general color for unknown region without fallback', () => {
+    const result = getRegionColor('unknown')
+    expect(result).toMatch(/^oklch\(/)
   })
 })

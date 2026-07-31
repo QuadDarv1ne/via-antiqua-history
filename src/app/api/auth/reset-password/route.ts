@@ -23,6 +23,9 @@ export async function POST(req: NextRequest) {
     if (typeof email !== 'string' || typeof code !== 'string' || typeof password !== 'string') {
       return apiError('Некорректные данные', 400)
     }
+    if (email.length > 320 || code.length > 20 || password.length > 128) {
+      return apiError('Некорректные данные', 400)
+    }
 
     const passwordError = validatePassword(password)
     if (passwordError) {

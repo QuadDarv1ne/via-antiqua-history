@@ -1,5 +1,6 @@
 'use client'
 
+import * as React from 'react'
 import { motion } from 'framer-motion'
 import { Hourglass } from 'lucide-react'
 import { epochs } from '@/lib/history-data'
@@ -8,7 +9,7 @@ import { ReadingTime } from '@/components/site/reading-time'
 import { REGION_COLORS, REGION_LABELS } from '@/lib/constants'
 import { SectionHeader } from '@/components/site/section-header'
 
-export function EpochsSection() {
+export const EpochsSection = React.memo(function EpochsSection() {
   return (
     <section
       id="epochs"
@@ -109,4 +110,4 @@ export function EpochsSection() {
       </div>
     </section>
   )
-}
+})

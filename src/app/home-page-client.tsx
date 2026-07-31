@@ -274,12 +274,13 @@ export default function HomePageClient({
   );
 }
 
-function BookmarksFloatingButtonWithDialog() {
+const BookmarksFloatingButtonWithDialog = React.memo(function BookmarksFloatingButtonWithDialog() {
   const [open, setOpen] = React.useState(false);
+  const handleClick = React.useCallback(() => setOpen(true), []);
   return (
     <>
-      <BookmarksFloatingButton onClick={() => setOpen(true)} />
+      <BookmarksFloatingButton onClick={handleClick} />
       <BookmarksDialog open={open} onOpenChange={setOpen} />
     </>
   );
-}
+})

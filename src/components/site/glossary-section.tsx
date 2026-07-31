@@ -4,7 +4,7 @@ import * as React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { BookMarked, Search, X } from 'lucide-react'
 import { glossary } from '@/lib/history-data'
-import { cn, withAlpha } from '@/lib/utils'
+import { cn, withAlpha, getSectionGradient } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
 import { BookmarkButton } from '@/components/site/bookmarks'
 import { ReadingTime } from '@/components/site/reading-time'
@@ -41,8 +41,7 @@ export function GlossarySection() {
       id="glossary"
       className="py-20 md:py-28 scroll-mt-20"
       style={{
-        background:
-          'linear-gradient(180deg, oklch(0.55 0.1 60 / 0.04) 0%, transparent 100%)',
+        background: getSectionGradient(),
       }}
     >
       <div className="container mx-auto max-w-7xl px-4">
@@ -108,7 +107,7 @@ export function GlossarySection() {
             Ничего не найдено. Попробуйте изменить запрос.
           </div>
         ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {filtered.map((term, idx) => {
               const meta = getOriginMeta(term.origin)
               return (

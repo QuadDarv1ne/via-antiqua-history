@@ -14,22 +14,22 @@ const categoryMeta: Record<
 > = {
   primary: {
     label: 'Первичные источники',
-    icon: <Scroll className="h-4 w-4" />,
+    icon: <Scroll className="h-4 w-4" aria-hidden="true" />,
     color: 'oklch(0.55 0.15 45)',
   },
   literature: {
     label: 'Исследовательская литература',
-    icon: <BookOpen className="h-4 w-4" />,
+    icon: <BookOpen className="h-4 w-4" aria-hidden="true" />,
     color: 'oklch(0.5 0.12 260)',
   },
   web: {
     label: 'Веб-источники',
-    icon: <Globe className="h-4 w-4" />,
+    icon: <Globe className="h-4 w-4" aria-hidden="true" />,
     color: 'oklch(0.6 0.15 180)',
   },
   museum: {
     label: 'Музеи и заповедники',
-    icon: <Landmark className="h-4 w-4" />,
+    icon: <Landmark className="h-4 w-4" aria-hidden="true" />,
     color: 'oklch(0.55 0.1 80)',
   },
 }
@@ -41,10 +41,11 @@ const categoryOrder: SourceRef['category'][] = [
   'museum',
 ]
 
-export function SourcesSection() {
+export const SourcesSection = React.memo(function SourcesSection() {
   return (
     <section
       id="sources"
+      aria-label="Источники и ссылки"
       className="py-20 md:py-28 scroll-mt-20"
     >
       <div className="container mx-auto max-w-5xl px-4">
@@ -91,7 +92,7 @@ export function SourcesSection() {
                             {src.title}
                           </h4>
                           {src.url && (
-                            <ExternalLink className="h-4 w-4 text-muted-foreground shrink-0 mt-1" />
+                            <ExternalLink className="h-4 w-4 text-muted-foreground shrink-0 mt-1" aria-hidden="true" />
                           )}
                         </div>
                         {src.author && (
@@ -124,4 +125,4 @@ export function SourcesSection() {
       </div>
     </section>
   )
-}
+})

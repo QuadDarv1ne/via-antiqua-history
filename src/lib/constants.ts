@@ -1,5 +1,9 @@
 // Единые константы для всего проекта
 
+export const SITE_NAME = 'Исторический Лабиринт'
+export const SITE_FULL_NAME = 'История Древнего Пути'
+export const AUTHOR_NAME = 'Дуплей Максим Игоревич'
+export const AUTHOR_SHORT_NAME = 'Дуплей М.И.'
 export const DEFAULT_SITE_URL = 'https://via-antiqua.maestro7it.ru'
 export const SUBSCRIPTION_PRICE = 999
 
@@ -31,6 +35,10 @@ export const FILTER_LABELS: Record<string, string> = {
   ...REGION_LABELS,
   all: 'Все',
 }
+
+// Ключи основных регионов (без general) — единый источник для итераций
+export const REGION_KEYS = ['greece', 'rome', 'mesopotamia', 'kuban'] as const
+export type RegionKey = (typeof REGION_KEYS)[number]
 
 // Навигация — единый источник для navbar, footer, breadcrumbs
 export const PUBLIC_NAV = [

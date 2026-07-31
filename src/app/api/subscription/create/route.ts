@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { getDb } from "@/lib/auth/db";
 import { getSession } from "@/lib/auth/utils";
-import { SUBSCRIPTION_PRICE } from "@/lib/constants";
+import { SUBSCRIPTION_PRICE, SITE_NAME } from "@/lib/constants";
 import { apiOk, apiError } from "@/lib/auth/api-response";
 import { checkRateLimit, rateLimitResponse } from "@/lib/auth/rate-limit";
 import { validateCsrf } from "@/lib/auth/csrf";
@@ -71,7 +71,7 @@ export async function POST(_request: NextRequest) {
       phone,
       amount,
       currency: "RUB",
-      description: "Подписка «Исторический Лабиринт» — образовательный контент",
+      description: `Подписка «${SITE_NAME}» — образовательный контент`,
       paymentId,
     });
 

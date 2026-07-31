@@ -4,10 +4,12 @@ import * as React from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { Landmark, Eye, EyeOff, Loader2, AlertCircle, User, Mail, Lock, CheckCircle2, XCircle } from 'lucide-react'
+import { Landmark, Loader2, AlertCircle, User, Mail, Lock, CheckCircle2, XCircle } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { cn, passwordStrength, validateEmail, validatePassword } from '@/lib/utils'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
+import { PasswordStrengthBar } from '@/components/ui/password-strength'
+import { PasswordToggle } from '@/components/ui/password-toggle'
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -84,7 +86,7 @@ export default function RegisterPage() {
     <ErrorBoundary>
     <main className="min-h-screen flex items-center justify-center bg-background px-4 py-12 relative overflow-hidden">
       {/* Фоновые декорации */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.07 }}
@@ -116,7 +118,7 @@ export default function RegisterPage() {
               transition={{ type: 'spring', stiffness: 200, damping: 14, delay: 0.15 }}
               className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-accent text-primary-foreground shadow-lg shadow-primary/25"
             >
-              <Landmark className="h-6 w-6" />
+              <Landmark className="h-6 w-6" aria-hidden="true" />
               <span className="absolute inset-0 rounded-2xl bg-white/10 opacity-0 hover:opacity-100 transition-opacity" />
             </motion.span>
           </Link>
@@ -146,7 +148,7 @@ export default function RegisterPage() {
                 role="alert"
                 className="flex items-center gap-2.5 rounded-xl border border-destructive/20 bg-destructive/8 px-4 py-3 text-sm text-destructive"
               >
-                <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+                <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" aria-hidden="true" />
                 {error}
               </motion.div>
             )}
@@ -208,30 +210,13 @@ export default function RegisterPage() {
                   autoComplete="new-password"
                   className="w-full h-11 pl-10 pr-11 rounded-xl border border-border/60 bg-background/60 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary/50 transition-all placeholder:text-muted-foreground/40"
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-foreground/80 transition-colors"
-                  tabIndex={-1}
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
+                <PasswordToggle
+                  visible={showPassword}
+                  onToggle={() => setShowPassword(!showPassword)}
+                />
               </div>
               {password && (
-                <div className="mt-2.5">
-                  <div className="flex gap-1 mb-1.5">
-                    {[1, 2, 3, 4, 5].map((i) => (
-                      <div
-                        key={i}
-                        className={cn(
-                          'h-1 flex-1 rounded-full transition-all duration-300',
-                          i <= strength.score ? strength.color : 'bg-muted/60'
-                        )}
-                      />
-                    ))}
-                  </div>
-                  <p className="text-[11px] text-muted-foreground/60">{strength.label}</p>
-                </div>
+                <PasswordStrengthBar score={strength.score} label={strength.label} color={strength.color} />
               )}
             </motion.div>
 

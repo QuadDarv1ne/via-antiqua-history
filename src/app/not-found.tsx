@@ -7,13 +7,13 @@ export default function NotFound() {
       <div className="text-center max-w-md">
         <Link href="/" className="inline-flex items-center gap-2 mb-8 hover:opacity-80 transition-opacity">
           <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground animate-[scale-in_0.3s_ease-out]">
-            <Landmark className="h-5 w-5" />
+            <Landmark className="h-5 w-5" aria-hidden="true" />
           </span>
         </Link>
 
         <div className="flex justify-center mb-6 animate-[scale-in_0.4s_ease-out_0.1s_both]">
           <span className="flex h-16 w-16 items-center justify-center rounded-full bg-muted border border-border">
-            <Compass className="h-8 w-8 text-muted-foreground" />
+            <Compass className="h-8 w-8 text-muted-foreground" aria-hidden="true" />
           </span>
         </div>
 
@@ -31,7 +31,7 @@ export default function NotFound() {
             href="/"
             className="inline-flex items-center gap-2 h-10 sm:h-11 px-5 sm:px-6 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium text-sm sm:text-base"
           >
-            <Home className="h-4 w-4" />
+            <Home className="h-4 w-4" aria-hidden="true" />
             Вернуться к началу
           </Link>
         </div>

@@ -15,7 +15,7 @@ const columns = [
   { key: 'kuban', label: REGION_LABELS.kuban, color: REGION_COLORS.kuban },
 ] as const
 
-export function ComparisonSection() {
+export const ComparisonSection = React.memo(function ComparisonSection() {
   const readingText = React.useMemo(
     () => comparisonRows.map((r) => `${r.criterion} ${r.greece} ${r.rome} ${r.mesopotamia} ${r.kuban}`),
     [],
@@ -133,4 +133,4 @@ export function ComparisonSection() {
       </div>
     </section>
   )
-}
+})

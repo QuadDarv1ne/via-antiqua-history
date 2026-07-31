@@ -4,12 +4,14 @@ import * as React from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { Shield, ShieldOff, LogOut, Loader2, Copy, Check, Smartphone, Bookmark, AlertTriangle, Crown, CreditCard, QrCode, Clock, CheckCircle2, XCircle, Lock, Eye, EyeOff } from 'lucide-react'
+import { Shield, ShieldOff, LogOut, Loader2, Copy, Check, Smartphone, Bookmark, AlertTriangle, Crown, CreditCard, QrCode, Clock, CheckCircle2, XCircle, Lock } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useBookmarks } from '@/components/site/bookmarks'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
 import { passwordStrength, validatePassword } from '@/lib/utils'
-import { SUBSCRIPTION_PRICE } from '@/lib/constants'
+import { SUBSCRIPTION_PRICE, SITE_NAME } from '@/lib/constants'
+import { PasswordStrengthBar } from '@/components/ui/password-strength'
+import { PasswordToggle } from '@/components/ui/password-toggle'
 
 export default function ProfilePage() {
   const router = useRouter()
@@ -377,8 +379,8 @@ export default function ProfilePage() {
             <div className="absolute top-0 left-0 right-0 h-0.5 rounded-t-xl bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600" />
             <div className="flex items-center justify-between gap-2 mb-4">
               <div className="flex items-center gap-2 min-w-0">
-                <Crown className="h-4 w-4 sm:h-5 sm:w-5 text-amber-500 shrink-0" />
-                <h2 className="font-display text-base sm:text-lg font-semibold truncate">Подписка «Исторический Лабиринт»</h2>
+                <Crown className="h-4 w-4 sm:h-5 sm:w-5 text-amber-500 shrink-0" aria-hidden="true" />
+                <h2 className="font-display text-base sm:text-lg font-semibold truncate">Подписка «{SITE_NAME}»</h2>
               </div>
               {subscription && (
                 <span className={`text-xs font-medium px-2.5 py-1 rounded-full flex items-center gap-1.5 ${
@@ -396,7 +398,7 @@ export default function ProfilePage() {
             </div>
 
             {errorSub && (
-              <p className="text-sm text-destructive mb-3">{errorSub}</p>
+              <p role="alert" className="text-sm text-destructive mb-3">{errorSub}</p>
             )}
 
             {subLoading ? (
@@ -437,7 +439,7 @@ export default function ProfilePage() {
                       Доступ сохранится до конца оплаченного периода.
                     </p>
                     <div className="flex gap-2">
-                      <button
+                      <button type="button"
                         onClick={handleCancelSubscription}
                         disabled={cancelLoading}
                         className="inline-flex items-center gap-2 h-9 px-4 rounded-lg bg-destructive text-destructive-foreground text-sm font-medium hover:bg-destructive/90 disabled:opacity-50 transition-colors"
@@ -445,7 +447,7 @@ export default function ProfilePage() {
                         {cancelLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldOff className="h-4 w-4" />}
                         Отменить
                       </button>
-                      <button
+                      <button type="button"
                         onClick={() => setConfirmCancel(false)}
                         disabled={cancelLoading}
                         className="inline-flex items-center gap-2 h-9 px-4 rounded-lg border border-border text-sm font-medium hover:bg-accent/10 transition-colors"
@@ -455,7 +457,7 @@ export default function ProfilePage() {
                     </div>
                   </div>
                 ) : (
-                  <button
+                  <button type="button"
                     onClick={() => setConfirmCancel(true)}
                     disabled={cancelLoading}
                     className="inline-flex items-center gap-2 h-9 px-4 rounded-lg border border-border text-sm font-medium hover:bg-accent/10 disabled:opacity-50 transition-colors text-muted-foreground"
@@ -535,7 +537,7 @@ export default function ProfilePage() {
                 </div>
 
                 <div className="flex gap-2">
-                  <button
+                  <button type="button"
                     onClick={handleCreateSubscription}
                     disabled={createLoading}
                     className="flex-1 h-10 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors inline-flex items-center justify-center gap-2"
@@ -543,7 +545,7 @@ export default function ProfilePage() {
                     {createLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <QrCode className="h-4 w-4" />}
                     Новый QR-код
                   </button>
-                  <button
+                  <button type="button"
                     onClick={() => setPaymentData(null)}
                     className="h-10 px-4 rounded-lg border border-border text-sm font-medium hover:bg-accent/10 transition-colors"
                   >
@@ -569,7 +571,7 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
-                <button
+                <button type="button"
                   onClick={handleCreateSubscription}
                   disabled={createLoading}
                   className="w-full h-11 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 text-white font-medium hover:from-amber-600 hover:to-yellow-600 disabled:opacity-50 transition-all duration-200 inline-flex items-center justify-center gap-2 shadow-sm shadow-amber-500/20 hover:shadow-md hover:shadow-amber-500/30"
@@ -589,7 +591,7 @@ export default function ProfilePage() {
             <div className="absolute top-0 left-0 right-0 h-0.5 rounded-t-xl bg-primary/40" />
             <div className="flex items-center justify-between gap-2 mb-3 sm:mb-4">
               <div className="flex items-center gap-2 min-w-0">
-                <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-primary shrink-0" />
+                <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-primary shrink-0" aria-hidden="true" />
                 <h2 className="font-display text-base sm:text-lg font-semibold truncate">Двухфакторная аутентификация</h2>
               </div>
               <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${user.totpEnabled ? 'bg-green-500/10 text-green-600 dark:text-green-400' : 'bg-muted text-muted-foreground'}`}>
@@ -598,7 +600,7 @@ export default function ProfilePage() {
             </div>
 
             {error2fa && (
-              <p className="text-sm text-destructive mb-3">{error2fa}</p>
+              <p role="alert" className="text-sm text-destructive mb-3">{error2fa}</p>
             )}
 
             {user.totpEnabled ? confirmDisable ? (
@@ -629,7 +631,7 @@ export default function ProfilePage() {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <button
+                  <button type="button"
                     onClick={handleDisable2fa}
                     disabled={disableLoading || !totpPassword}
                     className="inline-flex items-center gap-2 h-9 px-4 rounded-lg bg-destructive text-destructive-foreground text-sm font-medium hover:bg-destructive/90 disabled:opacity-50 transition-colors"
@@ -637,7 +639,7 @@ export default function ProfilePage() {
                     {disableLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldOff className="h-4 w-4" />}
                     Отключить
                   </button>
-                  <button
+                  <button type="button"
                     onClick={() => { setConfirmDisable(false); setTotpPassword('') }}
                     disabled={disableLoading}
                     className="inline-flex items-center gap-2 h-9 px-4 rounded-lg border border-border text-sm font-medium hover:bg-accent/10 transition-colors"
@@ -647,7 +649,7 @@ export default function ProfilePage() {
                 </div>
               </div>
             ) : (
-              <button
+              <button type="button"
                 onClick={() => setConfirmDisable(true)}
                 disabled={disableLoading}
                 className="inline-flex items-center gap-2 h-9 px-4 rounded-lg border border-border text-sm font-medium hover:bg-accent/10 disabled:opacity-50 transition-colors"
@@ -690,7 +692,7 @@ export default function ProfilePage() {
                     />
                   </div>
                 </div>
-                <button
+                <button type="button"
                   onClick={handleConfirm2fa}
                   disabled={confirmLoading || totpCode.length !== 6 || !totpPassword}
                   className="w-full h-11 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors inline-flex items-center justify-center gap-2"
@@ -706,7 +708,7 @@ export default function ProfilePage() {
                     <p className="text-sm font-medium">Коды восстановления</p>
                     <p className="text-xs text-muted-foreground">Сохраните их в надёжном месте. Каждый код можно использовать только один раз.</p>
                   </div>
-                  <button
+                  <button type="button"
                     onClick={() => {
                       navigator.clipboard.writeText(recoveryCodes.join('\n'))
                       setCopiedIdx(-2)
@@ -720,7 +722,7 @@ export default function ProfilePage() {
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   {recoveryCodes.map((code, i) => (
-                    <button
+                    <button type="button"
                       key={i}
                       onClick={() => copyCode(code, i)}
                       className="flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-muted/50 font-mono text-xs hover:bg-muted transition-colors"
@@ -732,7 +734,7 @@ export default function ProfilePage() {
                 </div>
               </div>
             ) : (
-              <button
+              <button type="button"
                 onClick={handleSetup2fa}
                 disabled={setupLoading}
                 className="inline-flex items-center gap-2 h-11 px-6 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
@@ -751,7 +753,7 @@ export default function ProfilePage() {
             <div className="absolute top-0 left-0 right-0 h-0.5 rounded-t-xl bg-primary/40" />
             <div className="flex items-center justify-between gap-2 mb-3 sm:mb-4">
               <div className="flex items-center gap-2 min-w-0">
-                <Lock className="h-4 w-4 sm:h-5 sm:w-5 text-primary shrink-0" />
+                <Lock className="h-4 w-4 sm:h-5 sm:w-5 text-primary shrink-0" aria-hidden="true" />
                 <h2 className="font-display text-base sm:text-lg font-semibold truncate">Пароль</h2>
               </div>
             </div>
@@ -763,7 +765,7 @@ export default function ProfilePage() {
             )}
 
             {changePasswordError && (
-              <p className="text-sm text-destructive mb-3">{changePasswordError}</p>
+              <p role="alert" className="text-sm text-destructive mb-3">{changePasswordError}</p>
             )}
 
             {showChangePassword ? (
@@ -800,27 +802,14 @@ export default function ProfilePage() {
                       autoComplete="new-password"
                       className="w-full h-9 pl-8 pr-9 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
                     />
-                    <button
-                      type="button"
-                      onClick={() => setShowNewPassword(!showNewPassword)}
+                    <PasswordToggle
+                      visible={showNewPassword}
+                      onToggle={() => setShowNewPassword(!showNewPassword)}
                       className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-foreground/80 transition-colors"
-                      tabIndex={-1}
-                    >
-                      {showNewPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-                    </button>
+                    />
                   </div>
                   {newPassword && (
-                    <div className="mt-2">
-                      <div className="flex gap-1 mb-1">
-                        {[1, 2, 3, 4, 5].map((i) => (
-                          <div
-                            key={i}
-                            className={`h-1 flex-1 rounded-full transition-all duration-300 ${i <= newPwStrength.score ? newPwStrength.color : 'bg-muted/60'}`}
-                          />
-                        ))}
-                      </div>
-                      <p className="text-[10px] text-muted-foreground/60">{newPwStrength.label}</p>
-                    </div>
+                    <PasswordStrengthBar score={newPwStrength.score} label={newPwStrength.label} color={newPwStrength.color} />
                   )}
                 </div>
                 <div>
@@ -850,7 +839,7 @@ export default function ProfilePage() {
                   )}
                 </div>
                 <div className="flex gap-2">
-                  <button
+                  <button type="button"
                     onClick={handleChangePassword}
                     disabled={changePasswordLoading || !currentPassword || !newPassword || !confirmNewPassword || newPassword !== confirmNewPassword}
                     className="inline-flex items-center gap-2 h-9 px-4 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
@@ -858,7 +847,7 @@ export default function ProfilePage() {
                     {changePasswordLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Lock className="h-4 w-4" />}
                     Изменить пароль
                   </button>
-                  <button
+                  <button type="button"
                     onClick={() => {
                       setShowChangePassword(false)
                       setCurrentPassword('')
@@ -874,7 +863,7 @@ export default function ProfilePage() {
                 </div>
               </div>
             ) : (
-              <button
+              <button type="button"
                 onClick={() => setShowChangePassword(true)}
                 className="inline-flex items-center gap-2 h-9 px-4 rounded-lg border border-border text-sm font-medium hover:bg-accent/10 transition-colors"
               >
@@ -892,7 +881,7 @@ export default function ProfilePage() {
             <div className="absolute top-0 left-0 right-0 h-0.5 rounded-t-xl bg-primary/40" />
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2 min-w-0">
-                <Bookmark className="h-4 w-4 sm:h-5 sm:w-5 text-primary shrink-0" />
+                <Bookmark className="h-4 w-4 sm:h-5 sm:w-5 text-primary shrink-0" aria-hidden="true" />
                 <h2 className="font-display text-base sm:text-lg font-semibold">Закладки</h2>
               </div>
               <span className="text-sm font-medium text-muted-foreground">{bookmarks.length}</span>
@@ -917,7 +906,7 @@ export default function ProfilePage() {
           <motion.div
             variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } }}
           >
-            <button
+            <button type="button"
               onClick={handleLogout}
               disabled={loggingOut}
               className="inline-flex items-center gap-2 h-10 sm:h-11 px-5 sm:px-6 rounded-lg border border-border text-sm font-medium hover:bg-accent/10 disabled:opacity-50 transition-colors"

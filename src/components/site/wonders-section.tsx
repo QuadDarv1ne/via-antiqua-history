@@ -19,8 +19,17 @@ import { REGION_COLORS, REGION_LABELS } from '@/lib/constants'
 import { withAlpha, getRegionColor } from '@/lib/utils'
 import { SectionHeader } from '@/components/site/section-header'
 
-export function WondersSection() {
+export const WondersSection = React.memo(function WondersSection() {
   const [active, setActive] = React.useState<Wonder | null>(null)
+
+  const wonderBookmarkItem = React.useMemo(() => active ? {
+    id: `wonder:${active.id}`,
+    type: 'wonder' as const,
+    title: active.name,
+    subtitle: `${active.location} · ${active.built}`,
+    href: '#wonders',
+    region: active.region,
+  } : null, [active])
 
   return (
     <section
@@ -40,7 +49,7 @@ export function WondersSection() {
           readingTime={<ReadingTime text={wonders.map((w) => w.fullDesc)} className="justify-center mt-2" />}
         />
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {wonders.map((w, idx) => {
             const color = getRegionColor(w.region, REGION_COLORS.greece)
             return (
@@ -74,7 +83,7 @@ export function WondersSection() {
                     </div>
                   </div>
                   <p className="text-[11px] sm:text-xs text-muted-foreground mb-2 sm:mb-3 flex items-center gap-1">
-                    <MapPin className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                    <MapPin className="h-2.5 w-2.5 sm:h-3 sm:w-3" aria-hidden="true" />
                     {w.location}
                   </p>
                   <p className="text-xs sm:text-sm text-foreground/80 leading-relaxed mb-2 sm:mb-3 line-clamp-3">
@@ -130,16 +139,9 @@ export function WondersSection() {
                   </p>
                 )}
               </div>
-              {active && (
+              {wonderBookmarkItem && (
                 <BookmarkButton
-                  item={{
-                    id: `wonder:${active.id}`,
-                    type: 'wonder',
-                    title: active.name,
-                    subtitle: `${active.location} · ${active.built}`,
-                    href: '#wonders',
-                    region: active.region,
-                  }}
+                  item={wonderBookmarkItem}
                 />
               )}
             </div>
@@ -156,21 +158,21 @@ export function WondersSection() {
                   <>
                     <div className="rounded-lg border border-border p-2.5 sm:p-3">
                       <div className="flex items-center gap-1 text-[10px] sm:text-xs text-muted-foreground mb-0.5 sm:mb-1">
-                        <MapPin className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                        <MapPin className="h-2.5 w-2.5 sm:h-3 sm:w-3" aria-hidden="true" />
                         Локация
                       </div>
                       <div className="text-xs sm:text-sm font-medium">{active.location}</div>
                     </div>
                     <div className="rounded-lg border border-border p-2.5 sm:p-3">
                       <div className="flex items-center gap-1 text-[10px] sm:text-xs text-muted-foreground mb-0.5 sm:mb-1">
-                        <Hammer className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                        <Hammer className="h-2.5 w-2.5 sm:h-3 sm:w-3" aria-hidden="true" />
                         Строитель
                       </div>
                       <div className="text-xs sm:text-sm font-medium">{active.builder}</div>
                     </div>
                     <div className="rounded-lg border border-border p-2.5 sm:p-3">
                       <div className="flex items-center gap-1 text-[10px] sm:text-xs text-muted-foreground mb-0.5 sm:mb-1">
-                        <Calendar className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                        <Calendar className="h-2.5 w-2.5 sm:h-3 sm:w-3" aria-hidden="true" />
                         Судьба
                       </div>
                       <div className="text-xs sm:text-sm font-medium">{active.destroyed}</div>
@@ -186,7 +188,7 @@ export function WondersSection() {
               {active && (
                 <div className="rounded-lg border-l-3 sm:border-l-4 border-primary bg-primary/5 p-3 sm:p-4">
                   <div className="flex items-start gap-2">
-                    <Crown className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary shrink-0 mt-0.5 sm:mt-1" />
+                    <Crown className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary shrink-0 mt-0.5 sm:mt-1" aria-hidden="true" />
                     <div>
                       <p className="text-[10px] sm:text-xs uppercase tracking-widest text-primary font-semibold mb-0.5 sm:mb-1">
                         Наследие
@@ -204,4 +206,4 @@ export function WondersSection() {
       </Dialog>
     </section>
   )
-}
+})

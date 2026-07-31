@@ -86,7 +86,7 @@ export default function ForgotPasswordPage() {
                 className="flex justify-center mb-5"
               >
                 <span className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-accent text-primary-foreground shadow-lg shadow-primary/25">
-                  <MailCheck className="h-7 w-7" />
+                  <MailCheck className="h-7 w-7" aria-hidden="true" />
                   <span className="absolute inset-0 rounded-2xl bg-white/10" />
                 </span>
               </motion.div>
@@ -111,7 +111,7 @@ export default function ForgotPasswordPage() {
                   href={`/reset-password?email=${encodeURIComponent(email)}`}
                   className="inline-flex items-center justify-center h-11 px-6 rounded-xl bg-gradient-to-r from-primary to-accent text-primary-foreground font-medium hover:from-primary/90 hover:to-accent/90 transition-all duration-200 shadow-sm shadow-primary/20"
                 >
-                  <KeyRound className="h-4 w-4 mr-2" />
+                  <KeyRound className="h-4 w-4 mr-2" aria-hidden="true" />
                   Ввести код
                 </Link>
               </motion.div>
@@ -162,7 +162,7 @@ export default function ForgotPasswordPage() {
                 transition={{ type: 'spring', stiffness: 200, damping: 14, delay: 0.15 }}
                 className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-accent text-primary-foreground shadow-lg shadow-primary/25"
               >
-                <Landmark className="h-6 w-6" />
+                <Landmark className="h-6 w-6" aria-hidden="true" />
                 <span className="absolute inset-0 rounded-2xl bg-white/10 opacity-0 hover:opacity-100 transition-opacity" />
               </motion.span>
             </Link>
@@ -190,7 +190,7 @@ export default function ForgotPasswordPage() {
                   role="alert"
                   className="flex items-center gap-2.5 rounded-xl border border-destructive/20 bg-destructive/8 px-4 py-3 text-sm text-destructive"
                 >
-                  <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+                  <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" aria-hidden="true" />
                   {error}
                 </motion.div>
               )}

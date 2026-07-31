@@ -1,6 +1,6 @@
 export function GitHubIcon({ className = 'h-4 w-4' }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
       <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
     </svg>
   )
@@ -8,7 +8,7 @@ export function GitHubIcon({ className = 'h-4 w-4' }: { className?: string }) {
 
 export function VKIcon({ className = 'h-4 w-4' }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
       <path d="M12.785 16.241s.288-.032.436-.194c.136-.148.132-.427.132-.427s-.02-1.304.587-1.496c.598-.19 1.365 1.26 2.179 1.816.616.42 1.084.328 1.084.328l2.175-.03s1.138-.07.598-.964c-.044-.073-.313-.661-1.612-1.869-1.361-1.264-1.179-1.06.461-3.248.998-1.33 1.398-2.142 1.273-2.49-.12-.331-.857-.244-.857-.244l-2.453.015s-.182-.025-.317.056c-.131.079-.216.263-.216.263s-.388 1.032-.904 1.912c-1.089 1.856-1.526 1.953-1.704 1.838-.414-.267-.31-1.075-.31-1.649 0-1.794.272-2.542-.529-2.736-.266-.064-.461-.106-1.14-.113-.87-.009-1.606.003-2.023.207-.278.136-.492.439-.362.456.161.021.527.099.72.363.259.341.25 1.108.25 1.108s.149 2.11-.339 2.372c-.333.18-.789-.188-1.768-1.872-.501-.862-.879-1.814-.879-1.814s-.073-.179-.203-.276c-.158-.117-.378-.154-.378-.154l-2.332.015s-.35.01-.479.163c-.114.135-.009.414-.009.414s1.82 4.258 3.88 6.403c1.889 1.966 4.032 1.836 4.032 1.836h.972z" />
     </svg>
   )
@@ -16,7 +16,7 @@ export function VKIcon({ className = 'h-4 w-4' }: { className?: string }) {
 
 export function RutubeIcon({ className = 'h-4 w-4' }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
       <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm4.5 8.5v7a1 1 0 0 1-1.5.86l-5-2.86a1 1 0 0 1 0-1.72l5-2.86A1 1 0 0 1 16.5 8.5z" />
     </svg>
   )
@@ -24,7 +24,7 @@ export function RutubeIcon({ className = 'h-4 w-4' }: { className?: string }) {
 
 export function ORCIDIcon({ className = 'h-4 w-4' }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
       <path d="M12 0C5.372 0 0 5.372 0 12s5.372 12 12 12 12-5.372 12-12S18.628 0 12 0zM7.369 4.378c.564 0 1.021.465 1.021 1.021s-.457 1.021-1.021 1.021a1.022 1.022 0 01-1.021-1.021c0-.564.457-1.021 1.021-1.021zm-.877 3.188h1.754v10.041H6.492V7.566zm3.403 0h4.211c2.602 0 4.146 1.878 4.146 4.472v.582c0 2.728-1.742 4.609-4.386 4.609H9.895V7.566zm1.754 1.563v6.971h2.282c2.143 0 2.728-1.611 2.728-3.486v-.505c0-1.809-.605-3.08-2.728-3.08H11.896z" />
     </svg>
   )
@@ -32,7 +32,7 @@ export function ORCIDIcon({ className = 'h-4 w-4' }: { className?: string }) {
 
 export function SchoolIcon({ className = 'h-4 w-4' }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
       <path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z" />
     </svg>
   )
@@ -40,7 +40,7 @@ export function SchoolIcon({ className = 'h-4 w-4' }: { className?: string }) {
 
 export function StepikIcon({ className = 'h-4 w-4' }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
       <path d="M12 0L1.6 6.1v11.8L12 24l10.4-6.1V6.1L12 0zm0 2.2l8.2 4.8v9.6L12 21.4 3.8 16.6V7L12 2.2zM11 6.5v3.5H8v2h3v6h2v-6h3v-2h-3v-3.5H11z" />
     </svg>
   )
@@ -48,7 +48,7 @@ export function StepikIcon({ className = 'h-4 w-4' }: { className?: string }) {
 
 export function ChessIcon({ className = 'h-4 w-4' }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
       <path d="M19 22H5v-2h14v2zm2-4H3l-1-2 1-1h18l1 1-1 2zm-9-8l-3-4-3 4h2v4h2v-4h2v4h2v-4h2l-3-4z" />
     </svg>
   )
