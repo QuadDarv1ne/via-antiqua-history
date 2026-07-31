@@ -60,7 +60,9 @@ export function signJwt(payload: SessionPayload): string {
 
 export function verifyJwt(token: string): SessionPayload | null {
   try {
-    return jwt.verify(token, getJwtSecret()) as SessionPayload;
+    return jwt.verify(token, getJwtSecret(), {
+      algorithms: ["HS256"],
+    }) as SessionPayload;
   } catch {
     return null;
   }

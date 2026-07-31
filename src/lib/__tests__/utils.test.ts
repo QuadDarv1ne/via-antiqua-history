@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { cn, withAlpha, passwordStrength, validateEmail, validatePassword, getSectionGradient, getRegionColor, toSqliteDateTime } from '../utils'
+import { cn, withAlpha, passwordStrength, validateEmail, validatePassword, getSectionGradient, getRegionColor, toSqliteDateTime, parseSqliteDateTime } from '../utils'
 
 describe('cn', () => {
   it('merges class names', () => {
@@ -156,5 +156,26 @@ describe('toSqliteDateTime', () => {
     expect(toSqliteDateTime(new Date('2026-01-02T03:04:05.678Z'))).toBe(
       '2026-01-02 03:04:05',
     )
+  })
+})
+
+describe('parseSqliteDateTime', () => {
+  it('parses SQLite UTC strings as UTC, not local time', () => {
+    const parsed = parseSqliteDateTime('2026-07-31 15:15:00')
+    expect(parsed.toISOString()).toBe('2026-07-31T15:15:00.000Z')
+  })
+
+  it('round-trips with toSqliteDateTime', () => {
+    const original = new Date('2026-01-02T03:04:05.000Z')
+    expect(parseSqliteDateTime(toSqliteDateTime(original)).toISOString()).toBe(
+      original.toISOString(),
+    )
+  })
+
+  it('returns current time for invalid input instead of Invalid Date', () => {
+    const before = Date.now()
+    const parsed = parseSqliteDateTime('not-a-date')
+    expect(parsed.getTime()).toBeGreaterThanOrEqual(before)
+    expect(Number.isNaN(parsed.getTime())).toBe(false)
   })
 })

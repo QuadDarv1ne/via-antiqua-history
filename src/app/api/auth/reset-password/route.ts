@@ -62,7 +62,8 @@ export async function POST(req: NextRequest) {
     ).get(user.id, code) as Record<string, unknown> | undefined
 
     if (!token) {
-      return apiError('Код недействителен или истёк', 400)
+      // Единое сообщение для неизвестного email и неверного кода — без перечисления аккаунтов
+      return apiError('Неверный код или email', 400)
     }
 
     const passwordHash = await hashPassword(password)

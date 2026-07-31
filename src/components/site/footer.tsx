@@ -1,5 +1,6 @@
 'use client'
 
+import * as React from 'react'
 import { Landmark, BookOpen, ExternalLink, Heart } from 'lucide-react'
 import Link from 'next/link'
 import { FOOTER_NAV, SOCIAL_LINKS, SITE_NAME, AUTHOR_NAME } from '@/lib/constants'
@@ -20,6 +21,11 @@ const socialIcons: Record<string, React.ReactNode> = {
 export function Footer() {
   const { ref: gridRef, inView } = useInView({ threshold: 0.1, rootMargin: '-60px' })
   const { ref: bottomRef, inView: bottomInView } = useInView({ threshold: 0.1 })
+  const [year, setYear] = React.useState(2026)
+
+  React.useEffect(() => {
+    setYear(new Date().getFullYear())
+  }, [])
 
   return (
     <footer className="mt-auto border-t border-border bg-gradient-to-b from-card/30 via-card/50 to-card/30">
@@ -139,7 +145,7 @@ export function Footer() {
           style={{ opacity: bottomInView ? 1 : 0, transform: bottomInView ? 'translateY(0)' : 'translateY(12px)', transitionDelay: '500ms' }}
         >
           <p className="text-xs text-muted-foreground/60 text-center md:text-left">
-            © {new Date().getFullYear()} «{SITE_NAME}». Все права защищены.
+            © {year} «{SITE_NAME}». Все права защищены.
           </p>
           <p className="text-xs text-muted-foreground/50 flex items-center gap-1.5">
             Сделано с <Heart className="h-3 w-3 text-red-400 fill-red-400" aria-hidden="true" /> для образования

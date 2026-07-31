@@ -73,8 +73,21 @@ export function BookmarksProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth()
   const [bookmarks, setBookmarks] = React.useState<BookmarkItem[]>([])
   const [hydrated, setHydrated] = React.useState(false)
-  const syncRef = React.useRef(false)
 
+  const syncRemote = React.useCallback(
+    (method: 'POST' | 'DELETE', payload: unknown) => {
+      fetch('/api/bookmarks', {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      }).catch(() => {
+        // Network error — silently ignore
+      })
+    },
+    [],
+  )
+
+  // Первичная загрузка: объединяем локальные закладки с серверными
   React.useEffect(() => {
     if (!hydrated) return
     if (!user) return
@@ -85,7 +98,6 @@ export function BookmarksProvider({ children }: { children: React.ReactNode }) {
         const json = await res.json()
         if (json.ok && Array.isArray(json.data)) {
           const server = json.data.map(serverToItem)
-          syncRef.current = true
           setBookmarks((local) => {
             const localIds = new Map(local.map((b) => [b.id, b]))
             for (const s of server) {
@@ -95,7 +107,6 @@ export function BookmarksProvider({ children }: { children: React.ReactNode }) {
             }
             return [...localIds.values()]
           })
-          requestAnimationFrame(() => { syncRef.current = false })
         }
       } catch {
         // Network error — silently ignore
@@ -128,20 +139,6 @@ export function BookmarksProvider({ children }: { children: React.ReactNode }) {
     }
   }, [bookmarks, hydrated])
 
-  React.useEffect(() => {
-    if (!hydrated || syncRef.current || !user) return
-    const timer = setTimeout(() => {
-      fetch('/api/bookmarks', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bookmarks }),
-      }).catch(() => {
-        // Network error — silently ignore
-      })
-    }, 1500)
-    return () => clearTimeout(timer)
-  }, [bookmarks, hydrated, user])
-
   const isBookmarked = React.useCallback(
     (id: string) => bookmarks.some((b) => b.id === id),
     [bookmarks]
@@ -166,13 +163,27 @@ export function BookmarksProvider({ children }: { children: React.ReactNode }) {
     const exists = bookmarks.some((b) => b.id === item.id)
     setBookmarks(exists ? bookmarks.filter((b) => b.id !== item.id) : [item, ...bookmarks])
     showToast(item.title, !exists)
-  }, [bookmarks, showToast])
+    if (!user) return
+    if (exists) {
+      syncRemote('DELETE', { ids: [item.id] })
+    } else {
+      syncRemote('POST', { item })
+    }
+  }, [bookmarks, showToast, user, syncRemote])
 
   const remove = React.useCallback((id: string) => {
     setBookmarks((cur) => cur.filter((b) => b.id !== id))
-  }, [])
+    if (user) {
+      syncRemote('DELETE', { ids: [id] })
+    }
+  }, [user, syncRemote])
 
-  const clear = React.useCallback(() => setBookmarks([]), [])
+  const clear = React.useCallback(() => {
+    if (user && bookmarks.length > 0) {
+      syncRemote('DELETE', { ids: bookmarks.map((b) => b.id) })
+    }
+    setBookmarks([])
+  }, [user, bookmarks, syncRemote])
 
   const value = React.useMemo(
     () => ({ bookmarks, isBookmarked, toggle, remove, clear }),
@@ -222,8 +233,11 @@ const typeLabels: Record<BookmarkItem['type'], string> = {
 }
 
 // Кнопка-переключатель закладки
-export const BookmarkButton = React.memo(function BookmarkButton({ item }: { item: BookmarkItem }) {
+export const BookmarkButton = React.memo(function BookmarkButton({ item }: { item: BookmarkItem | null }) {
   const { isBookmarked, toggle } = useBookmarks()
+
+  if (!item) return null
+
   const active = isBookmarked(item.id)
 
   return (

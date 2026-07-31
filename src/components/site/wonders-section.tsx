@@ -98,7 +98,7 @@ export const WondersSection = React.memo(function WondersSection() {
                         color,
                       }}
                     >
-                      {REGION_LABELS[w.region]}
+                      {REGION_LABELS[w.region] ?? w.region}
                     </Badge>
                     <Badge variant="outline" className="text-[10px] sm:text-xs">
                       {w.built}
@@ -114,7 +114,7 @@ export const WondersSection = React.memo(function WondersSection() {
       {/* Модальное окно */}
       <Dialog open={!!active} onOpenChange={(o) => !o && setActive(null)}>
         <DialogContent className="max-w-2xl max-h-[85vh] sm:max-h-[90vh]">
-          {active && <div className="absolute top-0 left-0 right-0 h-0.5 rounded-t-xl" style={{ backgroundColor: REGION_COLORS[active.region] }} />}
+          {active && <div className="absolute top-0 left-0 right-0 h-0.5 rounded-t-xl" style={{ backgroundColor: getRegionColor(active.region, REGION_COLORS.greece) }} />}
           <DialogHeader className="pb-2 sm:pb-3 pt-1">
             <div className="flex items-start justify-between gap-2 sm:gap-3 pr-8">
               <div className="min-w-0 flex-1">
@@ -123,11 +123,11 @@ export const WondersSection = React.memo(function WondersSection() {
                     variant="secondary"
                     className="mb-2 text-[10px] sm:text-xs"
                     style={{
-                      backgroundColor: withAlpha(REGION_COLORS[active.region], 0.15),
-                      color: REGION_COLORS[active.region],
+                      backgroundColor: withAlpha(getRegionColor(active.region, REGION_COLORS.greece), 0.15),
+                      color: getRegionColor(active.region, REGION_COLORS.greece),
                     }}
                   >
-                    {REGION_LABELS[active.region]} · {active.built}
+                    {REGION_LABELS[active.region] ?? active.region} · {active.built}
                   </Badge>
                 )}
                 <DialogTitle className="font-display text-xl sm:text-2xl md:text-3xl leading-tight">

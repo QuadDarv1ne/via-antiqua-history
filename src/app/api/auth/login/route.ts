@@ -7,6 +7,7 @@ import { validateCsrf } from "@/lib/auth/csrf";
 import { getClientIp } from "@/lib/auth/get-ip";
 import { UserSchema, safeParse } from "@/lib/auth/schemas";
 import { readJsonBody } from "@/lib/auth/request";
+import { parseSqliteDateTime } from "@/lib/utils";
 import {
   verifySecondFactorCode,
   consumeRecoveryCode,
@@ -87,7 +88,10 @@ export async function POST(req: NextRequest) {
         return apiError("Неверный код 2FA", 401);
       }
       if (result.reason === "recovery") {
-        consumeRecoveryCode(db, user.id, totpCode);
+        // Поглощение кода должно пройти успешно — иначе код уже был использован
+        if (!consumeRecoveryCode(db, user.id, totpCode)) {
+          return apiError("Неверный код 2FA", 401);
+        }
       }
     }
 
@@ -103,7 +107,7 @@ export async function POST(req: NextRequest) {
       name: user.name,
       emailVerified: user.email_verified,
       totpEnabled: user.totp_enabled,
-      createdAt: user.created_at,
+      createdAt: parseSqliteDateTime(user.created_at).toISOString(),
     });
   } catch (err) {
     console.error("Login error:", err);

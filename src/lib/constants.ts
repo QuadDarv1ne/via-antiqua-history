@@ -46,7 +46,6 @@ export const PUBLIC_NAV = [
   { href: '#kuban', label: 'Кубань' },
   { href: '#persons', label: 'Персоналии' },
   { href: '#wonders', label: 'Чудеса' },
-  { href: '#timeline', label: 'Хронология' },
   { href: '#glossary', label: 'Глоссарий' },
   { href: '#quiz', label: 'Квиз' },
   { href: '#sources', label: 'Источники' },
@@ -55,6 +54,7 @@ export const PUBLIC_NAV = [
 export const PROTECTED_NAV = [
   { href: '#rome', label: 'Рим' },
   { href: '#mesopotamia', label: 'Месопотамия' },
+  { href: '#timeline', label: 'Хронология' },
   { href: '#orders', label: 'Ордера' },
   { href: '#epochs', label: 'Эпохи' },
   { href: '#map', label: 'Карта' },

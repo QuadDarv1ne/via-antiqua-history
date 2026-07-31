@@ -72,9 +72,21 @@ export async function POST(req: NextRequest) {
     const id = generateToken(16);
     const passwordHash = await hashPassword(password);
 
-    db.prepare(
-      "INSERT INTO users (id, email, password_hash, name) VALUES (?, ?, ?, ?)",
-    ).run(id, email.toLowerCase(), passwordHash, trimmedName);
+    try {
+      db.prepare(
+        "INSERT INTO users (id, email, password_hash, name) VALUES (?, ?, ?, ?)",
+      ).run(id, email.toLowerCase(), passwordHash, trimmedName);
+    } catch (err) {
+      // Гонка при параллельной регистрации с тем же email — UNIQUE constraint
+      if (
+        typeof err === "object" &&
+        err !== null &&
+        (err as { code?: string }).code === "SQLITE_CONSTRAINT_UNIQUE"
+      ) {
+        return apiError("Пользователь с таким email уже существует", 409);
+      }
+      throw err;
+    }
 
     await createSession(id, email.toLowerCase());
 

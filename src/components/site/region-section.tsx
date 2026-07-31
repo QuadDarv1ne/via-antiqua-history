@@ -46,23 +46,26 @@ export const RegionSection = React.memo(function RegionSection({
   const { user } = useAuth();
   const { hasSubscription } = useSubscription(!!restricted);
 
-  const cityBookmarkItem = React.useMemo(() => ({
-    id: `city:${activeCity.id}`,
-    type: "city" as const,
-    title: activeCity.name,
-    subtitle: `${activeCity.region} — ${activeCity.era}`,
-    href: `#${region.id}`,
-    region: region.id,
-  }), [activeCity.id, activeCity.name, activeCity.region, activeCity.era, region.id]);
+  const cityBookmarkItem = React.useMemo(() => {
+    if (!activeCity) return null
+    return {
+      id: `city:${activeCity.id}`,
+      type: "city" as const,
+      title: activeCity.name,
+      subtitle: `${activeCity.region} — ${activeCity.era}`,
+      href: `#${region.id}`,
+      region: region.id,
+    }
+  }, [activeCity, region.id]);
 
-  const landmarkBookmarkItem = React.useMemo(() => activeLandmark ? {
+  const landmarkBookmarkItem = React.useMemo(() => activeLandmark && activeCity ? {
     id: `landmark:${activeLandmark.id}`,
     type: "landmark" as const,
     title: activeLandmark.name,
     subtitle: `${activeCity.name} — ${activeLandmark.period}`,
     href: `#${region.id}`,
     region: region.id,
-  } : null, [activeLandmark, activeCity.name, region.id]);
+  } : null, [activeLandmark, activeCity, region.id]);
 
   if (!region.cities.length) {
     return null;

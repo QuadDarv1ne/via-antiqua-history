@@ -3,6 +3,7 @@ import { getDb } from "@/lib/auth/db";
 import { getSession } from "@/lib/auth/utils";
 import { apiOk, apiError } from "@/lib/auth/api-response";
 import { SubscriptionSchema, safeParse } from "@/lib/auth/schemas";
+import { parseSqliteDateTime } from "@/lib/utils";
 
 export async function GET(_request: NextRequest) {
   try {
@@ -36,7 +37,8 @@ export async function GET(_request: NextRequest) {
           daysLeft: Math.max(
             0,
             Math.ceil(
-              (new Date(sub.expires_at).getTime() - Date.now()) / 86400000,
+              (parseSqliteDateTime(sub.expires_at).getTime() - Date.now()) /
+                86400000,
             ),
           ),
         }
@@ -44,7 +46,7 @@ export async function GET(_request: NextRequest) {
 
     return apiOk(data, {
       headers: {
-        "Cache-Control": "private, max-age=30, stale-while-revalidate=60",
+        "Cache-Control": "no-store",
       },
     });
   } catch (err) {

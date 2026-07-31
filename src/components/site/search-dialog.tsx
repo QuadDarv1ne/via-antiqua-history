@@ -170,7 +170,9 @@ export function SearchDialog({
   const onKeyDown = React.useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'ArrowDown') {
       e.preventDefault()
-      setActiveIdx((i) => Math.min(results.length - 1, i + 1))
+      setActiveIdx((i) =>
+        results.length === 0 ? 0 : Math.min(results.length - 1, i + 1),
+      )
     } else if (e.key === 'ArrowUp') {
       e.preventDefault()
       setActiveIdx((i) => Math.max(0, i - 1))

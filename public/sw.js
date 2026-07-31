@@ -1,6 +1,6 @@
 // Service Worker для PWA
-const CACHE_NAME = "via-antiqua-v1";
-const DATA_CACHE_NAME = "via-antiqua-data-v1";
+const CACHE_NAME = "via-antiqua-v2";
+const DATA_CACHE_NAME = "via-antiqua-data-v2";
 
 const ASSETS_TO_CACHE = ["/", "/manifest.json", "/logo.svg"];
 

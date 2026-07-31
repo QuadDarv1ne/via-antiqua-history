@@ -2,6 +2,7 @@ import { getDb } from "@/lib/auth/db";
 import { getSession } from "@/lib/auth/utils";
 import { apiOk, apiError } from "@/lib/auth/api-response";
 import type { User } from "@/lib/auth/types";
+import { parseSqliteDateTime } from "@/lib/utils";
 
 export async function GET() {
   try {
@@ -27,7 +28,7 @@ export async function GET() {
       name: user.name as string,
       emailVerified: Boolean(user.email_verified),
       totpEnabled: Boolean(user.totp_enabled),
-      createdAt: user.created_at as string,
+      createdAt: parseSqliteDateTime(user.created_at as string).toISOString(),
     });
   } catch (err) {
     console.error("Me error:", err);

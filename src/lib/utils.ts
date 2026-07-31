@@ -62,3 +62,9 @@ export function getSectionGradient(opacity = 0.04): string {
 export function toSqliteDateTime(date: Date): string {
   return date.toISOString().slice(0, 19).replace('T', ' ')
 }
+
+/** Parse a SQLite datetime('now') UTC string as a Date. Falls back to current time for invalid input. */
+export function parseSqliteDateTime(value: string): Date {
+  const parsed = new Date(value.replace(' ', 'T') + 'Z')
+  return Number.isNaN(parsed.getTime()) ? new Date() : parsed
+}

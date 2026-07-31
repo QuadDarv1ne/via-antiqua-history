@@ -59,7 +59,10 @@ export async function POST(req: NextRequest) {
     }
 
     if (result.reason === 'recovery') {
-      consumeRecoveryCode(db, session.userId, code)
+      // Поглощение кода должно пройти успешно — иначе код уже был использован
+      if (!consumeRecoveryCode(db, session.userId, code)) {
+        return apiError('Неверный код', 401)
+      }
       return apiOk({ usedRecoveryCode: true })
     }
 

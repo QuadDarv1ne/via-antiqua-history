@@ -69,12 +69,53 @@ export function useSectionProgress(sectionIds: string[]) {
       { threshold: 0.5 },
     );
 
-    sectionIds.forEach((id) => {
-      const el = document.getElementById(id);
-      if (el) observer.observe(el);
-    });
+    const observed = new Set<string>();
 
-    return () => observer.disconnect();
+    const observeMissing = () => {
+      sectionIds.forEach((id) => {
+        if (observed.has(id)) return;
+        const el = document.getElementById(id);
+        if (el) {
+          observer.observe(el);
+          observed.add(id);
+        }
+      });
+    };
+
+    observeMissing();
+
+    // Секции грузятся лениво (next/dynamic) — повторно сканируем DOM при появлении новых
+    let scheduled = false;
+    let mutationObserver: MutationObserver | null = null;
+    if (observed.size < sectionIds.length) {
+      mutationObserver = new MutationObserver(() => {
+        if (scheduled) return;
+        scheduled = true;
+        setTimeout(() => {
+          scheduled = false;
+          observeMissing();
+          if (observed.size === sectionIds.length) {
+            mutationObserver?.disconnect();
+          }
+        }, 200);
+      });
+      mutationObserver.observe(document.body, {
+        childList: true,
+        subtree: true,
+      });
+    }
+
+    // Страховка: прекращаем наблюдение через 30 секунд, даже если не все секции найдены
+    const stopTimer = setTimeout(() => {
+      mutationObserver?.disconnect();
+      observer.disconnect();
+    }, 30000);
+
+    return () => {
+      mutationObserver?.disconnect();
+      observer.disconnect();
+      clearTimeout(stopTimer);
+    };
   }, [sectionIds, sectionIdSet, initialized]);
 
   // Reset progress

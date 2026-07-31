@@ -122,7 +122,7 @@ export async function POST(req: NextRequest) {
     );
 
     db.prepare(
-      "UPDATE users SET totp_enabled = 1, recovery_codes = ? WHERE id = ?",
+      "UPDATE users SET totp_enabled = 1, recovery_codes = ?, totp_secret_expires_at = NULL WHERE id = ?",
     ).run(JSON.stringify(recoveryCodes), session.userId);
 
     return apiOk({ recoveryCodes });

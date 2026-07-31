@@ -181,7 +181,7 @@ async function handlePaymentFailed(data: unknown) {
   }
 
   const db = getDb();
-  const now = new Date().toISOString();
+  const now = toSqliteDateTime(new Date());
 
   const paymentData = data;
 
@@ -210,7 +210,7 @@ async function handlePaymentRefunded(data: unknown) {
   }
 
   const db = getDb();
-  const now = new Date().toISOString();
+  const now = toSqliteDateTime(new Date());
 
   const paymentData = data;
 

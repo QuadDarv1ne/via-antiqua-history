@@ -10,6 +10,40 @@ import { BookmarkRowSchema, type ValidatedBookmarkRow } from "@/lib/auth/schemas
 const RATE_LIMIT = { windowMs: 60 * 1000, max: 20 };
 const CACHE_HEADERS = { "Cache-Control": "private, max-age=10, stale-while-revalidate=30" };
 
+const VALID_TYPES = [
+  "city",
+  "landmark",
+  "term",
+  "person",
+  "map-city",
+  "order",
+  "wonder",
+  "epoch",
+  "event",
+];
+
+interface SanitizedBookmark {
+  id: string;
+  type: string;
+  title: string;
+  subtitle: string;
+  href: string;
+  region: string;
+}
+
+function sanitizeBookmark(raw: Record<string, unknown>): SanitizedBookmark | null {
+  const id = String(raw.id || "").slice(0, 100);
+  if (!id) return null;
+  return {
+    id,
+    type: VALID_TYPES.includes(String(raw.type)) ? String(raw.type) : "term",
+    title: String(raw.title || "").slice(0, 200),
+    subtitle: String(raw.subtitle || "").slice(0, 500),
+    href: String(raw.href || "").slice(0, 100),
+    region: String(raw.region || "").slice(0, 50),
+  };
+}
+
 export async function GET(_req: NextRequest) {
   try {
     const session = await getSession();
@@ -45,7 +79,8 @@ export async function GET(_req: NextRequest) {
   }
 }
 
-export async function PUT(req: NextRequest) {
+// Добавление/обновление одной закладки (точечная синхронизация без перезаписи чужого списка)
+export async function POST(req: NextRequest) {
   try {
     const session = await getSession();
     if (!session) {
@@ -61,35 +96,19 @@ export async function PUT(req: NextRequest) {
       return rateLimitResponse(rl.resetMs);
     }
 
-    const { bookmarks } = await req.json();
-    if (!Array.isArray(bookmarks) || bookmarks.length > 200) {
+    const body = await req.json().catch(() => null);
+    const rawItem = body && typeof body === "object" ? (body as Record<string, unknown>).item : null;
+    if (!rawItem || typeof rawItem !== "object") {
       return apiError("Некорректные данные", 400);
     }
 
-    const VALID_TYPES = [
-      "city",
-      "landmark",
-      "term",
-      "person",
-      "map-city",
-      "order",
-      "wonder",
-      "epoch",
-      "event",
-    ];
-    const sanitized = bookmarks
-      .map((b: Record<string, unknown>) => ({
-        id: String(b.id || "").slice(0, 100),
-        type: VALID_TYPES.includes(String(b.type)) ? String(b.type) : "term",
-        title: String(b.title || "").slice(0, 200),
-        subtitle: String(b.subtitle || "").slice(0, 500),
-        href: String(b.href || "").slice(0, 100),
-        region: String(b.region || "").slice(0, 50),
-      }))
-      .filter((b) => b.id.length > 0);
+    const item = sanitizeBookmark(rawItem as Record<string, unknown>);
+    if (!item) {
+      return apiError("Некорректные данные", 400);
+    }
 
     const db = getDb();
-    const upsert = db.prepare(`
+    db.prepare(`
       INSERT INTO bookmarks (id, user_id, type, title, subtitle, href, region)
       VALUES (?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(user_id, id) DO UPDATE SET
@@ -98,40 +117,67 @@ export async function PUT(req: NextRequest) {
         subtitle = excluded.subtitle,
         href = excluded.href,
         region = excluded.region
-    `);
-    const remove = db.prepare(
-      "DELETE FROM bookmarks WHERE user_id = ? AND id = ?",
+    `).run(
+      item.id,
+      session.userId,
+      item.type,
+      item.title,
+      item.subtitle,
+      item.href,
+      item.region,
     );
 
-    const current = db
-      .prepare("SELECT id FROM bookmarks WHERE user_id = ?")
-      .all(session.userId) as { id: string }[];
-    const currentIds = new Set(current.map((r) => r.id));
-    const newIds = new Set(sanitized.map((b) => b.id));
-
-    const toRemove = [...currentIds].filter((id) => !newIds.has(id));
-
-    const tx = db.transaction(() => {
-      for (const id of toRemove) {
-        remove.run(session.userId, id);
-      }
-      for (const b of sanitized) {
-        upsert.run(
-          b.id,
-          session.userId,
-          b.type,
-          b.title,
-          b.subtitle,
-          b.href,
-          b.region,
-        );
-      }
-    });
-    tx();
-
-    return apiOk({ upserted: sanitized.length, removed: toRemove.length });
+    return apiOk({ upserted: true });
   } catch (err) {
-    console.error("Bookmarks PUT error:", err);
+    console.error("Bookmarks POST error:", err);
+    return apiError("Внутренняя ошибка сервера", 500);
+  }
+}
+
+// Удаление конкретных закладок по id (не трогает закладки с других устройств)
+export async function DELETE(req: NextRequest) {
+  try {
+    const session = await getSession();
+    if (!session) {
+      return apiError("Не авторизован", 401);
+    }
+
+    const csrfError = validateCsrf(req);
+    if (csrfError) return csrfError;
+
+    const ip = getClientIp(req);
+    const rl = checkRateLimit(`bookmarks:${ip}:${session.userId}`, RATE_LIMIT);
+    if (!rl.allowed) {
+      return rateLimitResponse(rl.resetMs);
+    }
+
+    const body = await req.json().catch(() => null);
+    const ids =
+      body && typeof body === "object"
+        ? (body as Record<string, unknown>).ids
+        : null;
+    if (
+      !Array.isArray(ids) ||
+      ids.length === 0 ||
+      ids.length > 200 ||
+      ids.some((id) => typeof id !== "string" || id.trim().length === 0)
+    ) {
+      return apiError("Некорректные данные", 400);
+    }
+
+    const normalizedIds = (ids as string[]).map((id) => id.slice(0, 100));
+    const placeholders = normalizedIds.map(() => "?").join(", ");
+
+    const db = getDb();
+    const result = db
+      .prepare(
+        `DELETE FROM bookmarks WHERE user_id = ? AND id IN (${placeholders})`,
+      )
+      .run(session.userId, ...normalizedIds);
+
+    return apiOk({ removed: result.changes });
+  } catch (err) {
+    console.error("Bookmarks DELETE error:", err);
     return apiError("Внутренняя ошибка сервера", 500);
   }
 }

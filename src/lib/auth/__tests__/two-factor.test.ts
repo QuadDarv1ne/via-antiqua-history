@@ -116,4 +116,16 @@ describe('consumeRecoveryCode', () => {
 
     expect(consumeRecoveryCode(db, 'u1', 'AAAA1111')).toBe(false)
   })
+
+  it('returns false on the second consume of the same code (single-use)', () => {
+    const db = new Database(':memory:')
+    db.exec('CREATE TABLE users (id TEXT PRIMARY KEY, recovery_codes TEXT)')
+    db.prepare('INSERT INTO users (id, recovery_codes) VALUES (?, ?)').run(
+      'u1',
+      JSON.stringify(['AAAA1111']),
+    )
+
+    expect(consumeRecoveryCode(db, 'u1', 'AAAA1111')).toBe(true)
+    expect(consumeRecoveryCode(db, 'u1', 'AAAA1111')).toBe(false)
+  })
 })

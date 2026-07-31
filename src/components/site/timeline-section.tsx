@@ -135,11 +135,14 @@ export function TimelineSection() {
     }
   }, [activeIdx, autoPlay])
 
-  // Keyboard navigation когда секция в видимости
+  // Keyboard navigation — только когда фокус находится внутри секции
   React.useEffect(() => {
     if (!isInView) return
     const onKey = (e: KeyboardEvent) => {
       const active = document.activeElement
+      if (active && sectionRef.current && !sectionRef.current.contains(active)) {
+        return
+      }
       if (
         active &&
         (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')
