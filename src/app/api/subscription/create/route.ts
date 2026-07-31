@@ -27,7 +27,7 @@ export async function POST(_request: NextRequest) {
     }
 
     const db = getDb();
-    const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+    const expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString();
 
     const existingSub = db
       .prepare(
@@ -43,6 +43,24 @@ export async function POST(_request: NextRequest) {
       return apiError("У вас уже есть активная подписка", 400);
     }
 
+    // Очищаем зависшие незавершённые платежи старше 30 минут
+    db.transaction(() => {
+      db.prepare(
+        `
+        UPDATE payments SET status = 'expired', updated_at = datetime('now')
+        WHERE user_id = ? AND status = 'pending' AND created_at <= datetime('now', '-30 minutes')
+      `,
+      ).run(session.userId);
+      db.prepare(
+        `
+        UPDATE subscriptions SET status = 'cancelled', updated_at = datetime('now')
+        WHERE user_id = ? AND status = 'pending' AND payment_id IN (
+          SELECT id FROM payments WHERE status = 'expired'
+        )
+      `,
+      ).run(session.userId);
+    })();
+
     const pendingPayment = db
       .prepare(
         `
@@ -54,6 +72,37 @@ export async function POST(_request: NextRequest) {
       .get(session.userId) as { id: string } | undefined;
 
     if (pendingPayment) {
+      // Возвращаем предыдущий QR-код, а не битую заглушку
+      const prev = db
+        .prepare(
+          "SELECT id, amount, sbp_phone, sbp_qr_data FROM payments WHERE id = ?",
+        )
+        .get(pendingPayment.id) as
+        | {
+            id: string;
+            amount: number;
+            sbp_phone: string | null;
+            sbp_qr_data: string | null;
+          }
+        | undefined;
+
+      if (prev?.sbp_qr_data) {
+        const { toDataURL } = await import("qrcode");
+        const qrCodeUrl = await toDataURL(prev.sbp_qr_data, {
+          width: 300,
+          margin: 2,
+        });
+        return apiOk({
+          paymentId: prev.id,
+          amount: prev.amount,
+          phone: prev.sbp_phone || "",
+          qrCodeUrl,
+          qrData: prev.sbp_qr_data,
+          expiresAt,
+          message: "Используйте предыдущий QR-код",
+        });
+      }
+
       return apiOk({
         paymentId: pendingPayment.id,
         qrData: null,

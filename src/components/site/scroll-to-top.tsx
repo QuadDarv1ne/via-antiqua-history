@@ -20,6 +20,8 @@ export function ScrollToTop() {
     <button
       type="button"
       onClick={scrollToTop}
+      tabIndex={visible ? 0 : -1}
+      aria-hidden={!visible}
       className={`scroll-to-top fixed bottom-6 right-6 z-40 flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card shadow-lg hover:shadow-xl hover:bg-accent/10 hover:scale-110 active:scale-95 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
         visible
           ? 'opacity-100 translate-y-0'

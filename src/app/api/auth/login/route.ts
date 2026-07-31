@@ -14,6 +14,8 @@ import {
 } from "@/lib/auth/two-factor";
 
 const RATE_LIMIT = { windowMs: 15 * 60 * 1000, max: 10 };
+// Дополнительный лимит на IP — защита от перебора аккаунтов с одного адреса
+const IP_RATE_LIMIT = { windowMs: 15 * 60 * 1000, max: 40 };
 
 export async function POST(req: NextRequest) {
   try {
@@ -55,6 +57,10 @@ export async function POST(req: NextRequest) {
     const rl = checkRateLimit(`login:${ip}:${email.toLowerCase()}`, RATE_LIMIT);
     if (!rl.allowed) {
       return rateLimitResponse(rl.resetMs);
+    }
+    const ipRl = checkRateLimit(`login-ip:${ip}`, IP_RATE_LIMIT);
+    if (!ipRl.allowed) {
+      return rateLimitResponse(ipRl.resetMs);
     }
 
     const db = getDb();

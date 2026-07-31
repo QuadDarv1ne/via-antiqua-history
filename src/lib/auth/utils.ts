@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { randomBytes, randomInt } from "crypto";
 import { cookies } from "next/headers";
+import { parseSqliteDateTime } from "@/lib/utils";
 
 let _jwtSecret: string | undefined;
 
@@ -29,6 +30,7 @@ export type SessionPayload = {
   userId: string;
   email: string;
   passwordChangedAt?: string;
+  iat?: number;
 };
 
 export async function hashPassword(password: string): Promise<string> {
@@ -106,16 +108,23 @@ export async function getSession(): Promise<SessionPayload | null> {
   if (!token) return null;
   const payload = verifyJwt(token);
   if (!payload) return null;
+  const { getDb } = await import("@/lib/auth/db");
+  const db = getDb();
+  const user = db
+    .prepare("SELECT password_changed_at FROM users WHERE id = ?")
+    .get(payload.userId) as Record<string, unknown> | undefined;
+  if (!user) return null;
   if (payload.passwordChangedAt) {
-    const { getDb } = await import("@/lib/auth/db");
-    const db = getDb();
-    const user = db
-      .prepare("SELECT password_changed_at FROM users WHERE id = ?")
-      .get(payload.userId) as Record<string, unknown> | undefined;
-    if (
-      !user ||
-      (user.password_changed_at || null) !== payload.passwordChangedAt
-    ) {
+    if ((user.password_changed_at || null) !== payload.passwordChangedAt) {
+      return null;
+    }
+  } else if (user.password_changed_at && payload.iat) {
+    // Легаси-токен без passwordChangedAt (выпущен до внедрения claim):
+    // отклоняем, если пароль менялся позже выпуска токена
+    const changedSec = Math.floor(
+      parseSqliteDateTime(user.password_changed_at as string).getTime() / 1000,
+    );
+    if (changedSec > payload.iat) {
       return null;
     }
   }

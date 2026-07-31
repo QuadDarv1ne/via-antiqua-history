@@ -8,7 +8,7 @@ import { Shield, ShieldOff, LogOut, Loader2, Copy, Check, Smartphone, Bookmark, 
 import { useAuth } from '@/contexts/AuthContext'
 import { useBookmarks } from '@/components/site/bookmarks'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
-import { passwordStrength, validatePassword } from '@/lib/utils'
+import { passwordStrength, validatePassword, parseSqliteDateTime } from '@/lib/utils'
 import { SUBSCRIPTION_PRICE, SITE_NAME } from '@/lib/constants'
 import { PasswordStrengthBar } from '@/components/ui/password-strength'
 import { PasswordToggle } from '@/components/ui/password-toggle'
@@ -111,23 +111,22 @@ export default function ProfilePage() {
     return () => { cancelled = true }
   }, [user])
 
-  // Poll for payment confirmation (stops after 15 min to match payment expiry)
+  // Poll for payment confirmation (stops after 30 min to match payment expiry)
   React.useEffect(() => {
     if (!paymentData) return
     const startedAt = Date.now()
     const POLL_INTERVAL = 5000
-    const MAX_DURATION = 15 * 60 * 1000
+    const MAX_DURATION = 30 * 60 * 1000
 
     const interval: ReturnType<typeof setInterval> = setInterval(async () => {
-      // Skip polling when tab is not visible
-      if (document.hidden) return
-
       if (Date.now() - startedAt > MAX_DURATION) {
         clearInterval(interval)
         setPaymentData(null)
         setErrorSub('Время оплаты истекло. Создайте новый платёж.')
         return
       }
+      // Skip polling when tab is not visible
+      if (document.hidden) return
       try {
         const res = await fetch('/api/subscription/status')
         const json = await res.json()
@@ -154,7 +153,12 @@ export default function ProfilePage() {
       })
       const json = await res.json()
       if (json.ok) {
-        setPaymentData(json.data)
+        if (json.data?.qrCodeUrl) {
+          setPaymentData(json.data)
+        } else {
+          setPaymentData(null)
+          setErrorSub(json.data?.message || 'Платёж уже создан — используйте предыдущий QR-код')
+        }
       } else {
         setErrorSub(json.error || 'Ошибка создания подписки')
       }
@@ -414,7 +418,7 @@ export default function ProfilePage() {
                     </div>
                     <div>
                       <p className="font-semibold text-foreground">Полный доступ</p>
-                      <p className="text-xs text-muted-foreground">Действует до {new Date(subscription.expiresAt).toLocaleDateString('ru-RU')}</p>
+                      <p className="text-xs text-muted-foreground">Действует до {parseSqliteDateTime(subscription.expiresAt).toLocaleDateString('ru-RU')}</p>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-3 text-sm">
@@ -484,7 +488,7 @@ export default function ProfilePage() {
                       {paymentData.amount} ₽
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Срок действия: 15 минут
+                      Срок действия: 30 минут
                     </p>
                   </div>
 
@@ -710,7 +714,12 @@ export default function ProfilePage() {
                   </div>
                   <button type="button"
                     onClick={() => {
-                      navigator.clipboard.writeText(recoveryCodes.join('\n'))
+                      const codes = recoveryCodes.join('\n')
+                      try {
+                        navigator.clipboard.writeText(codes)
+                      } catch {
+                        window.prompt('Скопируйте коды вручную:', codes)
+                      }
                       setCopiedIdx(-2)
                       scheduleReset(2000, () => setCopiedIdx(-1))
                     }}

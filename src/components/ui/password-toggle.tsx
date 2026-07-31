@@ -13,9 +13,9 @@ export function PasswordToggle({ visible, onToggle, className }: PasswordToggleP
     <button
       type="button"
       onClick={onToggle}
-      className={className ?? 'absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-foreground/80 transition-colors'}
-      tabIndex={-1}
+      className={className ?? 'absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-foreground/80 transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary'}
       aria-label={visible ? 'Скрыть пароль' : 'Показать пароль'}
+      aria-pressed={visible}
     >
       {visible ? <EyeOff className="h-4 w-4" aria-hidden="true" /> : <Eye className="h-4 w-4" aria-hidden="true" />}
     </button>

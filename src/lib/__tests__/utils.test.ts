@@ -172,6 +172,12 @@ describe('parseSqliteDateTime', () => {
     )
   })
 
+  it('also accepts ISO 8601 strings', () => {
+    expect(parseSqliteDateTime('2026-07-31T15:15:00.000Z').toISOString()).toBe(
+      '2026-07-31T15:15:00.000Z',
+    )
+  })
+
   it('returns current time for invalid input instead of Invalid Date', () => {
     const before = Date.now()
     const parsed = parseSqliteDateTime('not-a-date')

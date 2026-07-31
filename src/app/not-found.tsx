@@ -3,7 +3,8 @@ import { Compass, Home, Landmark } from 'lucide-react'
 
 export default function NotFound() {
   return (
-    <main role="status" className="min-h-screen flex flex-col items-center justify-center bg-background px-4 py-12">
+    <main className="min-h-screen flex flex-col items-center justify-center bg-background px-4 py-12">
+      <span role="status" className="sr-only">Страница не найдена</span>
       <div className="text-center max-w-md">
         <Link href="/" className="inline-flex items-center gap-2 mb-8 hover:opacity-80 transition-opacity">
           <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground animate-[scale-in_0.3s_ease-out]">

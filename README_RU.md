@@ -55,7 +55,7 @@
 - **Глоссарий** — 22 ключевых термина с поиском и фильтрацией
 - **Квиз** — 20 вопросов с итоговой статистикой
 - **Глобальный поиск** — мгновенный поиск по всем разделам (`Ctrl+K` / `Cmd+K`)
-- **Закладки** — сохранение любимых материалов в localStorage
+- **Закладки** — локальное сохранение с синхронизацией через аккаунт
 - **Reading progress** — визуальный индикатор прогресса чтения
 - **Тёмная/светлая тема** — античный стиль с пергаментным фоном и бронзовыми акцентами
 - **Полная адаптивность** — корректное отображение на мобильных, планшетах и десктопах
@@ -219,14 +219,14 @@ npm run lint
 ```
 via-antiqua-history/
 ├── public/                         # Статические файлы
+│   ├── fonts/                      # Подключённые шрифты (Garamond)
 │   ├── img/
 │   │   └── dupley_maxim.jpg        # Фото автора
 │   ├── logo.svg                    # Иконка приложения
 │   ├── logo-192.png                # PWA-иконка (192×192)
 │   ├── logo-512.png                # PWA-иконка (512×512)
 │   ├── manifest.json               # PWA-манифест
-│   ├── robots.txt
-│   ├── sitemap.xml
+│   ├── og-image.png                # Open Graph изображение
 │   └── sw.js                       # Service Worker
 ├── src/
 │   ├── app/                        # Next.js App Router
@@ -239,11 +239,12 @@ via-antiqua-history/
 │   │   │   └── reset-password/
 │   │   ├── api/                    # API-маршруты
 │   │   │   ├── auth/               # Обработчики аутентификации
-│   │   │   ├── bookmarks/route.ts
+│   │   │   ├── bookmarks/route.ts  # GET / POST / DELETE закладок
 │   │   │   ├── subscription/       # Платежи/подписка
 │   │   │   └── webhook/fastpay/    # Webhook платежей
 │   │   ├── error.tsx               # Error boundary
 │   │   ├── globals.css             # Античная тема + утилиты
+│   │   ├── home-page-client.tsx    # Клиентская сборка главной
 │   │   ├── layout.tsx              # Корневой layout
 │   │   ├── loading.tsx             # Состояние загрузки
 │   │   ├── not-found.tsx           # Страница 404
@@ -253,12 +254,15 @@ via-antiqua-history/
 │   ├── components/
 │   │   ├── seo/                    # SEO-компоненты
 │   │   │   └── faq-schema.tsx
-│   │   ├── site/                   # Компоненты сайта (25+ элементов)
+│   │   ├── site/                   # Компоненты сайта
+│   │   │   ├── __tests__/
+│   │   │   │   └── reading-time.test.ts
 │   │   │   ├── analysis-section.tsx
 │   │   │   ├── bookmarks.tsx
 │   │   │   ├── comparison-section.tsx
 │   │   │   ├── content-gate.tsx
 │   │   │   ├── epochs-section.tsx
+│   │   │   ├── filter-bar.tsx
 │   │   │   ├── footer.tsx
 │   │   │   ├── glossary-section.tsx
 │   │   │   ├── hero.tsx
@@ -273,6 +277,7 @@ via-antiqua-history/
 │   │   │   ├── scroll-to-top.tsx
 │   │   │   ├── search-dialog.tsx
 │   │   │   ├── section-divider.tsx
+│   │   │   ├── section-header.tsx
 │   │   │   ├── service-worker-registration.tsx
 │   │   │   ├── share-button.tsx
 │   │   │   ├── sources-section.tsx
@@ -285,31 +290,51 @@ via-antiqua-history/
 │   │       ├── dialog.tsx
 │   │       ├── error-boundary.tsx
 │   │       ├── input.tsx
+│   │       ├── password-strength.tsx
+│   │       ├── password-toggle.tsx
 │   │       ├── popover.tsx
 │   │       ├── progress.tsx
 │   │       ├── scroll-area.tsx
-│   │       ├── skeleton.tsx
-│   │       └── toast.tsx
+│   │       └── skeleton.tsx
 │   ├── contexts/
 │   │   └── AuthContext.tsx          # Управление состоянием аутентификации
 │   ├── hooks/
-│   │   ├── use-animated-counter.ts
-│   │   └── use-section-progress.ts
+│   │   ├── __tests__/
+│   │   │   └── use-in-view.test.ts
+│   │   ├── use-in-view.ts
+│   │   ├── use-section-progress.ts
+│   │   └── use-subscription.ts
 │   └── lib/
 │       ├── __tests__/
-│       │   └── utils.test.ts       # Модульные тесты
-│       ├── auth/                   # Бэкенд аутентификации
+│       │   ├── constants.test.ts
+│       │   ├── data-integrity.test.ts
+│       │   ├── history-data.test.ts
+│       │   └── utils.test.ts        # Модульные тесты
+│       ├── auth/                    # Бэкенд аутентификации
+│       │   ├── __tests__/
+│       │   │   ├── api-response.test.ts
+│       │   │   ├── rate-limit.test.ts
+│       │   │   ├── two-factor.test.ts
+│       │   │   └── utils.test.ts
+│       │   ├── api-response.ts
+│       │   ├── csrf.ts
 │       │   ├── db.ts
 │       │   ├── email.ts
+│       │   ├── get-ip.ts
 │       │   ├── rate-limit.ts
-│       │   ├── subscription-middleware.ts
+│       │   ├── request.ts
+│       │   ├── schemas.ts
 │       │   ├── totp.ts
+│       │   ├── two-factor.ts
 │       │   ├── types.ts
 │       │   └── utils.ts
-│       ├── history-data/           # Исторические данные (18 файлов)
-│       └── utils.ts                # cn() и общие утилиты
+│       ├── constants.ts             # Единые константы проекта
+│       ├── history-data/            # Исторические данные
+│       ├── icons.tsx                # Иконки соцсетей
+│       └── utils.ts                 # cn() и общие утилиты
 ├── scripts/
 │   ├── copy-assets.sh
+│   ├── generate-og-image.mjs
 │   └── make-archive.sh
 ├── .dockerignore
 ├── .env.example
@@ -334,7 +359,7 @@ via-antiqua-history/
 ### Навигация и поиск
 - **Глобальный поиск** (`Ctrl+K` / `Cmd+K` / `/`) — мгновенный поиск по городам, памятникам, терминам и персоналиям
 - **Sticky-навигация** — фиксированное меню с smooth scroll к секциям
-- **Закладки** — сохранение любимых материалов в localStorage, плавающая кнопка для быстрого доступа
+- **Закладки** — локальное сохранение с синхронизацией через аккаунт, плавающая кнопка для быстрого доступа
 - **Reading progress** — визуальный индикатор прогресса чтения вверху экрана
 - **Кнопка «наверх»** — появляется при скролле вниз
 
@@ -394,7 +419,7 @@ via-antiqua-history/
 - [x] Квиз — 20 вопросов
 - [x] Источники — 12 ссылок
 - [x] Глобальный поиск (Ctrl+K)
-- [x] Закладки с localStorage
+- [x] Закладки с синхронизацией через аккаунт
 - [x] Reading progress индикатор
 - [x] Тёмная/светлая тема
 - [x] Полная адаптивность (mobile-first)

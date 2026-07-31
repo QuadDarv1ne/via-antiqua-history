@@ -63,8 +63,11 @@ export function toSqliteDateTime(date: Date): string {
   return date.toISOString().slice(0, 19).replace('T', ' ')
 }
 
-/** Parse a SQLite datetime('now') UTC string as a Date. Falls back to current time for invalid input. */
+/** Parse a SQLite datetime('now') UTC string as a Date. Also accepts ISO 8601 strings. Falls back to current time for invalid input. */
 export function parseSqliteDateTime(value: string): Date {
-  const parsed = new Date(value.replace(' ', 'T') + 'Z')
+  const normalized = /^\d{4}-\d{2}-\d{2}T/.test(value)
+    ? value
+    : value.replace(' ', 'T') + 'Z'
+  const parsed = new Date(normalized)
   return Number.isNaN(parsed.getTime()) ? new Date() : parsed
 }

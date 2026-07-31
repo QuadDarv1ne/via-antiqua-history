@@ -32,9 +32,10 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           </nav>
         </div>
       </header>
-      <main className="pt-14 sm:pt-16" id="main-content">
+      {/* div, а не main: страницы авторизации рендерят собственный <main> */}
+      <div className="pt-14 sm:pt-16" id="main-content">
         {children}
-      </main>
+      </div>
     </div>
   )
 }

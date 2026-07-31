@@ -55,7 +55,7 @@ All materials are based on modern historical research, including works on ancien
 - **Glossary** — 22 key terms with search and filtering
 - **Quiz** — 20 questions with final statistics
 - **Global search** — instant search across all sections (`Ctrl+K` / `Cmd+K`)
-- **Bookmarks** — save favorite materials to localStorage
+- **Bookmarks** — local saving synced through the account
 - **Reading progress** — visual reading progress indicator
 - **Dark/Light theme** — antique style with parchment background and bronze accents
 - **Full responsiveness** — correct display on mobile, tablet, and desktop
@@ -219,14 +219,14 @@ npm run lint
 ```
 via-antiqua-history/
 ├── public/                         # Static files
+│   ├── fonts/                      # Bundled fonts (Garamond)
 │   ├── img/
 │   │   └── dupley_maxim.jpg        # Author photo
 │   ├── logo.svg                    # App icon
 │   ├── logo-192.png                # PWA icon (192×192)
 │   ├── logo-512.png                # PWA icon (512×512)
 │   ├── manifest.json               # PWA manifest
-│   ├── robots.txt
-│   ├── sitemap.xml
+│   ├── og-image.png                # Open Graph image
 │   └── sw.js                       # Service Worker
 ├── src/
 │   ├── app/                        # Next.js App Router
@@ -239,11 +239,12 @@ via-antiqua-history/
 │   │   │   └── reset-password/
 │   │   ├── api/                    # API routes
 │   │   │   ├── auth/               # Auth handlers
-│   │   │   ├── bookmarks/route.ts
+│   │   │   ├── bookmarks/route.ts  # GET / POST / DELETE bookmarks
 │   │   │   ├── subscription/       # Payment/subscription
 │   │   │   └── webhook/fastpay/    # Payment webhook
 │   │   ├── error.tsx               # Error boundary
 │   │   ├── globals.css             # Antique theme + utilities
+│   │   ├── home-page-client.tsx    # Client composition of the home page
 │   │   ├── layout.tsx              # Root layout
 │   │   ├── loading.tsx             # Loading state
 │   │   ├── not-found.tsx           # 404 page
@@ -253,12 +254,15 @@ via-antiqua-history/
 │   ├── components/
 │   │   ├── seo/                    # SEO components
 │   │   │   └── faq-schema.tsx
-│   │   ├── site/                   # Site components (25+ items)
+│   │   ├── site/                   # Site components
+│   │   │   ├── __tests__/
+│   │   │   │   └── reading-time.test.ts
 │   │   │   ├── analysis-section.tsx
 │   │   │   ├── bookmarks.tsx
 │   │   │   ├── comparison-section.tsx
 │   │   │   ├── content-gate.tsx
 │   │   │   ├── epochs-section.tsx
+│   │   │   ├── filter-bar.tsx
 │   │   │   ├── footer.tsx
 │   │   │   ├── glossary-section.tsx
 │   │   │   ├── hero.tsx
@@ -273,6 +277,7 @@ via-antiqua-history/
 │   │   │   ├── scroll-to-top.tsx
 │   │   │   ├── search-dialog.tsx
 │   │   │   ├── section-divider.tsx
+│   │   │   ├── section-header.tsx
 │   │   │   ├── service-worker-registration.tsx
 │   │   │   ├── share-button.tsx
 │   │   │   ├── sources-section.tsx
@@ -285,46 +290,66 @@ via-antiqua-history/
 │   │       ├── dialog.tsx
 │   │       ├── error-boundary.tsx
 │   │       ├── input.tsx
+│   │       ├── password-strength.tsx
+│   │       ├── password-toggle.tsx
 │   │       ├── popover.tsx
 │   │       ├── progress.tsx
 │   │       ├── scroll-area.tsx
-│   │       ├── skeleton.tsx
-│   │       └── toast.tsx
+│   │       └── skeleton.tsx
 │   ├── contexts/
 │   │   └── AuthContext.tsx          # Auth state management
 │   ├── hooks/
-│   │   ├── use-animated-counter.ts
-│   │   └── use-section-progress.ts
+│   │   ├── __tests__/
+│   │   │   └── use-in-view.test.ts
+│   │   ├── use-in-view.ts
+│   │   ├── use-section-progress.ts
+│   │   └── use-subscription.ts
 │   └── lib/
 │       ├── __tests__/
-│       │   └── utils.test.ts       # Unit tests
-│       ├── auth/                   # Auth backend
+│       │   ├── constants.test.ts
+│       │   ├── data-integrity.test.ts
+│       │   ├── history-data.test.ts
+│       │   └── utils.test.ts        # Unit tests
+│       ├── auth/                    # Auth backend
+│       │   ├── __tests__/
+│       │   │   ├── api-response.test.ts
+│       │   │   ├── rate-limit.test.ts
+│       │   │   ├── two-factor.test.ts
+│       │   │   └── utils.test.ts
+│       │   ├── api-response.ts
+│       │   ├── csrf.ts
 │       │   ├── db.ts
 │       │   ├── email.ts
+│       │   ├── get-ip.ts
 │       │   ├── rate-limit.ts
-│       │   ├── subscription-middleware.ts
+│       │   ├── request.ts
+│       │   ├── schemas.ts
 │       │   ├── totp.ts
+│       │   ├── two-factor.ts
 │       │   ├── types.ts
 │       │   └── utils.ts
-│       ├── history-data/           # Historical data (18 files)
-│       └── utils.ts                # cn() and common utilities
+│       ├── constants.ts             # Shared project constants
+│       ├── history-data/            # Historical data
+│       ├── icons.tsx                # Social icons
+│       └── utils.ts                 # cn() and common utilities
 ├── scripts/
 │   ├── copy-assets.sh
+│   ├── generate-og-image.mjs
 │   └── make-archive.sh
 ├── .dockerignore
 ├── .env.example
 ├── amvera.yaml                     # Amvera cloud deployment
 ├── Caddyfile                       # Reverse proxy config
 ├── components.json                 # shadcn/ui config
-├── Dockerfile                      # Production Docker build
+├── Dockerfile                      # Docker build for production
 ├── eslint.config.mjs               # ESLint flat config
-├── next.config.ts                  # Next.js configuration
-├── tsconfig.json                   # TypeScript configuration
-├── vitest.config.ts                # Vitest configuration
+├── next.config.ts                  # Next.js config
+├── tsconfig.json                   # TypeScript config
+├── vitest.config.ts                # Vitest config
 ├── package.json                    # Dependencies and scripts
-├── README.md                       # Brief documentation (RU)
-├── README_RU.md                    # Full documentation in Russian
-├── README_EN.md                    # Full documentation in English
+├── README.md                       # Short docs (RU)
+├── README_RU.md                    # Full docs in Russian
+├── README_EN.md                    # Full docs in English
 ├── LICENSE                         # License
 └── .gitignore                      # Git exclusions
 ```
@@ -334,7 +359,7 @@ via-antiqua-history/
 ### Navigation and Search
 - **Global search** (`Ctrl+K` / `Cmd+K` / `/`) — instant search across cities, monuments, terms, and personalities
 - **Sticky navigation** — fixed menu with smooth scroll to sections
-- **Bookmarks** — save favorite materials to localStorage, floating button for quick access
+- **Bookmarks** — local saving synced through the account, floating button for quick access
 - **Reading progress** — visual reading progress indicator at the top of the screen
 - **Scroll to top button** — appears when scrolling down
 
@@ -394,7 +419,7 @@ via-antiqua-history/
 - [x] Quiz — 20 questions
 - [x] Sources — 12 links
 - [x] Global search (Ctrl+K)
-- [x] Bookmarks with localStorage
+- [x] Bookmarks synced through the account
 - [x] Reading progress indicator
 - [x] Dark/Light theme
 - [x] Full responsiveness (mobile-first)
