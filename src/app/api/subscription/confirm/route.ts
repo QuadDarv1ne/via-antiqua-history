@@ -5,6 +5,7 @@ import { apiOk, apiError } from '@/lib/auth/api-response'
 import { checkRateLimit, rateLimitResponse } from '@/lib/auth/rate-limit'
 import { validateCsrf } from '@/lib/auth/csrf'
 import { getClientIp } from '@/lib/auth/get-ip'
+import { toSqliteDateTime } from '@/lib/utils'
 
 const RATE_LIMIT = { windowMs: 15 * 60 * 1000, max: 5 }
 
@@ -25,7 +26,7 @@ export async function POST(request: NextRequest) {
     }
 
     const db = getDb()
-    const now = new Date().toISOString()
+    const now = toSqliteDateTime(new Date())
 
     const activeSub = db.prepare(`
       SELECT id FROM subscriptions
@@ -49,7 +50,9 @@ export async function POST(request: NextRequest) {
       return apiError('Нет оплаченной подписки для активации', 400)
     }
 
-    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+    const expiresAt = toSqliteDateTime(
+      new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    )
 
     db.transaction(() => {
       db.prepare(`

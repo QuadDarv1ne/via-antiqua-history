@@ -4,9 +4,10 @@ import { generateNumericCode, generateToken } from "@/lib/auth/utils";
 import { sendPasswordResetEmail } from "@/lib/auth/email";
 import { apiOk, apiError } from "@/lib/auth/api-response";
 import { checkRateLimit, rateLimitResponse } from "@/lib/auth/rate-limit";
-import { validateEmail } from "@/lib/utils";
+import { validateEmail, toSqliteDateTime } from "@/lib/utils";
 import { validateCsrf } from "@/lib/auth/csrf";
 import { getClientIp } from "@/lib/auth/get-ip";
+import { readJsonBody } from "@/lib/auth/request";
 
 const RATE_LIMIT = { windowMs: 15 * 60 * 1000, max: 3 };
 const USER_RATE_LIMIT = { windowMs: 60 * 60 * 1000, max: 5 };
@@ -16,7 +17,11 @@ export async function POST(req: NextRequest) {
     const csrfError = validateCsrf(req);
     if (csrfError) return csrfError;
 
-    const { email } = await req.json();
+    const body = await readJsonBody(req);
+    if (!body) {
+      return apiError("Некорректный запрос", 400);
+    }
+    const { email } = body as { email?: unknown };
 
     if (!email) {
       return apiError("Укажите email", 400);
@@ -60,7 +65,9 @@ export async function POST(req: NextRequest) {
     }
 
     const code = generateNumericCode(6);
-    const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+    const expiresAt = toSqliteDateTime(
+      new Date(Date.now() + 15 * 60 * 1000),
+    );
 
     const createToken = db.transaction(() => {
       db.prepare(

@@ -57,3 +57,8 @@ export function validateEmail(email: string): string | null {
 export function getSectionGradient(opacity = 0.04): string {
   return `linear-gradient(180deg, oklch(0.55 0.1 60 / ${opacity}) 0%, transparent 100%)`
 }
+
+/** Format a Date as SQLite datetime('now')-compatible UTC string (YYYY-MM-DD HH:MM:SS). */
+export function toSqliteDateTime(date: Date): string {
+  return date.toISOString().slice(0, 19).replace('T', ' ')
+}

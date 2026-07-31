@@ -5,6 +5,7 @@ import { apiOk, apiError } from "@/lib/auth/api-response";
 import { validateCsrf } from "@/lib/auth/csrf";
 import { checkRateLimit, rateLimitResponse } from "@/lib/auth/rate-limit";
 import { getClientIp } from "@/lib/auth/get-ip";
+import { toSqliteDateTime } from "@/lib/utils";
 
 const RATE_LIMIT = { windowMs: 15 * 60 * 1000, max: 5 };
 
@@ -25,7 +26,7 @@ export async function POST(_request: NextRequest) {
     }
 
     const db = getDb();
-    const now = new Date().toISOString();
+    const now = toSqliteDateTime(new Date());
 
     const result = db
       .prepare(

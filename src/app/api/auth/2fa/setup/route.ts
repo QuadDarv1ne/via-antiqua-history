@@ -7,6 +7,7 @@ import { apiOk, apiError } from "@/lib/auth/api-response";
 import { checkRateLimit, rateLimitResponse } from "@/lib/auth/rate-limit";
 import { validateCsrf } from "@/lib/auth/csrf";
 import { getClientIp } from "@/lib/auth/get-ip";
+import { readJsonBody } from "@/lib/auth/request";
 import { SITE_NAME } from "@/lib/constants";
 
 const RATE_LIMIT = { windowMs: 15 * 60 * 1000, max: 3 };
@@ -24,12 +25,7 @@ export async function POST(req: NextRequest) {
     const ip = getClientIp(req);
 
     // Parse body — may be empty (setup) or contain code+password (confirm)
-    let body: Record<string, unknown> = {};
-    try {
-      body = await req.json();
-    } catch {
-      // Empty body is valid for setup step
-    }
+    const body = (await readJsonBody(req)) ?? {};
 
     const { code, password } = body as { code?: string; password?: string };
     const isConfirmStep = Boolean(code);

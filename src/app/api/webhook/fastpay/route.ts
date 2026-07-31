@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { createHmac, timingSafeEqual } from "crypto";
 import { getDb } from "@/lib/auth/db";
 import { apiOk, apiError } from "@/lib/auth/api-response";
+import { toSqliteDateTime } from "@/lib/utils";
 
 /**
  * Вебхук для обработки платежей от FastPay Connect
@@ -114,10 +115,10 @@ async function handlePaymentCompleted(data: unknown) {
   }
 
   const db = getDb();
-  const now = new Date().toISOString();
-  const expiresAt = new Date(
-    Date.now() + 30 * 24 * 60 * 60 * 1000,
-  ).toISOString();
+  const now = toSqliteDateTime(new Date());
+  const expiresAt = toSqliteDateTime(
+    new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+  );
 
   const paymentData = data;
 

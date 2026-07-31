@@ -2,11 +2,15 @@ import { NextRequest } from "next/server";
 import { getDb } from "@/lib/auth/db";
 import { verifyPassword, createSession } from "@/lib/auth/utils";
 import { apiOk, apiError } from "@/lib/auth/api-response";
-import { totp } from "@/lib/auth/totp";
 import { checkRateLimit, rateLimitResponse } from "@/lib/auth/rate-limit";
 import { validateCsrf } from "@/lib/auth/csrf";
 import { getClientIp } from "@/lib/auth/get-ip";
 import { UserSchema, safeParse } from "@/lib/auth/schemas";
+import { readJsonBody } from "@/lib/auth/request";
+import {
+  verifySecondFactorCode,
+  consumeRecoveryCode,
+} from "@/lib/auth/two-factor";
 
 const RATE_LIMIT = { windowMs: 15 * 60 * 1000, max: 10 };
 
@@ -15,7 +19,15 @@ export async function POST(req: NextRequest) {
     const csrfError = validateCsrf(req);
     if (csrfError) return csrfError;
 
-    const { email, password, totpCode } = await req.json();
+    const body = await readJsonBody(req);
+    if (!body) {
+      return apiError("Некорректный запрос", 400);
+    }
+    const { email, password, totpCode } = body as {
+      email?: unknown;
+      password?: unknown;
+      totpCode?: unknown;
+    };
 
     if (!email || !password) {
       return apiError("Заполните все поля", 400);
@@ -32,7 +44,8 @@ export async function POST(req: NextRequest) {
     }
     if (
       totpCode !== undefined &&
-      (typeof totpCode !== "string" || !/^\d{6}$/.test(totpCode))
+      (typeof totpCode !== "string" ||
+        (!/^\d{6}$/.test(totpCode) && !/^[a-zA-Z0-9]{8}$/.test(totpCode)))
     ) {
       return apiError("Некорректный код 2FA", 400);
     }
@@ -46,7 +59,7 @@ export async function POST(req: NextRequest) {
     const db = getDb();
     const rawUser = db
       .prepare(
-        "SELECT id, email, password_hash, name, email_verified, totp_secret, totp_enabled, password_changed_at, created_at FROM users WHERE email = ?",
+        "SELECT id, email, password_hash, name, email_verified, totp_secret, totp_enabled, recovery_codes, password_changed_at, created_at FROM users WHERE email = ?",
       )
       .get(email.toLowerCase());
 
@@ -65,10 +78,16 @@ export async function POST(req: NextRequest) {
         return apiOk({ require2fa: true });
       }
 
-      const secret = user.totp_secret as string;
-      const result = await totp.verify(totpCode, { secret, epochTolerance: 1 });
-      if (!result.valid) {
+      const result = await verifySecondFactorCode(
+        totpCode,
+        (user.totp_secret as string | null) ?? null,
+        (user.recovery_codes as string | null) ?? null,
+      );
+      if (!result.ok) {
         return apiError("Неверный код 2FA", 401);
+      }
+      if (result.reason === "recovery") {
+        consumeRecoveryCode(db, user.id, totpCode);
       }
     }
 

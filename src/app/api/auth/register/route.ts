@@ -6,6 +6,7 @@ import { apiOk, apiError } from "@/lib/auth/api-response";
 import { checkRateLimit, rateLimitResponse } from "@/lib/auth/rate-limit";
 import { validateCsrf } from "@/lib/auth/csrf";
 import { getClientIp } from "@/lib/auth/get-ip";
+import { readJsonBody } from "@/lib/auth/request";
 
 const RATE_LIMIT = { windowMs: 60 * 60 * 1000, max: 5 };
 
@@ -14,7 +15,15 @@ export async function POST(req: NextRequest) {
     const csrfError = validateCsrf(req);
     if (csrfError) return csrfError;
 
-    const { email, password, name } = await req.json();
+    const body = await readJsonBody(req);
+    if (!body) {
+      return apiError("Некорректный запрос", 400);
+    }
+    const { email, password, name } = body as {
+      email?: unknown;
+      password?: unknown;
+      name?: unknown;
+    };
 
     if (!email || !password || !name) {
       return apiError("Заполните все поля", 400);

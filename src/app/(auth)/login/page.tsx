@@ -192,17 +192,17 @@ export default function LoginPage() {
                     id="totp"
                     type="text"
                     value={totpCode}
-                    onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    onChange={(e) => setTotpCode(e.target.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 8))}
                     placeholder="000000"
                     required
-                    maxLength={6}
+                    maxLength={8}
                     autoComplete="one-time-code"
                     autoFocus
                     className="w-full h-11 pl-10 pr-4 rounded-xl border border-border/60 bg-background/60 text-sm text-center text-lg tracking-[10px] font-mono focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary/50 transition-all placeholder:text-muted-foreground/30"
                   />
                 </div>
                 <p className="text-xs text-muted-foreground/60 mt-2 text-center">
-                  Откройте приложение-аутентификатор и введите код
+                  Введите код из приложения-аутентификатора или резервный код
                 </p>
               </motion.div>
             )}

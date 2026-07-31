@@ -1,11 +1,15 @@
 import { NextRequest } from 'next/server'
 import { getDb } from '@/lib/auth/db'
 import { getSession, verifyPassword } from '@/lib/auth/utils'
-import { totp } from '@/lib/auth/totp'
 import { apiOk, apiError } from '@/lib/auth/api-response'
 import { checkRateLimit, rateLimitResponse } from '@/lib/auth/rate-limit'
 import { validateCsrf } from '@/lib/auth/csrf'
 import { getClientIp } from '@/lib/auth/get-ip'
+import { readJsonBody } from '@/lib/auth/request'
+import {
+  verifySecondFactorCode,
+  consumeRecoveryCode,
+} from '@/lib/auth/two-factor'
 
 const RATE_LIMIT = { windowMs: 15 * 60 * 1000, max: 5 }
 
@@ -25,7 +29,11 @@ export async function POST(req: NextRequest) {
       return rateLimitResponse(rl.resetMs)
     }
 
-    const { code } = await req.json()
+    const body = await readJsonBody(req)
+    if (!body) {
+      return apiError('Некорректный запрос', 400)
+    }
+    const { code } = body as { code?: unknown }
 
     if (!code || typeof code !== 'string') {
       return apiError('Укажите код', 400)
@@ -41,30 +49,21 @@ export async function POST(req: NextRequest) {
       return apiError('2FA не включён', 400)
     }
 
-    if (user.totp_secret) {
-      const result = await totp.verify(code, { secret: user.totp_secret as string, epochTolerance: 1 })
-      if (result.valid) {
-        return apiOk()
-      }
-    } else if (user.totp_enabled) {
-      // Inconsistent state: 2FA enabled but no secret — reject
-      return apiError('2FA настроен некорректно. Обратитесь к администратору', 500)
+    const result = await verifySecondFactorCode(
+      code,
+      (user.totp_secret as string | null) ?? null,
+      (user.recovery_codes as string | null) ?? null,
+    )
+    if (!result.ok) {
+      return apiError('Неверный код', 401)
     }
 
-    let recoveryCodes: string[] = []
-    try {
-      recoveryCodes = JSON.parse((user.recovery_codes as string) || '[]')
-    } catch {
-      // Corrupted recovery codes — fall through to generic error
-    }
-    const idx = recoveryCodes.indexOf(code.toUpperCase())
-    if (idx !== -1) {
-      recoveryCodes.splice(idx, 1)
-      db.prepare('UPDATE users SET recovery_codes = ? WHERE id = ?').run(JSON.stringify(recoveryCodes), session.userId)
+    if (result.reason === 'recovery') {
+      consumeRecoveryCode(db, session.userId, code)
       return apiOk({ usedRecoveryCode: true })
     }
 
-    return apiError('Неверный код', 401)
+    return apiOk()
   } catch (err) {
     console.error('2FA verify error:', err)
     return apiError('Внутренняя ошибка сервера', 500)
@@ -87,7 +86,8 @@ export async function DELETE(req: NextRequest) {
       return rateLimitResponse(rl.resetMs)
     }
 
-    const { password } = await req.json().catch(() => ({}))
+    const body = await readJsonBody(req)
+    const { password } = body ?? {}
     if (!password || typeof password !== 'string') {
       return apiError('Введите пароль для отключения 2FA', 400)
     }

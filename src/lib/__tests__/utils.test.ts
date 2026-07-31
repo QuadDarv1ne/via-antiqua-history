@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { cn, withAlpha, passwordStrength, validateEmail, validatePassword, getSectionGradient, getRegionColor } from '../utils'
+import { cn, withAlpha, passwordStrength, validateEmail, validatePassword, getSectionGradient, getRegionColor, toSqliteDateTime } from '../utils'
 
 describe('cn', () => {
   it('merges class names', () => {
@@ -137,5 +137,24 @@ describe('getRegionColor', () => {
   it('returns general color for unknown region without fallback', () => {
     const result = getRegionColor('unknown')
     expect(result).toMatch(/^oklch\(/)
+  })
+})
+
+describe('toSqliteDateTime', () => {
+  it('formats a Date as SQLite-compatible UTC string', () => {
+    expect(toSqliteDateTime(new Date('2026-07-31T15:15:00.000Z'))).toBe(
+      '2026-07-31 15:15:00',
+    )
+  })
+
+  it('produces datetime(now)-comparable format', () => {
+    const value = toSqliteDateTime(new Date())
+    expect(value).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/)
+  })
+
+  it('strips milliseconds and timezone suffix', () => {
+    expect(toSqliteDateTime(new Date('2026-01-02T03:04:05.678Z'))).toBe(
+      '2026-01-02 03:04:05',
+    )
   })
 })
