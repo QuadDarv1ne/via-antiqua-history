@@ -72,7 +72,10 @@ export async function GET(_req: NextRequest) {
       .filter((r) => r.success)
       .map((r) => r.data) as ValidatedBookmarkRow[];
 
-    return apiOk(rows, { headers: CACHE_HEADERS });
+    // Не отдаём внутренние колонки (user_id, created_at) клиенту
+    const publicRows = rows.map(({ user_id: _userId, created_at: _createdAt, ...rest }) => rest);
+
+    return apiOk(publicRows, { headers: CACHE_HEADERS });
   } catch (err) {
     console.error("Bookmarks GET error:", err);
     return apiError("Внутренняя ошибка сервера", 500);

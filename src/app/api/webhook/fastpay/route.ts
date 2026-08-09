@@ -126,7 +126,7 @@ async function handlePaymentCompleted(data: unknown) {
   const payment = db
     .prepare(
       `
-    SELECT id, user_id, amount, currency FROM payments 
+    SELECT id, user_id, amount, currency, status FROM payments 
     WHERE id = ? OR external_payment_id = ?
   `,
     )
@@ -136,6 +136,7 @@ async function handlePaymentCompleted(data: unknown) {
         user_id: string;
         amount: number;
         currency: string;
+        status: string;
       }
     | undefined;
 
@@ -144,6 +145,19 @@ async function handlePaymentCompleted(data: unknown) {
       `Payment not found: ${paymentData.externalPaymentId} / ${paymentData.paymentId}`,
     );
     throw new Error("Payment not found — FastPay will retry");
+  }
+
+  // Идемпотентность: повторная доставка payment.completed не должна
+  // «перезаписывать» уже обработанное/возвращённое состояние
+  if (payment.status === "paid") {
+    console.warn(`Duplicate payment.completed for ${payment.id} — skipped`);
+    return;
+  }
+  if (payment.status === "refunded") {
+    console.error(
+      `payment.completed after refund for ${payment.id} — ignored (replay or inconsistent FastPay state)`,
+    );
+    return;
   }
 
   // Сверяем сумму и валюту: подпись HMAC подтверждает отправителя,
@@ -172,17 +186,24 @@ async function handlePaymentCompleted(data: unknown) {
     );
   }
 
-  // Обновляем статус платежа и активируем подписку атомарно
-  db.transaction(() => {
-    db.prepare(
-      `
+  // Обновляем статус платежа и активируем подписку атомарно.
+  // Условие status = 'pending' защищает от гонки с другими вебхуками.
+  const tx = db.transaction(() => {
+    const paid = db
+      .prepare(
+        `
       UPDATE payments 
       SET status = 'paid', 
           external_payment_id = ?, 
           updated_at = ? 
-      WHERE id = ?
+      WHERE id = ? AND status = 'pending'
     `,
-    ).run(paymentData.paymentId, now, payment.id);
+      )
+      .run(paymentData.paymentId, now, payment.id);
+
+    if (paid.changes === 0) {
+      return;
+    }
 
     db.prepare(
       `
@@ -194,7 +215,9 @@ async function handlePaymentCompleted(data: unknown) {
       WHERE user_id = ? AND status = 'pending' AND payment_id = ?
     `,
     ).run(payment.id, now, expiresAt, payment.user_id, payment.id);
-  })();
+  });
+
+  tx();
 
   // Subscription activated — extend or add webhook notifications here
 }
@@ -213,14 +236,40 @@ async function handlePaymentFailed(data: unknown) {
 
   const paymentData = data;
 
+  const payment = db
+    .prepare(
+      `
+    SELECT id, status FROM payments 
+    WHERE id = ? OR external_payment_id = ?
+  `,
+    )
+    .get(paymentData.externalPaymentId, paymentData.paymentId) as
+    | { id: string; status: string }
+    | undefined;
+
+  if (!payment) {
+    console.error(
+      `Payment not found: ${paymentData.externalPaymentId} / ${paymentData.paymentId}`,
+    );
+    throw new Error("Payment not found — FastPay will retry");
+  }
+
+  // Событие пришло позже успешной оплаты или возврата — состояние не трогаем
+  if (payment.status === "paid" || payment.status === "refunded") {
+    console.warn(
+      `Stale payment.failed for ${payment.id} (status: ${payment.status}) — ignored`,
+    );
+    return;
+  }
+
   db.prepare(
     `
     UPDATE payments 
     SET status = 'failed', 
         updated_at = ? 
-    WHERE id = ? OR external_payment_id = ?
+    WHERE id = ? AND status = 'pending'
   `,
-  ).run(now, paymentData.externalPaymentId, paymentData.paymentId);
+  ).run(now, payment.id);
 
   console.warn(
     `Payment failed: ${paymentData.externalPaymentId} / ${paymentData.paymentId}`,
@@ -246,12 +295,12 @@ async function handlePaymentRefunded(data: unknown) {
   const payment = db
     .prepare(
       `
-    SELECT id FROM payments 
+    SELECT id, status FROM payments 
     WHERE id = ? OR external_payment_id = ?
   `,
     )
     .get(paymentData.externalPaymentId, paymentData.paymentId) as
-    | { id: string }
+    | { id: string; status: string }
     | undefined;
 
   if (!payment) {
@@ -259,6 +308,12 @@ async function handlePaymentRefunded(data: unknown) {
       `Refund: payment not found: ${paymentData.externalPaymentId} / ${paymentData.paymentId}`,
     );
     throw new Error("Payment not found — FastPay will retry");
+  }
+
+  // Идемпотентность: повторный refund ничего не меняет
+  if (payment.status === "refunded") {
+    console.warn(`Duplicate payment.refunded for ${payment.id} — skipped`);
+    return;
   }
 
   // Обновляем статус платежа и отменяем подписку атомарно

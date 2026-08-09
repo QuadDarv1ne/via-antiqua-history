@@ -1,11 +1,22 @@
+import { NextRequest } from "next/server";
 import { getDb } from "@/lib/auth/db";
 import { getSession } from "@/lib/auth/utils";
 import { apiOk, apiError } from "@/lib/auth/api-response";
 import type { User } from "@/lib/auth/types";
 import { parseSqliteDateTime } from "@/lib/utils";
+import { checkRateLimit, rateLimitResponse } from "@/lib/auth/rate-limit";
+import { getClientIp } from "@/lib/auth/get-ip";
 
-export async function GET() {
+const RATE_LIMIT = { windowMs: 60 * 1000, max: 30 };
+
+export async function GET(request: NextRequest) {
   try {
+    const ip = getClientIp(request);
+    const rl = checkRateLimit(`me:${ip}`, RATE_LIMIT);
+    if (!rl.allowed) {
+      return rateLimitResponse(rl.resetMs);
+    }
+
     const session = await getSession();
     if (!session) {
       return apiError("Не авторизован", 401);

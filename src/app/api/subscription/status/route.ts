@@ -27,7 +27,13 @@ export async function GET(_request: NextRequest) {
 
     const sub = safeParse(SubscriptionSchema, rawSub, "subscription:status");
 
-    const data = sub
+    // Дублирующая проверка: даже если expires_at не прошёл SQL-фильтр
+    // (некорректное значение, конвертация часовых поясов), показываем
+    // «нет подписки», а не «0 дней осталось»
+    const expiresAt = sub ? parseSqliteDateTime(sub.expires_at) : null;
+    const isExpired = !expiresAt || expiresAt.getTime() <= Date.now();
+
+    const data = sub && !isExpired
       ? {
           id: sub.id,
           status: sub.status,
@@ -35,11 +41,8 @@ export async function GET(_request: NextRequest) {
           startedAt: sub.started_at,
           expiresAt: sub.expires_at,
           daysLeft: Math.max(
-            0,
-            Math.ceil(
-              (parseSqliteDateTime(sub.expires_at).getTime() - Date.now()) /
-                86400000,
-            ),
+            1,
+            Math.ceil((expiresAt!.getTime() - Date.now()) / 86400000),
           ),
         }
       : null;
