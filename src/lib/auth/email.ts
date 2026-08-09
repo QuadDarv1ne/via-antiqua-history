@@ -1,8 +1,12 @@
 import { SITE_NAME } from '@/lib/constants'
 
+// Test mode logs messages to console instead of sending.
+// Включается, если SMTP не настроен вовсе (иначе живой отправки не будет
+// и письма «теряются» молча), либо явно через EMAIL_TEST_MODE=true в dev-окружении.
 const TEST_MODE =
-  process.env.NODE_ENV !== "production" &&
-  process.env.EMAIL_TEST_MODE === "true";
+  !process.env.SMTP_HOST ||
+  (process.env.NODE_ENV !== "production" &&
+    process.env.EMAIL_TEST_MODE === "true");
 
 export type EmailMessage = {
   to: string;

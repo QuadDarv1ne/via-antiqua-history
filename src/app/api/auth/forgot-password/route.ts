@@ -70,6 +70,10 @@ export async function POST(req: NextRequest) {
     );
 
     const createToken = db.transaction(() => {
+      // Ленивая чистка истёкших токенов — таблица не разрастается бесконечно
+      db.prepare(
+        "DELETE FROM verification_tokens WHERE expires_at <= datetime('now')",
+      ).run();
       db.prepare(
         "UPDATE verification_tokens SET used = 1 WHERE user_id = ? AND type = 'password_reset' AND used = 0",
       ).run(user.id);

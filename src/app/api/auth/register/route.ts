@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { getDb } from "@/lib/auth/db";
 import { hashPassword, generateToken, createSession } from "@/lib/auth/utils";
-import { validateEmail, validatePassword } from "@/lib/utils";
+import { validateEmail, validatePassword, parseSqliteDateTime } from "@/lib/utils";
 import { apiOk, apiError } from "@/lib/auth/api-response";
 import { checkRateLimit, rateLimitResponse } from "@/lib/auth/rate-limit";
 import { validateCsrf } from "@/lib/auth/csrf";
@@ -90,13 +90,21 @@ export async function POST(req: NextRequest) {
 
     await createSession(id, email.toLowerCase());
 
+    // createdAt берём из БД (datetime('now')), а не из системных часов процесса —
+    // чтобы ответ совпадал со значением, которое вернут /api/auth/me и /api/auth/login
+    const storedUser = db
+      .prepare("SELECT created_at FROM users WHERE id = ?")
+      .get(id) as { created_at: string } | undefined;
+
     return apiOk({
       id,
       email: email.toLowerCase(),
       name: trimmedName,
       emailVerified: 0,
       totpEnabled: 0,
-      createdAt: new Date().toISOString(),
+      createdAt: storedUser
+        ? parseSqliteDateTime(storedUser.created_at).toISOString()
+        : new Date().toISOString(),
     });
   } catch (err) {
     console.error("Register error:", err);

@@ -53,3 +53,21 @@ describe("getClientIp", () => {
     expect(getClientIp(makeRequest({}))).toBe("unknown");
   });
 });
+
+describe("normalizeIp", () => {
+  it("converts IPv4-mapped IPv6 to plain IPv4", async () => {
+    const { normalizeIp } = await import("../get-ip");
+    expect(normalizeIp("::ffff:192.168.1.1")).toBe("192.168.1.1");
+  });
+
+  it("returns bare IPv6 addresses unchanged", async () => {
+    const { normalizeIp } = await import("../get-ip");
+    expect(normalizeIp("2001:db8::1")).toBe("2001:db8::1");
+  });
+
+  it("trims whitespace and caps length", async () => {
+    const { normalizeIp } = await import("../get-ip");
+    expect(normalizeIp("  10.0.0.1  ")).toBe("10.0.0.1");
+    expect(normalizeIp("a".repeat(200))).toBe("a".repeat(64));
+  });
+});

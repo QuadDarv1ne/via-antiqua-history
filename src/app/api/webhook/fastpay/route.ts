@@ -4,6 +4,8 @@ import { getDb } from "@/lib/auth/db";
 import { apiOk, apiError } from "@/lib/auth/api-response";
 import { toSqliteDateTime } from "@/lib/utils";
 
+const MAX_WEBHOOK_BODY_BYTES = 256 * 1024;
+
 /**
  * Вебхук для обработки платежей от FastPay Connect
  *
@@ -16,6 +18,9 @@ import { toSqliteDateTime } from "@/lib/utils";
 export async function POST(request: NextRequest) {
   try {
     const rawBody = await request.text();
+    if (rawBody.length === 0 || rawBody.length > MAX_WEBHOOK_BODY_BYTES) {
+      return apiError("Invalid JSON body", 400);
+    }
     let payload: { event: string; data: Record<string, unknown> };
     try {
       payload = JSON.parse(rawBody);
