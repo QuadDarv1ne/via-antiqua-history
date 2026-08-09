@@ -17,6 +17,12 @@ const RATE_LIMIT = { windowMs: 15 * 60 * 1000, max: 10 };
 // Дополнительный лимит на IP — защита от перебора аккаунтов с одного адреса
 const IP_RATE_LIMIT = { windowMs: 15 * 60 * 1000, max: 40 };
 
+// Фейковый bcrypt-хэш для несуществующих аккаунтов: сравнение занимает
+// столько же времени, сколько для реального пользователя, чтобы нельзя
+// было различить существующие и несуществующие email по задержке ответа.
+const DUMMY_PASSWORD_HASH =
+  "$2b$12$JVFmvWSkbS910crQLuEo3OieYeTo15BZySiXNAQSDZKWleg/QFl02";
+
 export async function POST(req: NextRequest) {
   try {
     const csrfError = validateCsrf(req);
@@ -71,12 +77,13 @@ export async function POST(req: NextRequest) {
       .get(email.toLowerCase());
 
     const user = safeParse(UserSchema, rawUser, "login:user");
-    if (!user) {
-      return apiError("Неверный email или пароль", 401);
-    }
-
-    const valid = await verifyPassword(password, user.password_hash);
-    if (!valid) {
+    // Всегда выполняем bcrypt-сравнение, даже если аккаунт не найден,
+    // чтобы время ответа не выдавало существование пользователя
+    const valid = await verifyPassword(
+      password,
+      user ? user.password_hash : DUMMY_PASSWORD_HASH,
+    );
+    if (!user || !valid) {
       return apiError("Неверный email или пароль", 401);
     }
 

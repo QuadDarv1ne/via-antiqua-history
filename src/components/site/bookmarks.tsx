@@ -33,7 +33,11 @@ export function createBookmarkItem(
   return { id, type, title, subtitle, href, region }
 }
 
-const STORAGE_KEY = 'historical-labyrinth-bookmarks'
+const GUEST_STORAGE_KEY = 'historical-labyrinth-bookmarks'
+// Ключ хранилища привязан к пользователю, чтобы закладки одного аккаунта
+// не «протекали» в другой аккаунт на том же устройстве
+const storageKeyFor = (userId: string | null | undefined) =>
+  userId ? `${GUEST_STORAGE_KEY}:${userId}` : GUEST_STORAGE_KEY
 const TOAST_DURATION = 2000
 
 type BookmarksContextType = {
@@ -73,6 +77,17 @@ export function BookmarksProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth()
   const [bookmarks, setBookmarks] = React.useState<BookmarkItem[]>([])
   const [hydrated, setHydrated] = React.useState(false)
+  // Ключ localStorage привязан к пользователю: при смене аккаунта хранилище переключается,
+  // чтобы закладки одного пользователя не «протекали» в другой аккаунт
+  const storageKey = React.useMemo(
+    () => storageKeyFor(user?.id),
+    [user?.id],
+  )
+  // Ключ, из которого загружено текущее состояние bookmarks.
+  // Пишем в localStorage, только если state соответствует текущему ключу.
+  const [loadedForKey, setLoadedForKey] = React.useState<string>(storageKey)
+  // Актуальный снимок bookmarks для логики «добавить/удалить» при быстрых кликах
+  const bookmarksRef = React.useRef<BookmarkItem[]>([])
 
   const syncRemote = React.useCallback(
     (method: 'POST' | 'DELETE', payload: unknown) => {
@@ -86,6 +101,23 @@ export function BookmarksProvider({ children }: { children: React.ReactNode }) {
     },
     [],
   )
+
+  // Загрузка из localStorage при монтировании и при смене пользователя
+  React.useEffect(() => {
+    let next: BookmarkItem[] = []
+    try {
+      const raw = localStorage.getItem(storageKey)
+      if (raw) {
+        const parsed = JSON.parse(raw)
+        if (Array.isArray(parsed)) next = parsed
+      }
+    } catch {
+      // Corrupted data — start fresh
+    }
+    setBookmarks(next)
+    setLoadedForKey(storageKey)
+    setHydrated(true)
+  }, [storageKey])
 
   // Первичная загрузка: объединяем локальные закладки с серверными
   React.useEffect(() => {
@@ -116,33 +148,24 @@ export function BookmarksProvider({ children }: { children: React.ReactNode }) {
   }, [user, hydrated])
 
   React.useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY)
-      if (raw) {
-        const parsed = JSON.parse(raw)
-        if (Array.isArray(parsed)) {
-          setBookmarks(parsed)
-        }
-      }
-    } catch {
-      // Corrupted data — start fresh
-    }
-    setHydrated(true)
-  }, [])
-
-  React.useEffect(() => {
     if (!hydrated) return
+    // Пишем только в хранилище текущего пользователя
+    if (loadedForKey !== storageKey) return
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(bookmarks))
+      localStorage.setItem(storageKey, JSON.stringify(bookmarks))
     } catch {
       // Storage full or unavailable — silently ignore
     }
-  }, [bookmarks, hydrated])
+  }, [bookmarks, hydrated, storageKey, loadedForKey])
 
   const isBookmarked = React.useCallback(
     (id: string) => bookmarks.some((b) => b.id === id),
     [bookmarks]
   )
+
+  React.useEffect(() => {
+    bookmarksRef.current = bookmarks
+  }, [bookmarks])
 
   const [toast, setToast] = React.useState<{ show: boolean; title: string; added: boolean }>({ show: false, title: '', added: false })
   const toastTimer = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
@@ -160,8 +183,18 @@ export function BookmarksProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const toggle = React.useCallback((item: BookmarkItem) => {
-    const exists = bookmarks.some((b) => b.id === item.id)
-    setBookmarks(exists ? bookmarks.filter((b) => b.id !== item.id) : [item, ...bookmarks])
+    // Актуальное состояние из ref — защита от stale closure при быстрых кликах
+    const exists = bookmarksRef.current.some((b) => b.id === item.id)
+    setBookmarks((current) => {
+      const isPresent = current.some((b) => b.id === item.id)
+      // Синхронизируем ref сразу, чтобы последующие клики в том же тике
+      // видели актуальное состояние
+      const next = isPresent
+        ? current.filter((b) => b.id !== item.id)
+        : [item, ...current]
+      bookmarksRef.current = next
+      return next
+    })
     showToast(item.title, !exists)
     if (!user) return
     if (exists) {
@@ -169,7 +202,7 @@ export function BookmarksProvider({ children }: { children: React.ReactNode }) {
     } else {
       syncRemote('POST', { item })
     }
-  }, [bookmarks, showToast, user, syncRemote])
+  }, [showToast, user, syncRemote])
 
   const remove = React.useCallback((id: string) => {
     setBookmarks((cur) => cur.filter((b) => b.id !== id))

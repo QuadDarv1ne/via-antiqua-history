@@ -1,6 +1,8 @@
 // Service Worker для PWA
-const CACHE_NAME = "via-antiqua-v2";
-const DATA_CACHE_NAME = "via-antiqua-data-v2";
+// v3: network-first для навигаций (чтобы не раздавать вечно устаревший HTML),
+// cache.put только для GET-запросов (иначе TypeError ломает POST API).
+const CACHE_NAME = "via-antiqua-v3";
+const DATA_CACHE_NAME = "via-antiqua-data-v3";
 
 const ASSETS_TO_CACHE = ["/", "/manifest.json", "/logo.svg"];
 
@@ -30,20 +32,26 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
-// Fetch event — стратегия Cache First для статики, Network First для данных
+// Fetch event — стратегия Network First для навигаций, Cache First для статики
 self.addEventListener("fetch", (event) => {
   const { request } = event;
   const url = new URL(request.url);
+
+  // НЕ кэшируем не-GET запросы (cache.put бросает TypeError для POST/PUT/DELETE)
+  if (request.method !== "GET") {
+    return;
+  }
 
   // Для API запросов — Network First, но не кэшируем авторизованные данные
   if (url.pathname.startsWith("/api/")) {
     const isAuthEndpoint =
       url.pathname.startsWith("/api/auth/") ||
       url.pathname.startsWith("/api/bookmarks") ||
-      url.pathname.startsWith("/api/subscription/");
+      url.pathname.startsWith("/api/subscription/") ||
+      url.pathname.startsWith("/api/webhook/");
 
     if (isAuthEndpoint) {
-      // Never cache auth/bookmark/subscription endpoints
+      // Never cache auth/bookmark/subscription/webhook endpoints
       return;
     }
 
@@ -59,6 +67,31 @@ self.addEventListener("fetch", (event) => {
           return cache.match(request);
         }
       }),
+    );
+    return;
+  }
+
+  // Для HTML-навигаций — Network First: сначала сеть, потом кэш.
+  // Это гарантирует, что пользователи получают свежий HTML после деплоя,
+  // а кэш остаётся офлайн-фолбэком.
+  if (request.mode === "navigate" || request.headers.get("accept")?.includes("text/html")) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (!response || response.status !== 200 || response.type !== "basic") {
+            return response;
+          }
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(request, responseToCache);
+          });
+          return response;
+        })
+        .catch(() => {
+          return caches.match(request).then((cached) => {
+            return cached || caches.match("/");
+          });
+        }),
     );
     return;
   }
@@ -85,7 +118,6 @@ self.addEventListener("fetch", (event) => {
           return response;
         })
         .catch(() => {
-          // Fallback для SPA роутинга
           if (request.headers.get("accept")?.includes("text/html")) {
             return caches.match("/");
           }

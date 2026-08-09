@@ -2,10 +2,16 @@ import { NextRequest } from 'next/server'
 
 /**
  * Extract client IP from request headers.
- * Uses X-Real-IP first (set by Caddy/nginx), falls back to X-Forwarded-For.
- * X-Real-IP is harder to spoof because the reverse proxy overwrites it.
+ * Only X-Real-IP / X-Forwarded-For are honored when the app is explicitly
+ * configured (TRUST_PROXY_HEADERS=true) to run behind a trusted reverse
+ * proxy (Caddy/Nginx). Otherwise any client could spoof the headers and
+ * bypass rate limits.
  */
 export function getClientIp(req: NextRequest): string {
+  // Читаем env при каждом вызове: значение может меняться между
+  // окружениями (dev/prod) и внутри тестов
+  if (process.env.TRUST_PROXY_HEADERS !== 'true') return 'unknown'
+
   // X-Real-IP is set by the reverse proxy (Caddy) and cannot be spoofed by the client
   const realIp = req.headers.get('x-real-ip')
   if (realIp) return realIp.trim()

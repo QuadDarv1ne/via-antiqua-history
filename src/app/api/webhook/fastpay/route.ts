@@ -126,7 +126,7 @@ async function handlePaymentCompleted(data: unknown) {
   const payment = db
     .prepare(
       `
-    SELECT id, user_id FROM payments 
+    SELECT id, user_id, amount, currency FROM payments 
     WHERE id = ? OR external_payment_id = ?
   `,
     )
@@ -134,6 +134,8 @@ async function handlePaymentCompleted(data: unknown) {
     | {
         id: string;
         user_id: string;
+        amount: number;
+        currency: string;
       }
     | undefined;
 
@@ -142,6 +144,32 @@ async function handlePaymentCompleted(data: unknown) {
       `Payment not found: ${paymentData.externalPaymentId} / ${paymentData.paymentId}`,
     );
     throw new Error("Payment not found — FastPay will retry");
+  }
+
+  // Сверяем сумму и валюту: подпись HMAC подтверждает отправителя,
+  // но не защищает от неверной суммы в данных платежа
+  const expectedAmount = payment.amount;
+  const actualAmount =
+    typeof paymentData.amount === "number"
+      ? paymentData.amount
+      : typeof paymentData.amount === "string"
+        ? parseFloat(paymentData.amount)
+        : NaN;
+  const expectedCurrency = payment.currency || "RUB";
+  const actualCurrency = (paymentData.currency as string | undefined) || "RUB";
+
+  const amountMatches =
+    Number.isFinite(actualAmount) &&
+    Math.abs(actualAmount - expectedAmount) < 0.005;
+  const currencyMatches = actualCurrency.toUpperCase() === expectedCurrency.toUpperCase();
+
+  if (!amountMatches || !currencyMatches) {
+    console.error(
+      `Payment amount/currency mismatch for ${payment.id}: expected ${expectedAmount} ${expectedCurrency}, got ${actualAmount} ${actualCurrency}`,
+    );
+    throw new Error(
+      "Payment amount/currency mismatch — FastPay will retry",
+    );
   }
 
   // Обновляем статус платежа и активируем подписку атомарно

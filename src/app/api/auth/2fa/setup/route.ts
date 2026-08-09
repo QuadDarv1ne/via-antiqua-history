@@ -47,6 +47,27 @@ export async function POST(req: NextRequest) {
         return apiError("2FA уже включена. Сначала отключите её в профиле", 400);
       }
 
+      // Повторный запрос setup (двойной клик): переиспользуем ещё не истёкший
+      // секрет, чтобы QR-код и подтверждаемый код относились к одному секрету
+      const existing = db
+        .prepare("SELECT totp_secret, totp_secret_expires_at FROM users WHERE id = ?")
+        .get(session.userId) as
+        | { totp_secret: string | null; totp_secret_expires_at: string | null }
+        | undefined;
+
+      const existingSecret = existing?.totp_secret;
+      const existingExpiresAt = Number(existing?.totp_secret_expires_at || 0);
+      if (existingSecret && (!existingExpiresAt || Date.now() < existingExpiresAt)) {
+        const uri = totp.toURI({
+          label: session.email,
+          issuer: SITE_NAME,
+          secret: existingSecret,
+        });
+        const { toDataURL } = await import("qrcode");
+        const qrCode = await toDataURL(uri);
+        return apiOk({ qrCode });
+      }
+
       const secret = totp.generateSecret();
       const uri = totp.toURI({
         label: session.email,

@@ -43,11 +43,13 @@ export async function POST(_request: NextRequest) {
       return apiError("У вас уже есть активная подписка", 400);
     }
 
-    // Очищаем зависшие незавершённые платежи старше 30 минут
+    // Очищаем зависшие незавершённые платежи старше 30 минут.
+    // НЕ используем статус 'expired': CHECK-ограничение таблицы payments
+    // допускает только ('pending','paid','failed','refunded') — иначе транзакция упадёт с SQLITE_CONSTRAINT и подписку нельзя будет купить.
     db.transaction(() => {
       db.prepare(
         `
-        UPDATE payments SET status = 'expired', updated_at = datetime('now')
+        UPDATE payments SET status = 'failed', updated_at = datetime('now')
         WHERE user_id = ? AND status = 'pending' AND created_at <= datetime('now', '-30 minutes')
       `,
       ).run(session.userId);
@@ -55,10 +57,10 @@ export async function POST(_request: NextRequest) {
         `
         UPDATE subscriptions SET status = 'cancelled', updated_at = datetime('now')
         WHERE user_id = ? AND status = 'pending' AND payment_id IN (
-          SELECT id FROM payments WHERE status = 'expired'
+          SELECT id FROM payments WHERE status = 'failed' AND user_id = ?
         )
       `,
-      ).run(session.userId);
+      ).run(session.userId, session.userId);
     })();
 
     const pendingPayment = db
@@ -111,8 +113,9 @@ export async function POST(_request: NextRequest) {
     }
 
     const paymentId = randomUUID();
-    const rawPrice = Number(process.env.SUBSCRIPTION_PRICE);
-    const amount = Number.isFinite(rawPrice) && rawPrice > 0 ? rawPrice : SUBSCRIPTION_PRICE;
+    // Единый источник цены — константа SUBSCRIPTION_PRICE (она же показывается в UI),
+    // чтобы сумма в QR-коде всегда совпадала с отображаемой ценой
+    const amount = SUBSCRIPTION_PRICE;
     const phone = process.env.FASTPAY_SBP_PHONE || "";
 
     const sbpQrData = JSON.stringify({

@@ -36,21 +36,21 @@
       "name": "Древняя Греция",
       "short_name": "Греция",
       "description": "Раздел о Древней Греции",
-      "url": "#greece",
+      "url": "/#greece",
       "icons": [{ "src": "/logo.svg", "sizes": "96x96" }]
     },
     {
       "name": "Римская империя",
       "short_name": "Рим",
       "description": "Раздел о Римской империи",
-      "url": "#rome",
+      "url": "/#rome",
       "icons": [{ "src": "/logo.svg", "sizes": "96x96" }]
     },
     {
       "name": "Интерактивная карта",
       "short_name": "Карта",
       "description": "Интерактивная карта античного мира",
-      "url": "#map",
+      "url": "/#map",
       "icons": [{ "src": "/logo.svg", "sizes": "96x96" }]
     }
   ]

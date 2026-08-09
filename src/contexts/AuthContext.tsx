@@ -36,12 +36,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const controller = new AbortController();
       refreshAbortRef.current = controller;
       const effectiveSignal = signal ?? controller.signal;
-      const res = await fetch("/api/auth/me", { signal: effectiveSignal });
-      if (res.status === 429) {
-        if (refreshVersionRef.current === version) setUser(null);
+
+      // Ретраи при транзиентных сетевых ошибках: мгновенный «логаут»
+      // из-за обрыва сети (или перезапуска сервера) крайне нежелателен
+      const RETRIES = 3;
+      const RETRY_DELAY_MS = 800;
+
+      let res: Response | null = null;
+      for (let attempt = 0; attempt <= RETRIES; attempt++) {
+        try {
+          res = await fetch("/api/auth/me", { signal: effectiveSignal });
+          break;
+        } catch (err) {
+          if (signal?.aborted || controller.signal.aborted || attempt === RETRIES) {
+            throw err;
+          }
+          await new Promise((r) => setTimeout(r, RETRY_DELAY_MS * (attempt + 1)));
+        }
+      }
+
+      if (res!.status === 429) {
+        // Rate limit на /api/auth/me — не разлогиниваем пользователя
         return;
       }
-      const json = await res.json();
+      const json = await res!.json();
       if (refreshVersionRef.current !== version) return;
       if (json.ok && json.data) {
         setUser(json.data);
@@ -49,7 +67,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(null);
       }
     } catch {
-      if (refreshVersionRef.current === version) setUser(null);
+      // Сетевая ошибка (после ретраев): не разлогиниваем пользователя,
+      // сохраняем текущее состояние — при следующем refresh() восстановится
+      if (refreshVersionRef.current === version) setLoading(false);
     } finally {
       if (refreshVersionRef.current === version) setLoading(false);
     }
