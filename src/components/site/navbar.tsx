@@ -115,15 +115,8 @@ export function Navbar() {
   );
 
   const toggleTheme = React.useCallback(() => {
-    if (theme === "system") {
-      const prefersDark = window.matchMedia(
-        "(prefers-color-scheme: dark)",
-      ).matches;
-      setTheme(prefersDark ? "light" : "dark");
-    } else {
-      setTheme(theme === "dark" ? "light" : "dark");
-    }
-  }, [theme, setTheme]);
+    setTheme((current) => (current === "dark" ? "light" : "dark"));
+  }, [setTheme]);
 
   const navLinks = user ? SITE_NAV : PUBLIC_NAV;
   const showLoginLink = !user;

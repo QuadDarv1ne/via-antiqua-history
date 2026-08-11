@@ -150,15 +150,15 @@ export function TimelineSection() {
         return
       if (e.key === 'ArrowLeft') {
         e.preventDefault()
-        setActiveIdx((cur) => Math.max(0, cur - 1))
+        go(-1)
       } else if (e.key === 'ArrowRight') {
         e.preventDefault()
-        setActiveIdx((cur) => Math.min(allTimeline.length - 1, cur + 1))
+        go(1)
       }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [isInView])
+  }, [isInView, go])
 
   if (!allTimeline.length) {
     return null

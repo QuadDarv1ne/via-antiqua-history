@@ -18,6 +18,11 @@ export function ReadingProgress() {
     const onScroll = () => {
       if (!ticking) {
         rafId = requestAnimationFrame(() => {
+          // Ленивая загрузка контента (next/dynamic, картинки) меняет высоту
+          // документа — замеряем каждый кадр, чтобы прогресс не «залипал»
+          // ниже 100% и не превышал диапазон
+          const scrollHeight = document.documentElement.scrollHeight
+          cachedScrollHeight = scrollHeight - window.innerHeight
           if (cachedScrollHeight > 0) {
             const next = Math.round((window.scrollY / cachedScrollHeight) * 100)
             if (next !== lastPercentRef.current) {

@@ -154,6 +154,7 @@ export default function ProfilePage() {
       const json = await res.json()
       if (json.ok) {
         if (json.data?.qrCodeUrl) {
+          setPaymentQrError(false)
           setPaymentData(json.data)
         } else {
           setPaymentData(null)

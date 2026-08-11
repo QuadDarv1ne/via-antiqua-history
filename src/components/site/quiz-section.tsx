@@ -70,7 +70,11 @@ export const QuizSection = React.memo(function QuizSection() {
       const active = document.activeElement
       if (
         active &&
-        (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')
+        (active.tagName === 'INPUT' ||
+          active.tagName === 'TEXTAREA' ||
+          active.tagName === 'BUTTON' ||
+          active.tagName === 'A' ||
+          active.tagName === 'SELECT')
       )
         return
       if (e.key >= '1' && e.key <= '4') {

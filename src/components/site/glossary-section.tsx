@@ -80,13 +80,44 @@ export function GlossarySection() {
               )}
             </AnimatePresence>
           </div>
-          <div className="flex flex-wrap gap-1.5 sm:gap-2" role="radiogroup" aria-label="Фильтр по происхождению">
+          <div
+            className="flex flex-wrap gap-1.5 sm:gap-2"
+            role="radiogroup"
+            aria-label="Фильтр по происхождению"
+            onKeyDown={(e) => {
+              const currentIdx = filterOptions.findIndex((o) => o.key === filter)
+              if (currentIdx === -1) return
+              let nextIdx = currentIdx
+              if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+                e.preventDefault()
+                nextIdx = (currentIdx + 1) % filterOptions.length
+              } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                e.preventDefault()
+                nextIdx = (currentIdx - 1 + filterOptions.length) % filterOptions.length
+              } else if (e.key === 'Home') {
+                e.preventDefault()
+                nextIdx = 0
+              } else if (e.key === 'End') {
+                e.preventDefault()
+                nextIdx = filterOptions.length - 1
+              }
+              if (nextIdx !== currentIdx) {
+                setFilter(filterOptions[nextIdx].key)
+                const nextEl = document.querySelector<HTMLElement>(
+                  `[data-glossary-filter="${filterOptions[nextIdx].key}"]`,
+                )
+                nextEl?.focus()
+              }
+            }}
+          >
             {filterOptions.map((opt) => (
               <button
                 type="button"
                 key={opt.key}
                 role="radio"
                 aria-checked={filter === opt.key}
+                tabIndex={filter === opt.key ? 0 : -1}
+                data-glossary-filter={opt.key}
                 onClick={() => setFilter(opt.key)}
                 className={cn(
                   'px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-medium border transition-all whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1',

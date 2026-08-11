@@ -8,8 +8,6 @@ import { ServiceWorkerRegistration } from "@/components/site/service-worker-regi
 import { DEFAULT_SITE_URL, SITE_FULL_NAME, AUTHOR_NAME } from "@/lib/constants";
 import { FAQSchema } from "@/components/seo/faq-schema";
 
-const AUTHOR_2 = "Дуплей Игорь Викторович";
-
 const JSON_LD = {
   "@context": "https://schema.org",
   "@type": "WebApplication",
@@ -18,10 +16,7 @@ const JSON_LD = {
   url: process.env.NEXT_PUBLIC_SITE_URL || DEFAULT_SITE_URL,
   applicationCategory: "EducationalApplication",
   operatingSystem: "Web Browser",
-  author: [
-    { "@type": "Person", name: AUTHOR_NAME },
-    { "@type": "Person", name: AUTHOR_2 },
-  ],
+  author: { "@type": "Person", name: AUTHOR_NAME },
   offers: {
     "@type": "Offer",
     price: "0",
@@ -72,10 +67,7 @@ export const metadata: Metadata = {
     "эллинизм",
     "Pax Romana",
   ],
-  authors: [
-    { name: AUTHOR_NAME },
-    { name: AUTHOR_2 },
-  ],
+  authors: [{ name: AUTHOR_NAME }],
   creator: AUTHOR_NAME,
   publisher: AUTHOR_NAME,
   robots: {
@@ -137,7 +129,7 @@ export const viewport: Viewport = {
 };
 
 function safeJson(obj: unknown): string {
-  return JSON.stringify(obj).replace(/</g, '\\u003C')
+  return JSON.stringify(obj).replace(/</g, "\\u003C")
 }
 
 export default function RootLayout({

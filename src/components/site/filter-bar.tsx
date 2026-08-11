@@ -43,6 +43,12 @@ export const FilterBar = React.memo(function FilterBar({
     }
     if (nextIdx !== currentIdx) {
       onChange(options[nextIdx].key);
+      // Перемещаем фокус на новую активную кнопку (roving tabindex):
+      // иначе фокус остаётся на кнопке, которая уже tabIndex={-1}
+      const nextEl = document.querySelector<HTMLElement>(
+        `[data-filter-key="${options[nextIdx].key}"]`,
+      );
+      nextEl?.focus();
     }
   };
 
@@ -60,6 +66,7 @@ export const FilterBar = React.memo(function FilterBar({
           role="radio"
           aria-checked={active === opt.key}
           tabIndex={active === opt.key ? 0 : -1}
+          data-filter-key={opt.key}
           onClick={() => onChange(opt.key)}
           className={cn(
             'px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1',

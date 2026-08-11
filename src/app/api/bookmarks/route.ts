@@ -5,6 +5,7 @@ import { apiOk, apiError } from "@/lib/auth/api-response";
 import { checkRateLimit, rateLimitResponse } from "@/lib/auth/rate-limit";
 import { validateCsrf } from "@/lib/auth/csrf";
 import { getClientIp } from "@/lib/auth/get-ip";
+import { readJsonBody } from "@/lib/auth/request";
 import { BookmarkRowSchema, type ValidatedBookmarkRow } from "@/lib/auth/schemas";
 
 const RATE_LIMIT = { windowMs: 60 * 1000, max: 20 };
@@ -99,13 +100,16 @@ export async function POST(req: NextRequest) {
       return rateLimitResponse(rl.resetMs);
     }
 
-    const body = await req.json().catch(() => null);
-    const rawItem = body && typeof body === "object" ? (body as Record<string, unknown>).item : null;
-    if (!rawItem || typeof rawItem !== "object") {
+    const body = await readJsonBody(req);
+    const rawItem =
+      body && typeof body.item === "object" && body.item !== null
+        ? (body.item as Record<string, unknown>)
+        : null;
+    if (!rawItem) {
       return apiError("Некорректные данные", 400);
     }
 
-    const item = sanitizeBookmark(rawItem as Record<string, unknown>);
+    const item = sanitizeBookmark(rawItem);
     if (!item) {
       return apiError("Некорректные данные", 400);
     }
@@ -154,10 +158,10 @@ export async function DELETE(req: NextRequest) {
       return rateLimitResponse(rl.resetMs);
     }
 
-    const body = await req.json().catch(() => null);
+    const body = await readJsonBody(req);
     const ids =
-      body && typeof body === "object"
-        ? (body as Record<string, unknown>).ids
+      body && Array.isArray(body.ids)
+        ? (body.ids as unknown[])
         : null;
     if (
       !Array.isArray(ids) ||

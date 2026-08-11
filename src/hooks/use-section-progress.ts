@@ -19,7 +19,17 @@ export function useSectionProgress(sectionIds: string[]) {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
-        setCompleted(JSON.parse(stored));
+        const parsed: unknown = JSON.parse(stored);
+        // Validate shape: progress хранится как объект { sectionId: boolean };
+        // некорректные данные (null, число, массив) не должны ломать navbar
+        if (
+          typeof parsed === "object" &&
+          parsed !== null &&
+          !Array.isArray(parsed) &&
+          Object.values(parsed).every((v) => typeof v === "boolean")
+        ) {
+          setCompleted(parsed as SectionProgress);
+        }
       }
     } catch {
       // Ignore parse errors
@@ -87,12 +97,15 @@ export function useSectionProgress(sectionIds: string[]) {
     // Секции грузятся лениво (next/dynamic) — повторно сканируем DOM при появлении новых
     let scheduled = false;
     let mutationObserver: MutationObserver | null = null;
+    let retryTimer: ReturnType<typeof setTimeout> | null = null;
+    let disposed = false;
     if (observed.size < sectionIds.length) {
       mutationObserver = new MutationObserver(() => {
-        if (scheduled) return;
+        if (scheduled || disposed) return;
         scheduled = true;
-        setTimeout(() => {
+        retryTimer = setTimeout(() => {
           scheduled = false;
+          if (disposed) return;
           observeMissing();
           if (observed.size === sectionIds.length) {
             mutationObserver?.disconnect();
@@ -112,6 +125,8 @@ export function useSectionProgress(sectionIds: string[]) {
     }, 30000);
 
     return () => {
+      disposed = true;
+      if (retryTimer) clearTimeout(retryTimer);
       mutationObserver?.disconnect();
       observer.disconnect();
       clearTimeout(stopTimer);
