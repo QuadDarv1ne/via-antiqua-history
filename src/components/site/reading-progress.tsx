@@ -24,7 +24,10 @@ export function ReadingProgress() {
           const scrollHeight = document.documentElement.scrollHeight
           cachedScrollHeight = scrollHeight - window.innerHeight
           if (cachedScrollHeight > 0) {
-            const next = Math.round((window.scrollY / cachedScrollHeight) * 100)
+            const next = Math.min(
+              100,
+              Math.round((window.scrollY / cachedScrollHeight) * 100),
+            )
             if (next !== lastPercentRef.current) {
               lastPercentRef.current = next
               setPercentage(next)

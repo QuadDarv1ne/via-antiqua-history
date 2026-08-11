@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Shield, ShieldOff, LogOut, Loader2, Copy, Check, Smartphone, Bookmark, AlertTriangle, Crown, CreditCard, QrCode, Clock, CheckCircle2, XCircle, Lock } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
+import { useSubscriptionContext } from '@/contexts/SubscriptionContext'
 import { useBookmarks } from '@/components/site/bookmarks'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
 import { passwordStrength, validatePassword, parseSqliteDateTime } from '@/lib/utils'
@@ -16,6 +17,7 @@ import { PasswordToggle } from '@/components/ui/password-toggle'
 export default function ProfilePage() {
   const router = useRouter()
   const { user, loading, logout, refresh } = useAuth()
+  const { refresh: refreshSubscription } = useSubscriptionContext()
   const { bookmarks } = useBookmarks()
   const [qrCode, setQrCode] = React.useState('')
   const [totpCode, setTotpCode] = React.useState('')
@@ -134,6 +136,7 @@ export default function ProfilePage() {
           setSubscription(json.data)
           setPaymentData(null)
           clearInterval(interval)
+          refreshSubscription()
         }
       } catch {
         // Ignore polling errors
@@ -141,7 +144,7 @@ export default function ProfilePage() {
     }, POLL_INTERVAL)
 
     return () => clearInterval(interval)
-  }, [paymentData])
+  }, [paymentData, refreshSubscription])
 
   const handleCreateSubscription = async () => {
     setErrorSub('')
@@ -179,6 +182,7 @@ export default function ProfilePage() {
         setSubscription(null)
         setConfirmCancel(false)
         refresh()
+        refreshSubscription()
       } else {
         setErrorSub(json.error || 'Ошибка отмены')
       }

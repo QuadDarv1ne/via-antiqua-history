@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/components/site/theme-provider";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { BookmarksProvider } from "@/components/site/bookmarks";
 import { ScrollToTop } from "@/components/site/scroll-to-top";
 import { ServiceWorkerRegistration } from "@/components/site/service-worker-registration";
@@ -170,10 +171,12 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
-            <BookmarksProvider>
-              {children}
-              <ScrollToTop />
-            </BookmarksProvider>
+            <SubscriptionProvider>
+              <BookmarksProvider>
+                {children}
+                <ScrollToTop />
+              </BookmarksProvider>
+            </SubscriptionProvider>
           </AuthProvider>
         </ThemeProvider>
         <ServiceWorkerRegistration />
