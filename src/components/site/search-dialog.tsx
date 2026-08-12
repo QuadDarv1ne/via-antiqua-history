@@ -141,14 +141,19 @@ export function SearchDialog({
     setActiveIdx(0)
   }, [query])
 
+  // Синхронный «безопасный» индекс: не может выйти за пределы текущего
+  // списка результатов (актуально между сменой query и сбросом activeIdx)
+  const safeIdx =
+    results.length === 0 ? 0 : Math.min(activeIdx, results.length - 1)
+
   // Scroll active option into view
   React.useEffect(() => {
     if (results.length === 0) return
-    const el = document.getElementById(`search-result-${activeIdx}`)
+    const el = document.getElementById(`search-result-${safeIdx}`)
     if (el) {
       el.scrollIntoView({ block: 'nearest' })
     }
-  }, [activeIdx, results.length])
+  }, [safeIdx, results.length])
 
   // Clear query when dialog closes
   React.useEffect(() => {
@@ -178,9 +183,9 @@ export function SearchDialog({
       setActiveIdx((i) => Math.max(0, i - 1))
     } else if (e.key === 'Enter') {
       e.preventDefault()
-      if (results[activeIdx]) handleSelect(results[activeIdx])
+      if (results[safeIdx]) handleSelect(results[safeIdx])
     }
-  }, [results, activeIdx, handleSelect])
+  }, [results, safeIdx, handleSelect])
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -198,7 +203,9 @@ export function SearchDialog({
             role="combobox"
             aria-expanded={query.trim().length > 0 && results.length > 0}
             aria-controls={query.trim() && results.length > 0 ? "search-results-list" : undefined}
-            aria-activedescendant={results.length > 0 ? `search-result-${activeIdx}` : undefined}
+            aria-activedescendant={results.length > 0 ? `search-result-${safeIdx}` : undefined}
+            aria-autocomplete="list"
+            aria-haspopup="listbox"
             aria-label="Поиск по сайту"
           />
           <kbd className="hidden sm:inline-flex items-center gap-1 px-2 py-1 text-xs rounded border border-border bg-muted/40 text-muted-foreground shrink-0">
@@ -244,17 +251,17 @@ export function SearchDialog({
                   {results.map((r, i) => {
                   const color = getRegionColor(r.region)
                   return (
-                    <button
-                      type="button"
+                    <div
+                      role="option"
                       key={`${r.type}-${r.title}`}
                       id={`search-result-${i}`}
-                      role="option"
-                      aria-selected={activeIdx === i}
+                      aria-selected={safeIdx === i}
+                      tabIndex={-1}
                       onClick={() => handleSelect(r)}
                       onMouseEnter={() => setActiveIdx(i)}
                       className={cn(
-                        'w-full text-left p-2.5 sm:p-3 rounded-md flex items-start gap-2.5 sm:gap-3 transition-colors',
-                        activeIdx === i
+                        'w-full text-left p-2.5 sm:p-3 rounded-md flex items-start gap-2.5 sm:gap-3 transition-colors cursor-pointer',
+                        safeIdx === i
                           ? 'bg-accent/10 ring-1 ring-primary/30'
                           : 'hover:bg-accent/5'
                       )}
@@ -282,7 +289,7 @@ export function SearchDialog({
                           {r.subtitle}
                         </span>
                       </span>
-                    </button>
+                    </div>
                   )
                 })}
                 </div>

@@ -92,7 +92,14 @@ export default function ProfilePage() {
 
   // Load subscription status
   React.useEffect(() => {
-    if (!user) return
+    if (!user) {
+      setSubscription(null)
+      setSubLoading(false)
+      return
+    }
+    // Сбрасываем данные предыдущего аккаунта до ответа сервера
+    setSubscription(null)
+    setSubLoading(true)
     let cancelled = false
 
     async function loadSub() {

@@ -64,8 +64,7 @@ export function ReadingProgress() {
       {isVisible && (
         <div
           className="fixed top-12 sm:top-14 right-2 sm:right-3 h-5 sm:h-6 text-[9px] sm:text-[10px] font-medium text-muted-foreground bg-card border border-border px-1 sm:px-1.5 py-0.5 rounded shadow-sm z-40 leading-none flex items-center"
-          role="status"
-          aria-label={`Прочитано ${percentage}%`}
+          aria-hidden="true"
         >
           {percentage}%
         </div>

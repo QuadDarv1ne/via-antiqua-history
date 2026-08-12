@@ -44,7 +44,7 @@ export const RegionSection = React.memo(function RegionSection({
   const activeCity =
     region.cities.find((c) => c.id === activeCityId) ?? region.cities[0];
   const { user } = useAuth();
-  const { hasSubscription } = useSubscription(!!restricted);
+  const { hasSubscription, subscriptionLoading } = useSubscription(!!restricted);
 
   const cityBookmarkItem = React.useMemo(() => {
     if (!activeCity) return null
@@ -111,7 +111,28 @@ export const RegionSection = React.memo(function RegionSection({
           </p>
         </div>
 
-        {restricted && (!user || !hasSubscription) ? (
+        {restricted && user && subscriptionLoading ? (
+          // Ждём ответ /api/subscription/status: не показываем гейт подписчику
+          <div className="rounded-xl border border-border bg-card overflow-hidden min-h-[360px] sm:min-h-[420px] md:min-h-[480px]">
+            <div className="grid lg:grid-cols-12 gap-6 sm:gap-8 p-5 sm:p-8">
+              <div className="lg:col-span-3 space-y-2">
+                {[0, 1, 2].map((i) => (
+                  <div key={i} className="h-14 rounded-lg bg-muted/40 animate-pulse" />
+                ))}
+              </div>
+              <div className="lg:col-span-9 space-y-3">
+                <div className="h-8 w-56 bg-muted/50 rounded animate-pulse" />
+                <div className="h-4 w-full bg-muted/30 rounded animate-pulse" />
+                <div className="h-4 w-5/6 bg-muted/30 rounded animate-pulse" />
+                <div className="h-4 w-3/4 bg-muted/30 rounded animate-pulse" />
+                <div className="grid grid-cols-2 gap-3 sm:gap-4 pt-3">
+                  <div className="h-24 bg-muted/20 rounded-lg animate-pulse" />
+                  <div className="h-24 bg-muted/20 rounded-lg animate-pulse" />
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : restricted && (!user || !hasSubscription) ? (
           <div className="relative rounded-xl border border-border bg-card overflow-hidden min-h-[360px] sm:min-h-[420px] md:min-h-[480px]">
             <div className="blur-[3px] opacity-25 pointer-events-none overflow-hidden" aria-hidden="true">
               <div className="grid lg:grid-cols-12 gap-6 sm:gap-8 p-5 sm:p-8">
@@ -152,22 +173,34 @@ export const RegionSection = React.memo(function RegionSection({
                 {region.name}
               </p>
               <p className="text-xs sm:text-sm md:text-base text-muted-foreground mb-5 sm:mb-6 max-w-sm text-center">
-                Города, памятники и исторический контекст доступны
-                авторизованным пользователям
+                {user
+                  ? 'Раздел доступен при активной подписке'
+                  : 'Города, памятники и исторический контекст доступны авторизованным пользователям'}
               </p>
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full max-w-xs sm:max-w-sm">
-                <Link
-                  href="/login"
-                  className="inline-flex items-center justify-center gap-2 h-10 sm:h-11 px-5 sm:px-7 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors text-sm sm:text-base flex-1 sm:flex-none"
-                >
-                  Войти
-                </Link>
-                <Link
-                  href="/register"
-                  className="inline-flex items-center justify-center gap-2 h-10 sm:h-11 px-5 sm:px-7 rounded-lg border border-border bg-card/60 font-medium hover:bg-accent/10 transition-colors text-sm sm:text-base flex-1 sm:flex-none"
-                >
-                  Зарегистрироваться
-                </Link>
+                {user ? (
+                  <Link
+                    href="/profile"
+                    className="inline-flex items-center justify-center gap-2 h-10 sm:h-11 px-5 sm:px-7 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors text-sm sm:text-base flex-1 sm:flex-none"
+                  >
+                    Оформить подписку
+                  </Link>
+                ) : (
+                  <>
+                    <Link
+                      href="/login"
+                      className="inline-flex items-center justify-center gap-2 h-10 sm:h-11 px-5 sm:px-7 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors text-sm sm:text-base flex-1 sm:flex-none"
+                    >
+                      Войти
+                    </Link>
+                    <Link
+                      href="/register"
+                      className="inline-flex items-center justify-center gap-2 h-10 sm:h-11 px-5 sm:px-7 rounded-lg border border-border bg-card/60 font-medium hover:bg-accent/10 transition-colors text-sm sm:text-base flex-1 sm:flex-none"
+                    >
+                      Зарегистрироваться
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -463,7 +496,7 @@ export const RegionSection = React.memo(function RegionSection({
                   Ключевые особенности
                 </h5>
                 <ul className="space-y-1.5 sm:space-y-2">
-                  {activeLandmark?.highlights.map((h, i) => (
+                  {activeLandmark?.highlights?.map((h, i) => (
                     <li
                       key={i}
                       className="flex items-start gap-2 text-xs sm:text-sm leading-relaxed"

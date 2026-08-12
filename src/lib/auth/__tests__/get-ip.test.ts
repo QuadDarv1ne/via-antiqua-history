@@ -1,4 +1,4 @@
-import { describe, it, expect, afterAll } from "vitest";
+import { describe, it, expect, afterAll, vi, afterEach } from "vitest";
 import { NextRequest } from "next/server";
 
 const originalTrustProxy = process.env.TRUST_PROXY_HEADERS;
@@ -9,6 +9,11 @@ afterAll(() => {
   } else {
     process.env.TRUST_PROXY_HEADERS = originalTrustProxy;
   }
+  vi.unstubAllEnvs();
+});
+
+afterEach(() => {
+  vi.unstubAllEnvs();
 });
 
 function makeRequest(headers: Record<string, string>): NextRequest {
@@ -51,6 +56,16 @@ describe("getClientIp", () => {
     process.env.TRUST_PROXY_HEADERS = "true";
     const { getClientIp } = await import("../get-ip");
     expect(getClientIp(makeRequest({}))).toBe("unknown");
+  });
+
+  it("falls back to per-request keys in production to avoid a shared global bucket", async () => {
+    delete process.env.TRUST_PROXY_HEADERS;
+    vi.stubEnv("NODE_ENV", "production");
+    const { getClientIp } = await import("../get-ip");
+    const a = getClientIp(makeRequest({ "x-real-ip": "10.0.0.1" }));
+    const b = getClientIp(makeRequest({ "x-real-ip": "10.0.0.1" }));
+    expect(a).toMatch(/^unknown:/);
+    expect(a).not.toBe(b);
   });
 });
 

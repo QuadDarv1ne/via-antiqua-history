@@ -10,6 +10,61 @@ import { randomUUID } from "crypto";
 
 const RATE_LIMIT = { windowMs: 15 * 60 * 1000, max: 5 };
 
+/**
+ * Ответ с данными уже существующего pending-платежа: тот же QR-код и
+ * срок действия, который был назначен при создании платежа.
+ */
+async function previousPaymentResponse(
+  db: ReturnType<typeof getDb>,
+  paymentId: string,
+  fallbackExpiresAt: string,
+): Promise<Response> {
+  const prev = db
+    .prepare(
+      "SELECT id, amount, sbp_phone, sbp_qr_data, created_at FROM payments WHERE id = ?",
+    )
+    .get(paymentId) as
+    | {
+        id: string;
+        amount: number;
+        sbp_phone: string | null;
+        sbp_qr_data: string | null;
+        created_at: string;
+      }
+    | undefined;
+
+  if (prev?.sbp_qr_data) {
+    const { toDataURL } = await import("qrcode");
+    const qrCodeUrl = await toDataURL(prev.sbp_qr_data, {
+      width: 300,
+      margin: 2,
+    });
+    // Истечение соответствует самому платежу (создан + 30 минут),
+    // а не текущему моменту — иначе клиент покажет неверный отсчёт
+    const actualExpiresAt = new Date(
+      Date.parse(prev.created_at.replace(" ", "T") + "Z") +
+        30 * 60 * 1000,
+    );
+    return apiOk({
+      paymentId: prev.id,
+      amount: prev.amount,
+      phone: prev.sbp_phone || "",
+      qrCodeUrl,
+      qrData: prev.sbp_qr_data,
+      expiresAt: Number.isFinite(actualExpiresAt.getTime())
+        ? actualExpiresAt.toISOString()
+        : fallbackExpiresAt,
+      message: "Используйте предыдущий QR-код",
+    });
+  }
+
+  return apiOk({
+    paymentId,
+    qrData: null,
+    message: "Используйте предыдущий QR-код",
+  });
+}
+
 export async function POST(_request: NextRequest) {
   try {
     const session = await getSession();
@@ -74,42 +129,7 @@ export async function POST(_request: NextRequest) {
       .get(session.userId) as { id: string } | undefined;
 
     if (pendingPayment) {
-      // Возвращаем предыдущий QR-код, а не битую заглушку
-      const prev = db
-        .prepare(
-          "SELECT id, amount, sbp_phone, sbp_qr_data FROM payments WHERE id = ?",
-        )
-        .get(pendingPayment.id) as
-        | {
-            id: string;
-            amount: number;
-            sbp_phone: string | null;
-            sbp_qr_data: string | null;
-          }
-        | undefined;
-
-      if (prev?.sbp_qr_data) {
-        const { toDataURL } = await import("qrcode");
-        const qrCodeUrl = await toDataURL(prev.sbp_qr_data, {
-          width: 300,
-          margin: 2,
-        });
-        return apiOk({
-          paymentId: prev.id,
-          amount: prev.amount,
-          phone: prev.sbp_phone || "",
-          qrCodeUrl,
-          qrData: prev.sbp_qr_data,
-          expiresAt,
-          message: "Используйте предыдущий QR-код",
-        });
-      }
-
-      return apiOk({
-        paymentId: pendingPayment.id,
-        qrData: null,
-        message: "Используйте предыдущий QR-код",
-      });
+      return previousPaymentResponse(db, pendingPayment.id, expiresAt);
     }
 
     const paymentId = randomUUID();
@@ -117,6 +137,13 @@ export async function POST(_request: NextRequest) {
     // чтобы сумма в QR-коде всегда совпадала с отображаемой ценой
     const amount = SUBSCRIPTION_PRICE;
     const phone = process.env.FASTPAY_SBP_PHONE || "";
+
+    if (!phone) {
+      return apiError(
+        "Сервис оплаты временно недоступен (не задан FASTPAY_SBP_PHONE). Попробуйте позже",
+        503,
+      );
+    }
 
     const sbpQrData = JSON.stringify({
       type: "sbp",
@@ -127,21 +154,47 @@ export async function POST(_request: NextRequest) {
       paymentId,
     });
 
-    db.prepare(
-      `
-      INSERT INTO payments (id, user_id, amount, currency, status, payment_method, sbp_phone, sbp_qr_data)
-      VALUES (?, ?, ?, ?, 'pending', 'sbp', ?, ?)
-    `,
-    ).run(paymentId, session.userId, amount, "RUB", phone, sbpQrData);
+    // «Проверка отсутствия pending + вставка платежа и подписки» — атомарно:
+    // защищает от гонки двух параллельных create (два QR, две оплаты)
+    const { paymentId: createdId, subId } = db.transaction(() => {
+      const stillPending = db
+        .prepare(
+          `
+        SELECT id FROM payments
+        WHERE user_id = ? AND status = 'pending' AND created_at > datetime('now', '-30 minutes')
+        LIMIT 1
+      `,
+        )
+        .get(session.userId) as { id: string } | undefined;
 
-    const subId = randomUUID();
+      if (stillPending) {
+        return { paymentId: stillPending.id, subId: null };
+      }
 
-    db.prepare(
-      `
-      INSERT INTO subscriptions (id, user_id, status, payment_id, amount, started_at, expires_at)
-      VALUES (?, ?, 'pending', ?, ?, datetime('now'), datetime('now', '+30 days'))
-    `,
-    ).run(subId, session.userId, paymentId, amount);
+      db.prepare(
+        `
+        INSERT INTO payments (id, user_id, amount, currency, status, payment_method, sbp_phone, sbp_qr_data)
+        VALUES (?, ?, ?, ?, 'pending', 'sbp', ?, ?)
+      `,
+      ).run(paymentId, session.userId, amount, "RUB", phone, sbpQrData);
+
+      const subId = randomUUID();
+
+      db.prepare(
+        `
+        INSERT INTO subscriptions (id, user_id, status, payment_id, amount, started_at, expires_at)
+        VALUES (?, ?, 'pending', ?, ?, datetime('now'), datetime('now', '+30 days'))
+      `,
+      ).run(subId, session.userId, paymentId, amount);
+
+      return { paymentId, subId };
+    })();
+
+    if (subId === null) {
+      // Конкурентный запрос успел создать платёж между нашими проверками —
+      // возвращаем его QR, а не пустой ответ
+      return previousPaymentResponse(db, createdId, expiresAt);
+    }
 
     const { toDataURL } = await import("qrcode");
     const qrCodeUrl = await toDataURL(sbpQrData, { width: 300, margin: 2 });

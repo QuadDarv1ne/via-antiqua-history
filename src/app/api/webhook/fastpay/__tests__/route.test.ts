@@ -171,6 +171,52 @@ describe('POST /api/webhook/fastpay', () => {
     expect(paymentRow(paymentId).status).toBe('failed')
   })
 
+  it('cancels the pending subscription on payment.failed', async () => {
+    const userId = randomUUID()
+    const { paymentId, subId } = await seedPayment(userId)
+    const payload = {
+      event: 'payment.failed',
+      data: {
+        paymentId: 'fastpay-5b',
+        externalPaymentId: paymentId,
+        reason: 'expired',
+      },
+    }
+    const res = await POST(buildRequest(payload, sign(JSON.stringify(payload))))
+    expect(res.status).toBe(200)
+    expect(paymentRow(paymentId).status).toBe('failed')
+    expect(subscriptionRow(subId).status).toBe('cancelled')
+  })
+
+  it('restores a payment marked failed by cleanup when it actually completed', async () => {
+    const userId = randomUUID()
+    const { paymentId, subId } = await seedPayment(userId)
+    const db = getDb()
+    // Имитируем 30-минутную очистку из /api/subscription/create:
+    // платёж и подписка помечены failed/cancelled, но пользователь оплатил QR.
+    db.prepare(
+      `UPDATE payments SET status = 'failed', updated_at = datetime('now') WHERE id = ?`,
+    ).run(paymentId)
+    db.prepare(
+      `UPDATE subscriptions SET status = 'cancelled', updated_at = datetime('now') WHERE id = ?`,
+    ).run(subId)
+
+    const payload = {
+      event: 'payment.completed',
+      data: {
+        paymentId: 'fastpay-5c',
+        externalPaymentId: paymentId,
+        amount: 999,
+        currency: 'RUB',
+      },
+    }
+    const res = await POST(buildRequest(payload, sign(JSON.stringify(payload))))
+    expect(res.status).toBe(200)
+    expect(paymentRow(paymentId).status).toBe('paid')
+    expect(paymentRow(paymentId).external_payment_id).toBe('fastpay-5c')
+    expect(subscriptionRow(subId).status).toBe('active')
+  })
+
   it('ignores stale payment.failed after a completed payment', async () => {
     const userId = randomUUID()
     const { paymentId } = await seedPayment(userId)

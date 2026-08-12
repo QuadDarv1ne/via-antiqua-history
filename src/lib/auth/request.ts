@@ -26,7 +26,7 @@ export async function readJsonBody(
  * exceeds MAX_BODY_BYTES to avoid buffering arbitrarily large payloads.
  * Returns null if the body is missing or too large.
  */
-async function readBodyText(req: NextRequest): Promise<string | null> {
+export async function readBodyText(req: NextRequest): Promise<string | null> {
   const contentLength = Number(req.headers.get("content-length") || 0);
   if (contentLength > MAX_BODY_BYTES) return null;
 

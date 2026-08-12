@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server'
+import { randomUUID } from 'crypto'
 
 const MAX_IP_LENGTH = 64
 
@@ -28,7 +29,24 @@ export function normalizeIp(ip: string): string {
 export function getClientIp(req: NextRequest): string {
   // Читаем env при каждом вызове: значение может меняться между
   // окружениями (dev/prod) и внутри тестов
-  if (process.env.TRUST_PROXY_HEADERS !== 'true') return 'unknown'
+  if (process.env.TRUST_PROXY_HEADERS !== 'true') {
+    if (process.env.NODE_ENV === 'production') {
+      // Пром-окружение без доверенного прокси: предупреждаем один раз и
+      // используем ПЕР-ЗАПРОСНЫЙ ключ вместо общего 'unknown'. Общий bucket
+      // позволил бы одному атакующему исчерпать лимиты регистрации/входа
+      // для ВСЕХ пользователей сайта (сайт-wide DoS).
+      if (!getClientIp.warned) {
+        getClientIp.warned = true;
+        console.error(
+          '[get-ip] TRUST_PROXY_HEADERS не включён в production — реальный IP клиента ' +
+          'недоступен, IP-базированный rate limit отключён. Установите ' +
+          'TRUST_PROXY_HEADERS=true за доверенным reverse-proxy (Caddy/Nginx).',
+        );
+      }
+      return `unknown:${randomUUID()}`;
+    }
+    return 'unknown'
+  }
 
   // X-Real-IP is set by the reverse proxy (Caddy) and cannot be spoofed by the client
   const realIp = req.headers.get('x-real-ip')
@@ -45,3 +63,7 @@ export function getClientIp(req: NextRequest): string {
 
   return 'unknown'
 }
+
+// Одноразовый флаг, чтобы предупреждение о неверной конфигурации
+// не засоряло логи на каждый запрос
+getClientIp.warned = false;

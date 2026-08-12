@@ -2,9 +2,8 @@ import { NextRequest } from "next/server";
 import { createHmac, timingSafeEqual } from "crypto";
 import { getDb } from "@/lib/auth/db";
 import { apiOk, apiError } from "@/lib/auth/api-response";
+import { readBodyText } from "@/lib/auth/request";
 import { toSqliteDateTime } from "@/lib/utils";
-
-const MAX_WEBHOOK_BODY_BYTES = 256 * 1024;
 
 /**
  * Вебхук для обработки платежей от FastPay Connect
@@ -17,8 +16,8 @@ const MAX_WEBHOOK_BODY_BYTES = 256 * 1024;
  */
 export async function POST(request: NextRequest) {
   try {
-    const rawBody = await request.text();
-    if (rawBody.length === 0 || rawBody.length > MAX_WEBHOOK_BODY_BYTES) {
+    const rawBody = await readBodyText(request);
+    if (rawBody === null || rawBody.length === 0) {
       return apiError("Invalid JSON body", 400);
     }
     let payload: { event: string; data: Record<string, unknown> };
@@ -207,6 +206,44 @@ async function handlePaymentCompleted(data: unknown) {
       .run(paymentData.paymentId, now, payment.id);
 
     if (paid.changes === 0) {
+      // Платёж уже не 'pending'. Проверяем текущее состояние:
+      // - 'paid'/'refunded' — повторная доставка, пропускаем (идемпотентность);
+      // - 'failed' — пользователь реально оплатил, но 30-минутная очистка
+      //   (или событие payment.failed) успела пометить платёж failed раньше.
+      //   FastPay не ретраит — молчаливый пропуск означал бы потерю оплаты,
+      //   поэтому восстанавливаем платёж и активируем подписку.
+      const current = db
+        .prepare("SELECT status FROM payments WHERE id = ?")
+        .get(payment.id) as { status: string } | undefined;
+
+      if (!current || current.status !== "failed") {
+        return;
+      }
+
+      db.prepare(
+        `
+        UPDATE payments 
+        SET status = 'paid', 
+            external_payment_id = ?, 
+            updated_at = ? 
+        WHERE id = ?
+      `,
+      ).run(paymentData.paymentId, now, payment.id);
+
+      db.prepare(
+        `
+        UPDATE subscriptions
+        SET status = 'active',
+            payment_id = ?,
+            updated_at = ?,
+            expires_at = ?
+        WHERE user_id = ? AND payment_id = ?
+      `,
+      ).run(payment.id, now, expiresAt, payment.user_id, payment.id);
+
+      console.warn(
+        `Payment ${payment.id} was marked failed but completed — subscription restored`,
+      );
       return;
     }
 
@@ -267,14 +304,25 @@ async function handlePaymentFailed(data: unknown) {
     return;
   }
 
-  db.prepare(
-    `
-    UPDATE payments 
-    SET status = 'failed', 
-        updated_at = ? 
-    WHERE id = ? AND status = 'pending'
-  `,
-  ).run(now, payment.id);
+  db.transaction(() => {
+    db.prepare(
+      `
+      UPDATE payments 
+      SET status = 'failed', 
+          updated_at = ? 
+      WHERE id = ? AND status = 'pending'
+    `,
+    ).run(now, payment.id);
+
+    db.prepare(
+      `
+      UPDATE subscriptions
+      SET status = 'cancelled',
+          updated_at = ?
+      WHERE payment_id = ? AND status = 'pending'
+    `,
+    ).run(now, payment.id);
+  })();
 
   console.warn(
     `Payment failed: ${paymentData.externalPaymentId} / ${paymentData.paymentId}`,

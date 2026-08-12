@@ -61,6 +61,11 @@ export async function POST(req: NextRequest) {
       .get(email.toLowerCase()) as Record<string, unknown> | undefined;
 
     if (!user) {
+      // Выравниваем время ответа: для несуществующего email выполняем
+      // сопоставимую по длительности «dummy» работу (как dummy-bcrypt в login),
+      // чтобы нельзя было перечислить зарегистрированные адреса по задержке.
+      // Письмо НЕ отправляем — иначе любой мог бы бомбить чужие ящики.
+      await new Promise((resolve) => setTimeout(resolve, 300 + Math.random() * 300));
       return apiOk({ message: "Если пользователь с таким email существует, код отправлен" });
     }
 
@@ -68,22 +73,31 @@ export async function POST(req: NextRequest) {
     const expiresAt = toSqliteDateTime(
       new Date(Date.now() + 15 * 60 * 1000),
     );
+    const tokenId = generateToken(16);
 
-    const createToken = db.transaction(() => {
+    // Сначала создаём новый токен, но НЕ инвалидируем старые:
+    // если отправка письма упадёт, пользователь не потеряет действующий код
+    db.transaction(() => {
       // Ленивая чистка истёкших токенов — таблица не разрастается бесконечно
       db.prepare(
         "DELETE FROM verification_tokens WHERE expires_at <= datetime('now')",
       ).run();
       db.prepare(
-        "UPDATE verification_tokens SET used = 1 WHERE user_id = ? AND type = 'password_reset' AND used = 0",
-      ).run(user.id);
-      db.prepare(
         `INSERT INTO verification_tokens (id, user_id, type, code, expires_at) VALUES (?, ?, 'password_reset', ?, ?)`,
-      ).run(generateToken(16), user.id, code, expiresAt);
-    });
-    createToken();
+      ).run(tokenId, user.id, code, expiresAt);
+    })();
 
-    await sendPasswordResetEmail(email.toLowerCase(), code);
+    const sent = await sendPasswordResetEmail(email.toLowerCase(), code);
+
+    if (!sent) {
+      // Откатываем новый токен — старые коды остаются валидными
+      db.prepare("DELETE FROM verification_tokens WHERE id = ?").run(tokenId);
+      return apiError("Не удалось отправить код. Попробуйте позже", 500);
+    }
+
+    db.prepare(
+      "UPDATE verification_tokens SET used = 1 WHERE user_id = ? AND type = 'password_reset' AND used = 0 AND id != ?",
+    ).run(user.id, tokenId);
 
     return apiOk({
       message: "Если пользователь с таким email существует, код отправлен",

@@ -7,6 +7,7 @@ import { comparisonRows } from '@/lib/history-data'
 import { ReadingTime } from '@/components/site/reading-time'
 import { REGION_COLORS, REGION_LABELS } from '@/lib/constants'
 import { SectionHeader } from '@/components/site/section-header'
+import { cn } from '@/lib/utils'
 
 const columns = [
   { key: 'greece', label: REGION_LABELS.greece, color: REGION_COLORS.greece },
@@ -18,6 +19,19 @@ const columns = [
 export const ComparisonSection = React.memo(function ComparisonSection() {
   const readingText = React.useMemo(
     () => comparisonRows.map((r) => `${r.criterion} ${r.greece} ${r.rome} ${r.mesopotamia} ${r.kuban}`),
+    [],
+  )
+
+  // Подсветка колонки при наведении/фокусе
+  const [highlighted, setHighlighted] = React.useState<string | null>(null)
+
+  const columnHandlers = React.useCallback(
+    (colKey: string) => ({
+      onMouseEnter: () => setHighlighted(colKey),
+      onMouseLeave: () => setHighlighted(null),
+      onFocus: () => setHighlighted(colKey),
+      onBlur: () => setHighlighted(null),
+    }),
     [],
   )
 
@@ -57,7 +71,11 @@ export const ComparisonSection = React.memo(function ComparisonSection() {
                       key={col.key}
                       data-col={col.key}
                       tabIndex={0}
-                      className="text-left p-3 sm:p-4 font-display font-semibold transition-colors cursor-default min-w-[180px] sm:min-w-[200px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
+                      {...columnHandlers(col.key)}
+                      className={cn(
+                        'text-left p-3 sm:p-4 font-display font-semibold transition-colors cursor-default min-w-[180px] sm:min-w-[200px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary',
+                        highlighted === col.key && 'bg-accent/10',
+                      )}
                     >
                       <div className="flex items-center gap-1.5 sm:gap-2">
                         <span
@@ -84,7 +102,11 @@ export const ComparisonSection = React.memo(function ComparisonSection() {
                       <td
                         key={col.key}
                         data-col={col.key}
-                        className="p-3 sm:p-4 text-foreground/85 transition-colors text-xs sm:text-sm"
+                        {...columnHandlers(col.key)}
+                        className={cn(
+                          'p-3 sm:p-4 text-foreground/85 transition-colors text-xs sm:text-sm',
+                          highlighted === col.key && 'bg-accent/10',
+                        )}
                       >
                         {row[col.key]}
                       </td>

@@ -48,9 +48,21 @@ export function SubscriptionProvider({
 
   React.useEffect(() => {
     if (!user || loading) {
-      if (!loading) setSubscriptionLoading(false);
+      // При logout/смене пользователя сбрасываем данные предыдущего аккаунта,
+      // чтобы контентные гейты не показали чужие премиум-секции в промежутке
+      setSubscription(null);
+      // loading=true — авторизация ещё проверяется, статус подписки неизвестен;
+      // loading=false — пользователь точно не авторизован, подписки нет
+      if (!loading) {
+        setSubscriptionLoading(false);
+      }
       return;
     }
+
+    // Новый запрос для текущего пользователя — показываем загрузку и
+    // не отдаём stale-данные прошлого аккаунта (если user сменился без logout)
+    setSubscription(null);
+    setSubscriptionLoading(true);
 
     const controller = new AbortController();
 
@@ -71,7 +83,11 @@ export function SubscriptionProvider({
         setSubscription(null);
       })
       .finally(() => {
-        setSubscriptionLoading(false);
+        // finally срабатывает и для aborted-запроса предыдущего пользователя;
+        // защищаемся от ложного снятия loading при быстрой смене аккаунтов
+        if (!controller.signal.aborted) {
+          setSubscriptionLoading(false);
+        }
       });
 
     return () => controller.abort();

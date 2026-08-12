@@ -107,12 +107,18 @@ export async function POST(req: NextRequest) {
 
     const user = db
       .prepare(
-        "SELECT totp_secret, totp_secret_expires_at, password_hash FROM users WHERE id = ?",
+        "SELECT totp_secret, totp_secret_expires_at, password_hash, totp_enabled FROM users WHERE id = ?",
       )
       .get(session.userId) as Record<string, unknown> | undefined;
 
     if (!user || !user.totp_secret) {
       return apiError("2FA не настроен. Запросите setup сначала", 400);
+    }
+
+    // Повторный confirm при уже включённой 2FA: не перегенерируем recovery-коды,
+    // иначе пользователь, не сохранивший новые коды, потеряет доступ к аккаунту
+    if (user.totp_enabled) {
+      return apiError("2FA уже включена. Сначала отключите её в профиле", 400);
     }
 
     // Проверяем что secret не истёк (15 минут на подтверждение)

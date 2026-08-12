@@ -64,6 +64,16 @@ export const QuizSection = React.memo(function QuizSection() {
     }
   }, [current])
 
+  // Ссылка на кнопку «Далее/Завершить»: после ответа мышью фокус остаётся
+  // на disabled-кнопке варианта, и подсказка «Enter — далее» не работает
+  const nextButtonRef = React.useRef<HTMLButtonElement>(null)
+
+  React.useEffect(() => {
+    if (isAnswered) {
+      nextButtonRef.current?.focus()
+    }
+  }, [isAnswered])
+
   React.useEffect(() => {
     if (finished) return
     const onKey = (e: KeyboardEvent) => {
@@ -311,17 +321,20 @@ export const QuizSection = React.memo(function QuizSection() {
             {quizQuestions.map((_, i) => {
               const a = answers[i]
               const isCorrectQ = a !== null && a === quizQuestions[i].correct
+              const navigable = answers[i] !== null || i < current
               return (
                 <button
                   type="button"
                   key={i}
                   onClick={() => {
-                    if (answers[i] !== null || i < current) {
+                    if (navigable) {
                       setCurrent(i)
                     }
                   }}
-                  className="flex items-center justify-center p-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 rounded"
-                  aria-label={`Вопрос ${i + 1}${a !== null ? (isCorrectQ ? ', верно' : ', неверно') : ', не отвечен'}`}
+                  disabled={!navigable}
+                  aria-disabled={!navigable}
+                  className="flex items-center justify-center p-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 rounded disabled:cursor-not-allowed"
+                  aria-label={`Вопрос ${i + 1}${a !== null ? (isCorrectQ ? ', верно' : ', неверно') : ', не отвечен'}${navigable ? ', перейти' : ''}`}
                 >
                   <span
                     className={cn(
@@ -381,6 +394,15 @@ export const QuizSection = React.memo(function QuizSection() {
                     whileTap={!isAnswered ? { scale: 0.98 } : undefined}
                     onClick={() => select(i)}
                     disabled={isAnswered}
+                    aria-label={
+                      isAnswered
+                        ? showAsCorrect
+                          ? `${String.fromCharCode(65 + i)} — ${opt} (правильный ответ)`
+                          : showAsWrong
+                            ? `${String.fromCharCode(65 + i)} — ${opt} (ваш ответ, неверно)`
+                            : `${String.fromCharCode(65 + i)} — ${opt}`
+                        : `${String.fromCharCode(65 + i)} — ${opt}`
+                    }
                     className={cn(
                       'w-full text-left p-3 sm:p-4 rounded-lg border transition-all flex items-center gap-2 sm:gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1',
                       !isAnswered &&
@@ -428,6 +450,7 @@ export const QuizSection = React.memo(function QuizSection() {
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
+                aria-live="polite"
                 className={cn(
                   'mt-3 sm:mt-4 p-3 sm:p-4 rounded-lg border',
                   isCorrect
@@ -462,6 +485,7 @@ export const QuizSection = React.memo(function QuizSection() {
                 Назад
               </Button>
               <Button
+                ref={nextButtonRef}
                 onClick={goNext}
                 disabled={!isAnswered}
                 size="sm"

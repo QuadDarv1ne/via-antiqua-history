@@ -33,7 +33,7 @@ const TimelineDot = React.memo(function TimelineDot({
       type="button"
       onClick={onClick}
       aria-label={`Событие: ${yearLabel}`}
-      aria-current={isActive ? 'true' : undefined}
+      aria-pressed={isActive}
       className={cn(
         'group relative flex flex-col items-stretch transition-all',
         'min-w-[110px] sm:min-w-[150px] md:min-w-[190px]',
@@ -116,6 +116,9 @@ export function TimelineSection() {
       return
     }
     autoPlayRef.current = setInterval(() => {
+      // Не прокручиваем в фоновой вкладке: интервалы там замедляются,
+      // из-за чего автоплей «съедает» все события после возврата
+      if (document.hidden) return
       setActiveIdx((cur) => {
         if (cur >= allTimeline.length - 1) {
           return cur

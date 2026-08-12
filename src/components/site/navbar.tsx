@@ -58,6 +58,12 @@ export function Navbar() {
     setMounted(true);
   }, []);
 
+  // Подсказка сочетания: на Windows/macOS разные модификаторы
+  const [isMac, setIsMac] = React.useState(false);
+  React.useEffect(() => {
+    setIsMac(/Mac|iPhone|iPad|iPod/i.test(navigator.platform || ""));
+  }, []);
+
   React.useEffect(() => {
     let rafId: number | null = null;
     let ticking = false;
@@ -96,8 +102,10 @@ export function Navbar() {
         setSearchOpen(true);
       } else if (
         e.key === "/" &&
-        document.activeElement?.tagName !== "INPUT" &&
-        document.activeElement?.tagName !== "TEXTAREA"
+        // Не перехватываем ввод в полях и при фокусе на интерактивных элементах
+        !["INPUT", "TEXTAREA", "SELECT", "BUTTON"].includes(
+          document.activeElement?.tagName ?? "",
+        )
       ) {
         e.preventDefault();
         setSearchOpen(true);
@@ -165,7 +173,7 @@ export function Navbar() {
               >
                 <Search className="h-4 w-4" aria-hidden="true" />
                 <kbd className="absolute -bottom-0.5 right-0.5 hidden sm:inline-flex items-center justify-center px-1 py-0.5 text-[8px] leading-none rounded border border-border bg-muted/40 text-muted-foreground/50">
-                  ⌘K
+                  {isMac ? "⌘K" : "Ctrl+K"}
                 </kbd>
               </Button>
               <Button

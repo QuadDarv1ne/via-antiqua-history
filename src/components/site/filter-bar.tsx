@@ -44,8 +44,11 @@ export const FilterBar = React.memo(function FilterBar({
     if (nextIdx !== currentIdx) {
       onChange(options[nextIdx].key);
       // Перемещаем фокус на новую активную кнопку (roving tabindex):
-      // иначе фокус остаётся на кнопке, которая уже tabIndex={-1}
-      const nextEl = document.querySelector<HTMLElement>(
+      // иначе фокус остаётся на кнопке, которая уже tabIndex={-1}.
+      // Ищем только внутри своей группы — на странице может быть несколько
+      // FilterBar с одинаковыми data-filter-key (персоналии и карта).
+      const group = e.currentTarget;
+      const nextEl = group.querySelector<HTMLElement>(
         `[data-filter-key="${options[nextIdx].key}"]`,
       );
       nextEl?.focus();

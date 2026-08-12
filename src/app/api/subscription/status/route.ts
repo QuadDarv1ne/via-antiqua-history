@@ -3,13 +3,25 @@ import { getDb } from "@/lib/auth/db";
 import { getSession } from "@/lib/auth/utils";
 import { apiOk, apiError } from "@/lib/auth/api-response";
 import { SubscriptionSchema, safeParse } from "@/lib/auth/schemas";
+import { checkRateLimit, rateLimitResponse } from "@/lib/auth/rate-limit";
+import { getClientIp } from "@/lib/auth/get-ip";
 import { parseSqliteDateTime } from "@/lib/utils";
 
-export async function GET(_request: NextRequest) {
+// Профиль поллит статус каждые 5 секунд во время оплаты —
+// лимит должен пропускать это, но не позволять спамить бесконечно
+const RATE_LIMIT = { windowMs: 60 * 1000, max: 60 };
+
+export async function GET(request: NextRequest) {
   try {
     const session = await getSession();
     if (!session) {
       return apiError("Не авторизован", 401);
+    }
+
+    const ip = getClientIp(request);
+    const rl = checkRateLimit(`sub-status:${ip}:${session.userId}`, RATE_LIMIT);
+    if (!rl.allowed) {
+      return rateLimitResponse(rl.resetMs);
     }
 
     const db = getDb();

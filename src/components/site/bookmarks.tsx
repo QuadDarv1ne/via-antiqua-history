@@ -91,13 +91,21 @@ export function BookmarksProvider({ children }: { children: React.ReactNode }) {
 
   const syncRemote = React.useCallback(
     (method: 'POST' | 'DELETE', payload: unknown) => {
-      fetch('/api/bookmarks', {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      }).catch(() => {
-        // Network error — silently ignore
-      })
+      // Одна ретрай-попытка при сетевой ошибке: не теряем закладку молча
+      const attempt = (retry: boolean) => {
+        fetch('/api/bookmarks', {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        }).catch(() => {
+          if (retry) {
+            setTimeout(() => attempt(false), 1500)
+          } else {
+            // Network error — silently ignore
+          }
+        })
+      }
+      attempt(true)
     },
     [],
   )
@@ -183,18 +191,15 @@ export function BookmarksProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const toggle = React.useCallback((item: BookmarkItem) => {
-    // Актуальное состояние из ref — защита от stale closure при быстрых кликах
+    // Актуальное состояние из ref — защита от stale closure при быстрых кликах.
+    // next вычисляется ДО setBookmarks (не внутри апдейтера), чтобы ref
+    // обновлялся синхронно и без побочных эффектов в функции-апдейтере
     const exists = bookmarksRef.current.some((b) => b.id === item.id)
-    setBookmarks((current) => {
-      const isPresent = current.some((b) => b.id === item.id)
-      // Синхронизируем ref сразу, чтобы последующие клики в том же тике
-      // видели актуальное состояние
-      const next = isPresent
-        ? current.filter((b) => b.id !== item.id)
-        : [item, ...current]
-      bookmarksRef.current = next
-      return next
-    })
+    const next = exists
+      ? bookmarksRef.current.filter((b) => b.id !== item.id)
+      : [item, ...bookmarksRef.current]
+    bookmarksRef.current = next
+    setBookmarks(next)
     showToast(item.title, !exists)
     if (!user) return
     if (exists) {
