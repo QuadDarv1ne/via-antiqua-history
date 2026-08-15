@@ -48,6 +48,7 @@ export function Navbar() {
       "analysis",
       "glossary",
       "quiz",
+      "faq",
       "sources",
     ],
     [],

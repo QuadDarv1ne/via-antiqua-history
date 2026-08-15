@@ -96,6 +96,10 @@ const QuizSection = dynamic(
   () => import("@/components/site/quiz-section").then((m) => m.QuizSection),
   { loading: () => <DynamicSectionSkeleton variant="full" /> },
 );
+const FaqSection = dynamic(
+  () => import("@/components/site/faq-section").then((m) => m.FaqSection),
+  { loading: () => <DynamicSectionSkeleton variant="grid" /> },
+);
 const SourcesSection = dynamic(
   () =>
     import("@/components/site/sources-section").then((m) => m.SourcesSection),
@@ -256,6 +260,14 @@ export default function HomePageClient({
           <ErrorBoundary>
             <Suspense fallback={<DynamicSectionSkeleton variant="full" />}>
               <QuizSection />
+            </Suspense>
+          </ErrorBoundary>
+          <SectionDivider />
+
+          {/* Частые вопросы */}
+          <ErrorBoundary>
+            <Suspense fallback={<DynamicSectionSkeleton variant="grid" />}>
+              <FaqSection />
             </Suspense>
           </ErrorBoundary>
           <SectionDivider />

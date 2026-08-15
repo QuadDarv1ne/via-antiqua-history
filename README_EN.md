@@ -357,7 +357,7 @@ via-antiqua-history/
 ## Interactivity
 
 ### Navigation and Search
-- **Global search** (`Ctrl+K` / `Cmd+K` / `/`) — instant search across cities, monuments, terms, and personalities
+- **Global search** (`Ctrl+K` / `Cmd+K` / `/`) — instant search across cities, monuments, terms, personalities, Wonders, orders, epochs, timeline events, and analysis essays
 - **Sticky navigation** — fixed menu with smooth scroll to sections
 - **Bookmarks** — local saving synced through the account, floating button for quick access
 - **Reading progress** — visual reading progress indicator at the top of the screen
@@ -370,7 +370,7 @@ via-antiqua-history/
 - **Timeline** — navigation with `←`/`→` arrows, animation on scroll
 - **Comparative table** — 8 criteria for each civilization
 - **Glossary** — live search with filtering
-- **Quiz** — keyboard navigation with `1`–`4` for answers, `←`/`→` for transitions
+- **Quiz** — keyboard navigation with `1`–`4` for answers, `←`/`→` for transitions; progress is saved in the browser and survives page reload
 
 ### Themes and Responsiveness
 - **Dark/Light theme** — antique style with parchment background and bronze accents

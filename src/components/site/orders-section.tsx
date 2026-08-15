@@ -116,7 +116,7 @@ export const OrdersSection = React.memo(function OrdersSection() {
 
   const orderBookmarkItem = React.useMemo(() => active ? {
     id: `order:${active.id}`,
-    type: 'term' as const,
+    type: 'order' as const,
     title: active.name,
     subtitle: `${active.originalName} · ${active.period}`,
     href: '#orders',

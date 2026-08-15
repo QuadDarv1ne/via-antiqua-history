@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { Search, MapPin, Landmark, BookMarked, Users } from 'lucide-react'
+import { Search, MapPin, Landmark, BookMarked, Users, Building2, Columns3, CalendarClock, Milestone, ScrollText } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -10,101 +10,43 @@ import {
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import {
-  allRegions,
-  glossary,
-  persons,
-  mapRegions,
-} from '@/lib/history-data'
+  buildSearchIndex,
+  searchIndex,
+  findHighlightRanges,
+  type SearchItem,
+} from '@/lib/search'
 import { cn, withAlpha, getRegionColor } from '@/lib/utils'
 
-type SearchResult = {
-  type: 'city' | 'landmark' | 'term' | 'person' | 'map-city'
-  title: string
-  subtitle: string
-  region: string
-  href?: string
-  iconType: 'MapPin' | 'Landmark' | 'BookMarked' | 'Users'
-}
-
-const typeLabels: Record<SearchResult['type'], string> = {
+const typeLabels: Record<SearchItem['type'], string> = {
   city: 'Город',
   landmark: 'Памятник',
   term: 'Термин',
   person: 'Персоналия',
   'map-city': 'На карте',
+  wonder: 'Чудо света',
+  order: 'Ордер',
+  epoch: 'Эпоха',
+  event: 'Событие',
+  analysis: 'Анализ',
 }
 
 // Build index lazily on first access
-let _searchIndex: SearchResult[] | null = null
-function getSearchIndex(): SearchResult[] {
-  if (_searchIndex) return _searchIndex
-  const items: SearchResult[] = []
-
-  allRegions.forEach((r) => {
-    r.cities.forEach((c) => {
-      items.push({
-        type: 'city',
-        title: c.name,
-        subtitle: c.summary,
-        region: r.id,
-        href: `#${r.id}`,
-        iconType: 'MapPin',
-      })
-      c.landmarks.forEach((l) => {
-        items.push({
-          type: 'landmark',
-          title: l.name,
-          subtitle: `${c.name} — ${l.shortDesc}`,
-          region: r.id,
-          href: `#${r.id}`,
-          iconType: 'Landmark',
-        })
-      })
-    })
-  })
-
-  glossary.forEach((t) => {
-    items.push({
-      type: 'term',
-      title: t.term,
-      subtitle: t.definition,
-      region: t.origin,
-      href: '#glossary',
-      iconType: 'BookMarked',
-    })
-  })
-
-  persons.forEach((p) => {
-    items.push({
-      type: 'person',
-      title: p.name,
-      subtitle: `${p.role} · ${p.era}`,
-      region: p.region,
-      href: '#persons',
-      iconType: 'Users',
-    })
-  })
-
-  mapRegions.forEach((m) => {
-    items.push({
-      type: 'map-city',
-      title: m.name,
-      subtitle: m.description,
-      region: m.region,
-      href: '#map',
-      iconType: 'MapPin',
-    })
-  })
-
-  _searchIndex = items
-  return items
+let _searchIndex: SearchItem[] | null = null
+function getSearchIndex(): SearchItem[] {
+  if (!_searchIndex) _searchIndex = buildSearchIndex()
+  return _searchIndex
 }
 
-const iconMap: Record<SearchResult['iconType'], React.ComponentType<{ className: string }>> = {
+const iconMap: Record<SearchItem['iconType'], React.ComponentType<{ className: string }>> = {
   MapPin: MapPin,
   Landmark: Landmark,
   BookMarked: BookMarked,
   Users: Users,
+  Building2: Building2,
+  Columns3: Columns3,
+  CalendarClock: CalendarClock,
+  Milestone: Milestone,
+  ScrollText: ScrollText,
 }
 
 export function SearchDialog({
@@ -116,7 +58,7 @@ export function SearchDialog({
 }) {
   const [query, setQuery] = React.useState('')
   const [activeIdx, setActiveIdx] = React.useState(0)
-  const [index, setIndex] = React.useState<SearchResult[]>([])
+  const [index, setIndex] = React.useState<SearchItem[]>([])
 
   // Build search index lazily when dialog first opens
   React.useEffect(() => {
@@ -125,17 +67,35 @@ export function SearchDialog({
     }
   }, [open, index.length])
 
-  const results = React.useMemo(() => {
-    if (!query.trim()) return []
-    const q = query.toLowerCase()
-    return index
-      .filter((r) => {
-        const inTitle = r.title.toLowerCase().includes(q)
-        const inSubtitle = r.subtitle.toLowerCase().includes(q)
-        return inTitle || inSubtitle
+  const { items: results, total } = React.useMemo(
+    () => searchIndex(index, query),
+    [query, index],
+  )
+
+  // Подсветка совпадений запроса в заголовке/подзаголовке результата
+  const renderHighlighted = React.useCallback(
+    (text: string, prefix: string, resultIdx: number) => {
+      const ranges = findHighlightRanges(text, query)
+      if (ranges.length === 0) return text
+      const nodes: React.ReactNode[] = []
+      let pos = 0
+      ranges.forEach(([start, end], i) => {
+        if (start > pos) nodes.push(text.slice(pos, start))
+        nodes.push(
+          <mark
+            key={`${prefix}-${resultIdx}-${i}`}
+            className="bg-primary/15 text-foreground rounded-[2px] px-0.5"
+          >
+            {text.slice(start, end)}
+          </mark>,
+        )
+        pos = end
       })
-      .slice(0, 50)
-  }, [query, index])
+      if (pos < text.length) nodes.push(text.slice(pos))
+      return nodes
+    },
+    [query],
+  )
 
   React.useEffect(() => {
     setActiveIdx(0)
@@ -160,7 +120,7 @@ export function SearchDialog({
     if (!open) setQuery('')
   }, [open])
 
-  const handleSelect = React.useCallback((r: SearchResult) => {
+  const handleSelect = React.useCallback((r: SearchItem) => {
     if (r.href) {
       const id = r.href.slice(1)
       const el = document.getElementById(id)
@@ -198,7 +158,7 @@ export function SearchDialog({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={onKeyDown}
-            placeholder="Поиск по городам, памятникам, терминам…"
+            placeholder="Поиск по городам, памятникам, терминам, событиям…"
             className="border-0 focus-visible:ring-2 focus-visible:ring-primary h-12 sm:h-14 text-sm sm:text-base"
             role="combobox"
             aria-expanded={query.trim().length > 0 && results.length > 0}
@@ -219,11 +179,11 @@ export function SearchDialog({
               <div className="p-5 sm:p-8 text-center">
                 <Search className="h-8 w-8 sm:h-10 sm:w-10 mx-auto text-muted-foreground mb-2 sm:mb-3 opacity-40" aria-hidden="true" />
                 <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                  Начните вводить запрос, чтобы найти город, памятник, термин
-                  или исторического деятеля.
+                  Начните вводить запрос, чтобы найти город, памятник, термин,
+                  персоналию, чудо света, эпоху или историческое событие.
                 </p>
                 <div className="mt-4 sm:mt-6 flex flex-wrap justify-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs">
-                  {['Парфенон', 'Александр', 'Боспор', 'Хаммурапи', 'Зиккурат', 'Колизей'].map((s) => (
+                  {['Парфенон', 'Александр', 'Боспор', 'Хаммурапи', 'Зиккурат', 'Колизей', 'Висячие сады', 'Эллинизм'].map((s) => (
                     <button
                       type="button"
                       key={s}
@@ -245,7 +205,9 @@ export function SearchDialog({
             ) : (
               <>
                 <div className="px-3 py-2 text-xs text-muted-foreground" aria-live="polite" aria-atomic="true">
-                  Найдено результатов: {results.length}
+                  {total > results.length
+                    ? `Показано ${results.length} из ${total}`
+                    : `Найдено результатов: ${total}`}
                 </div>
                 <div id="search-results-list" role="listbox" aria-label="Результаты поиска">
                   {results.map((r, i) => {
@@ -253,7 +215,7 @@ export function SearchDialog({
                   return (
                     <div
                       role="option"
-                      key={`${r.type}-${r.title}`}
+                      key={r.key}
                       id={`search-result-${i}`}
                       aria-selected={safeIdx === i}
                       tabIndex={-1}
@@ -277,7 +239,9 @@ export function SearchDialog({
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className="flex items-center gap-1.5 sm:gap-2 mb-0.5 flex-wrap">
-                          <span className="font-medium text-xs sm:text-sm truncate">{r.title}</span>
+                          <span className="font-medium text-xs sm:text-sm truncate">
+                            {renderHighlighted(r.title, 't', i)}
+                          </span>
                           <span
                             className="text-[10px] sm:text-xs uppercase tracking-wider font-medium shrink-0"
                             style={{ color }}
@@ -286,7 +250,7 @@ export function SearchDialog({
                           </span>
                         </span>
                         <span className="text-[11px] sm:text-xs text-muted-foreground line-clamp-1 block">
-                          {r.subtitle}
+                          {renderHighlighted(r.subtitle, 's', i)}
                         </span>
                       </span>
                     </div>

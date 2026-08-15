@@ -4,6 +4,11 @@ import * as React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Brain, CheckCircle2, XCircle, RotateCcw, Trophy } from 'lucide-react'
 import { quizQuestions } from '@/lib/history-data'
+import {
+  loadQuizState,
+  saveQuizState,
+  clearQuizState,
+} from '@/lib/quiz-storage'
 import { cn, withAlpha } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
@@ -18,6 +23,25 @@ export const QuizSection = React.memo(function QuizSection() {
     Array(quizQuestions.length).fill(null),
   )
   const [finished, setFinished] = React.useState(false)
+  // Гидрирование из localStorage происходит в эффекте, чтобы избежать
+  // доступа к window при SSR
+  const [hydrated, setHydrated] = React.useState(false)
+
+  React.useEffect(() => {
+    const saved = loadQuizState(quizQuestions.length)
+    if (saved) {
+      setCurrent(saved.current)
+      setAnswers(saved.answers)
+      setFinished(saved.finished)
+    }
+    setHydrated(true)
+  }, [])
+
+  // Сохраняем прогресс после гидрирования при каждом изменении состояния
+  React.useEffect(() => {
+    if (!hydrated) return
+    saveQuizState({ current, answers, finished })
+  }, [hydrated, current, answers, finished])
 
   const selected = answers[current]
 
@@ -110,6 +134,7 @@ export const QuizSection = React.memo(function QuizSection() {
   }, [current, isAnswered, finished, q.options.length, select, goNext, goPrev])
 
   const reset = React.useCallback(() => {
+    clearQuizState()
     setCurrent(0)
     setAnswers(Array(quizQuestions.length).fill(null))
     setFinished(false)
