@@ -210,18 +210,21 @@ export function BookmarksProvider({ children }: { children: React.ReactNode }) {
   }, [showToast, user, syncRemote])
 
   const remove = React.useCallback((id: string) => {
-    setBookmarks((cur) => cur.filter((b) => b.id !== id))
+    const next = bookmarksRef.current.filter((b) => b.id !== id)
+    bookmarksRef.current = next
+    setBookmarks(next)
     if (user) {
       syncRemote('DELETE', { ids: [id] })
     }
   }, [user, syncRemote])
 
   const clear = React.useCallback(() => {
-    if (user && bookmarks.length > 0) {
-      syncRemote('DELETE', { ids: bookmarks.map((b) => b.id) })
+    if (user && bookmarksRef.current.length > 0) {
+      syncRemote('DELETE', { ids: bookmarksRef.current.map((b) => b.id) })
     }
+    bookmarksRef.current = []
     setBookmarks([])
-  }, [user, bookmarks, syncRemote])
+  }, [user, syncRemote])
 
   const value = React.useMemo(
     () => ({ bookmarks, isBookmarked, toggle, remove, clear }),

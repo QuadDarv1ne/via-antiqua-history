@@ -14,7 +14,7 @@ import {
   authorAnalysis,
   FAQ_DATA,
 } from "@/lib/history-data";
-import { AUTHOR_NAME } from "@/lib/constants";
+import { AUTHOR_NAME, REGION_KEYS } from "@/lib/constants";
 
 describe("search-index data completeness", () => {
   it("all regions have valid icon values", () => {
@@ -87,6 +87,19 @@ describe("search-index data completeness", () => {
   it("quiz questions have unique IDs", () => {
     const ids = quizQuestions.map((q) => q.id);
     expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it("quiz covers every region (result screen iterates REGION_KEYS)", () => {
+    const covered = new Set(quizQuestions.map((q) => q.region));
+    // Квиз-секция на экране результатов обращается к regionStats[key] для
+    // каждого REGION_KEYS — отсутствующий регион уронил бы страницу
+    for (const key of REGION_KEYS) {
+      expect(covered.has(key)).toBe(true);
+    }
+    // И наоборот: регионов вне REGION_KEYS в квизе быть не должно
+    for (const region of covered) {
+      expect(REGION_KEYS).toContain(region);
+    }
   });
 
   it("glossary terms have no duplicates", () => {

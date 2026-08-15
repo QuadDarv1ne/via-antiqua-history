@@ -9,6 +9,7 @@ import {
   timeline,
   additionalTimelineEvents,
   authorAnalysis,
+  FAQ_DATA,
 } from '@/lib/history-data'
 import type { TimelineEvent } from '@/lib/history-data'
 
@@ -23,6 +24,7 @@ export type SearchItemType =
   | 'epoch'
   | 'event'
   | 'analysis'
+  | 'faq'
 
 export type SearchIconType =
   | 'MapPin'
@@ -34,6 +36,7 @@ export type SearchIconType =
   | 'CalendarClock'
   | 'Milestone'
   | 'ScrollText'
+  | 'MessageCircleQuestion'
 
 export type SearchItem = {
   key: string
@@ -196,6 +199,19 @@ export function buildSearchIndex(): SearchItem[] {
       region: 'general',
       href: '#analysis',
       iconType: 'ScrollText',
+    })
+  })
+
+  // FAQ-вопросы: по ним ищут «подписка», «Pax Romana», «Кодекс Хаммурапи» и т.п.
+  FAQ_DATA.forEach((f) => {
+    items.push({
+      key: `faq-${f.question}`,
+      type: 'faq',
+      title: f.question,
+      subtitle: f.answer,
+      region: 'general',
+      href: '#faq',
+      iconType: 'MessageCircleQuestion',
     })
   })
 

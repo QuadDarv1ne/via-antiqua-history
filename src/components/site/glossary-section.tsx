@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { BookMarked, Search, X } from 'lucide-react'
 import { glossary } from '@/lib/history-data'
 import { cn, withAlpha, getSectionGradient } from '@/lib/utils'
+import { normalizeQuery, findHighlightRanges } from '@/lib/search'
 import { Input } from '@/components/ui/input'
 import { BookmarkButton } from '@/components/site/bookmarks'
 import { ReadingTime } from '@/components/site/reading-time'
@@ -25,16 +26,44 @@ export function GlossarySection() {
   const [query, setQuery] = React.useState('')
 
   const filtered = React.useMemo(() => {
-    const q = query.toLowerCase()
+    // Нормализация «ё/е» и регистра — как в глобальном поиске:
+    // «мед» находит «мёд», «Акрополь» == «акрополь»
+    const q = normalizeQuery(query)
     return glossary.filter((t) => {
       const matchFilter = filter === 'all' || t.origin === filter
       const matchQuery =
         !q ||
-        t.term.toLowerCase().includes(q) ||
-        t.definition.toLowerCase().includes(q)
+        normalizeQuery(t.term).includes(q) ||
+        normalizeQuery(t.definition).includes(q)
       return matchFilter && matchQuery
     })
   }, [filter, query])
+
+  // Подсветка совпадений запроса в термине/определении — единый стиль
+  // с глобальным поиском (findHighlightRanges)
+  const renderHighlighted = React.useCallback(
+    (text: string, prefix: string, idx: number) => {
+      const ranges = findHighlightRanges(text, query)
+      if (ranges.length === 0) return text
+      const nodes: React.ReactNode[] = []
+      let pos = 0
+      ranges.forEach(([start, end], i) => {
+        if (start > pos) nodes.push(text.slice(pos, start))
+        nodes.push(
+          <mark
+            key={`${prefix}-${idx}-${i}`}
+            className="bg-primary/15 text-foreground rounded-[2px] px-0.5"
+          >
+            {text.slice(start, end)}
+          </mark>,
+        )
+        pos = end
+      })
+      if (pos < text.length) nodes.push(text.slice(pos))
+      return nodes
+    },
+    [query],
+  )
 
   return (
     <section
@@ -60,6 +89,12 @@ export function GlossarySection() {
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') {
+                  setQuery('')
+                  e.currentTarget.blur()
+                }
+              }}
               placeholder="Поиск термина…"
               className="pl-10 pr-10 h-10 sm:h-11 text-sm"
               aria-label="Поиск по глоссарию"
@@ -152,7 +187,7 @@ export function GlossarySection() {
                 >
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <h3 className="font-display text-base sm:text-lg font-semibold leading-tight">
-                      {term.term}
+                      {renderHighlighted(term.term, 't', idx)}
                     </h3>
                     <div className="flex items-center gap-1.5 shrink-0">
                       <BookmarkButton
@@ -177,7 +212,7 @@ export function GlossarySection() {
                     </div>
                   </div>
                   <p className="text-sm leading-relaxed text-foreground/80">
-                    {term.definition}
+                    {renderHighlighted(term.definition, 'd', idx)}
                   </p>
                 </motion.div>
               )

@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { Search, MapPin, Landmark, BookMarked, Users, Building2, Columns3, CalendarClock, Milestone, ScrollText } from 'lucide-react'
+import { Search, MapPin, Landmark, BookMarked, Users, Building2, Columns3, CalendarClock, Milestone, ScrollText, MessageCircleQuestion } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -28,6 +28,7 @@ const typeLabels: Record<SearchItem['type'], string> = {
   epoch: 'Эпоха',
   event: 'Событие',
   analysis: 'Анализ',
+  faq: 'Вопрос',
 }
 
 // Build index lazily on first access
@@ -47,6 +48,7 @@ const iconMap: Record<SearchItem['iconType'], React.ComponentType<{ className: s
   CalendarClock: CalendarClock,
   Milestone: Milestone,
   ScrollText: ScrollText,
+  MessageCircleQuestion: MessageCircleQuestion,
 }
 
 export function SearchDialog({

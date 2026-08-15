@@ -17,6 +17,7 @@ import {
   timeline,
   additionalTimelineEvents,
   authorAnalysis,
+  FAQ_DATA,
 } from "@/lib/history-data";
 
 describe("search index", () => {
@@ -34,6 +35,7 @@ describe("search index", () => {
       "epoch",
       "event",
       "analysis",
+      "faq",
     ]) {
       expect(types).toContain(t);
     }
@@ -131,6 +133,21 @@ describe("search index", () => {
     expect(new Set(keys).size).toBe(keys.length);
   });
 
+  it("includes every FAQ question and answers search", () => {
+    const index = buildSearchIndex();
+    const faqItems = index.filter((i) => i.type === "faq");
+    expect(faqItems.length).toBe(FAQ_DATA.length);
+    expect(faqItems.length).toBeGreaterThan(0);
+    // Заголовок FAQ — это вопрос целиком, а не его обрывок
+    const titles = new Set(faqItems.map((i) => i.title));
+    for (const f of FAQ_DATA) expect(titles).toContain(f.question);
+    // Все FAQ-записи ведут на секцию #faq
+    expect(faqItems.every((i) => i.href === "#faq")).toBe(true);
+    // Поиск находит ответ в подзаголовке («Хаммурапи» из текста ответа)
+    const byAnswer = searchItems(index, "хаммурапи");
+    expect(byAnswer.some((i) => i.type === "faq")).toBe(true);
+  });
+
   it("points hrefs to existing sections", () => {
     const validHrefs = new Set([
       "#greece",
@@ -145,6 +162,7 @@ describe("search index", () => {
       "#map",
       "#glossary",
       "#analysis",
+      "#faq",
     ]);
     for (const item of buildSearchIndex()) {
       expect(validHrefs).toContain(item.href);
