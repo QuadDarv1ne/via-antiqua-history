@@ -50,12 +50,13 @@ export async function GET(request: NextRequest) {
           id: sub.id,
           status: sub.status,
           amount: sub.amount,
-          startedAt: sub.started_at,
-          expiresAt: sub.expires_at,
-          daysLeft: Math.max(
-            1,
-            Math.ceil((expiresAt!.getTime() - Date.now()) / 86400000),
-          ),
+          // Единый формат с остальными API: ISO-8601 с Z вместо «сырого»
+          // SQLite-значения, которое клиент мог бы распарсить как локальное время
+          startedAt: parseSqliteDateTime(sub.started_at).toISOString(),
+          expiresAt: expiresAt!.toISOString(),
+          // Доля дня округляется вверх (осталось «ещё 1 день» при 23 часах),
+          // но истекший/истекающий в ближайшие секунды статус уже отсечён выше
+          daysLeft: Math.max(0, Math.ceil((expiresAt!.getTime() - Date.now()) / 86400000)),
         }
       : null;
 

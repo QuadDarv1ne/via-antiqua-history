@@ -8,6 +8,10 @@ type RateLimitEntry = {
 const store = new Map<string, RateLimitEntry>();
 
 const CLEANUP_INTERVAL = 60_000;
+// Верхний предел размера store: без него пром-окружение без доверенного
+// прокси (уникальный per-request ключ вместо IP) неограниченно раздувало бы
+// память при флуде. При переполнении вытесняем самые старые записи.
+const MAX_ENTRIES = 10_000;
 let lastCleanup = Date.now();
 
 function cleanup() {
@@ -16,6 +20,15 @@ function cleanup() {
   lastCleanup = now;
   for (const [key, entry] of store) {
     if (entry.resetAt <= now) store.delete(key);
+  }
+  if (store.size > MAX_ENTRIES) {
+    // Map хранит записи в порядке вставки — первые ключи самые старые
+    let overflow = store.size - MAX_ENTRIES;
+    for (const key of store.keys()) {
+      if (overflow <= 0) break;
+      store.delete(key);
+      overflow--;
+    }
   }
 }
 

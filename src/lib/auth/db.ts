@@ -40,6 +40,7 @@ function initSchema(db: Database.Database) {
       totp_enabled INTEGER NOT NULL DEFAULT 0,
       recovery_codes TEXT DEFAULT '[]',
       password_changed_at TEXT,
+      token_version INTEGER NOT NULL DEFAULT 0,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       updated_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
@@ -99,6 +100,17 @@ function initSchema(db: Database.Database) {
     CREATE INDEX IF NOT EXISTS idx_payments_user_id ON payments(user_id);
     CREATE INDEX IF NOT EXISTS idx_payments_status ON payments(status);
   `);
+
+  // Миграция существующих баз: token_version появился после публикации
+  // схемы, CREATE TABLE IF NOT EXISTS не добавит колонку в старую таблицу
+  const userColumns = db
+    .prepare("PRAGMA table_info(users)")
+    .all() as Array<{ name: string }>;
+  if (!userColumns.some((c) => c.name === "token_version")) {
+    db.exec(
+      "ALTER TABLE users ADD COLUMN token_version INTEGER NOT NULL DEFAULT 0",
+    );
+  }
 }
 
 function closeDb() {

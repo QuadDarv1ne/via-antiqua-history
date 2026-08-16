@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { randomBytes, randomInt } from "crypto";
 import { cookies } from "next/headers";
-import { parseSqliteDateTime } from "@/lib/utils";
+import { parseSqliteDateTime, toSqliteDateTime } from "@/lib/utils";
 
 let _jwtSecret: string | undefined;
 
@@ -30,6 +30,8 @@ export type SessionPayload = {
   userId: string;
   email: string;
   passwordChangedAt?: string;
+  /** Версия сессии: увеличивается при logout — старые токены становятся недействительными */
+  tokenVersion?: number;
   iat?: number;
 };
 
@@ -75,10 +77,15 @@ export async function createSession(
   email: string,
   passwordChangedAt?: string | null,
 ) {
+  const { getDb } = await import("@/lib/auth/db");
+  const user = getDb()
+    .prepare("SELECT token_version FROM users WHERE id = ?")
+    .get(userId) as { token_version: number } | undefined;
   const token = signJwt({
     userId,
     email,
     passwordChangedAt: passwordChangedAt || undefined,
+    tokenVersion: user?.token_version ?? 0,
   });
   const cookieStore = await cookies();
   cookieStore.set(SESSION_COOKIE, token, {
@@ -89,6 +96,19 @@ export async function createSession(
     path: "/",
   });
   return token;
+}
+
+/**
+ * Инвалидирует все активные сессии пользователя: увеличивает token_version,
+ * из-за чего выпущенные ранее JWT перестают проходить проверку getSession.
+ */
+export async function invalidateSessions(userId: string) {
+  const { getDb } = await import("@/lib/auth/db");
+  getDb()
+    .prepare(
+      "UPDATE users SET token_version = token_version + 1, updated_at = ? WHERE id = ?",
+    )
+    .run(toSqliteDateTime(new Date()), userId);
 }
 
 export async function destroySession() {
@@ -111,9 +131,17 @@ export async function getSession(): Promise<SessionPayload | null> {
   const { getDb } = await import("@/lib/auth/db");
   const db = getDb();
   const user = db
-    .prepare("SELECT password_changed_at FROM users WHERE id = ?")
+    .prepare("SELECT password_changed_at, token_version FROM users WHERE id = ?")
     .get(payload.userId) as Record<string, unknown> | undefined;
   if (!user) return null;
+  // Сессии, инвалидированные logout'ом (token_version выше значения в токене),
+  // отклоняются, даже если сам JWT ещё не истёк
+  if (
+    payload.tokenVersion !== undefined &&
+    payload.tokenVersion !== user.token_version
+  ) {
+    return null;
+  }
   if (payload.passwordChangedAt) {
     if ((user.password_changed_at || null) !== payload.passwordChangedAt) {
       return null;

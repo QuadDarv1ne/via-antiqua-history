@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { getDb } from "@/lib/auth/db";
 import { generateNumericCode, generateToken } from "@/lib/auth/utils";
-import { sendPasswordResetEmail } from "@/lib/auth/email";
+import { sendPasswordResetEmail, isEmailTestMode } from "@/lib/auth/email";
 import { apiOk, apiError } from "@/lib/auth/api-response";
 import { checkRateLimit, rateLimitResponse } from "@/lib/auth/rate-limit";
 import { validateEmail, toSqliteDateTime } from "@/lib/utils";
@@ -11,6 +11,18 @@ import { readJsonBody } from "@/lib/auth/request";
 
 const RATE_LIMIT = { windowMs: 15 * 60 * 1000, max: 3 };
 const USER_RATE_LIMIT = { windowMs: 60 * 60 * 1000, max: 5 };
+
+// Ответ одинаков для существующего и несуществующего email: сообщение об
+// ошибке (или иное отличие) позволило бы перечислить зарегистрированные адреса
+const GENERIC_MESSAGE =
+  "Если пользователь с таким email существует, код отправлен";
+
+// Выравнивание времени ответа между существующим и несуществующим email
+function dummyDelay(): Promise<void> {
+  return new Promise((resolve) =>
+    setTimeout(resolve, 300 + Math.random() * 300),
+  );
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -65,8 +77,8 @@ export async function POST(req: NextRequest) {
       // сопоставимую по длительности «dummy» работу (как dummy-bcrypt в login),
       // чтобы нельзя было перечислить зарегистрированные адреса по задержке.
       // Письмо НЕ отправляем — иначе любой мог бы бомбить чужие ящики.
-      await new Promise((resolve) => setTimeout(resolve, 300 + Math.random() * 300));
-      return apiOk({ message: "Если пользователь с таким email существует, код отправлен" });
+      await dummyDelay();
+      return apiOk({ message: GENERIC_MESSAGE });
     }
 
     const code = generateNumericCode(6);
@@ -90,18 +102,27 @@ export async function POST(req: NextRequest) {
     const sent = await sendPasswordResetEmail(email.toLowerCase(), code);
 
     if (!sent) {
-      // Откатываем новый токен — старые коды остаются валидными
+      // Откатываем новый токен — старые коды остаются валидными. Ошибку
+      // логируем, но отвечаем тем же общим сообщением: иначе сбой SMTP
+      // раскрывал бы, какие адреса зарегистрированы
       db.prepare("DELETE FROM verification_tokens WHERE id = ?").run(tokenId);
-      return apiError("Не удалось отправить код. Попробуйте позже", 500);
+      console.error(
+        `Password reset email send failed for ${email.toLowerCase()}`,
+      );
+      return apiOk({ message: GENERIC_MESSAGE });
     }
 
     db.prepare(
       "UPDATE verification_tokens SET used = 1 WHERE user_id = ? AND type = 'password_reset' AND used = 0 AND id != ?",
     ).run(user.id, tokenId);
 
-    return apiOk({
-      message: "Если пользователь с таким email существует, код отправлен",
-    });
+    // В test-режиме отправка мгновенная — добавляем ту же задержку, что
+    // и для несуществующего email, чтобы время ответа не раскрывало аккаунт
+    if (isEmailTestMode()) {
+      await dummyDelay();
+    }
+
+    return apiOk({ message: GENERIC_MESSAGE });
   } catch (err) {
     console.error("Forgot password error:", err);
     return apiError("Внутренняя ошибка сервера", 500);

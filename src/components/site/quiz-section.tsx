@@ -92,6 +92,23 @@ export const QuizSection = React.memo(function QuizSection() {
   // на disabled-кнопке варианта, и подсказка «Enter — далее» не работает
   const nextButtonRef = React.useRef<HTMLButtonElement>(null)
 
+  // Клавиатурное управление (цифры 1–4, стрелки, Enter) работает только
+  // пока секция квиза видна на экране: иначе нажатия «1»–«4» где угодно
+  // на странице молча отвечали бы на вопросы квиза
+  const sectionRef = React.useRef<HTMLElement>(null)
+  const [inView, setInView] = React.useState(false)
+
+  React.useEffect(() => {
+    const el = sectionRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => setInView(entry.isIntersecting),
+      { threshold: 0.2 },
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [finished])
+
   React.useEffect(() => {
     if (isAnswered) {
       nextButtonRef.current?.focus()
@@ -99,7 +116,7 @@ export const QuizSection = React.memo(function QuizSection() {
   }, [isAnswered])
 
   React.useEffect(() => {
-    if (finished) return
+    if (finished || !inView) return
     const onKey = (e: KeyboardEvent) => {
       const active = document.activeElement
       if (
@@ -131,7 +148,7 @@ export const QuizSection = React.memo(function QuizSection() {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [current, isAnswered, finished, q.options.length, select, goNext, goPrev])
+  }, [current, isAnswered, finished, inView, q.options.length, select, goNext, goPrev])
 
   const reset = React.useCallback(() => {
     clearQuizState()
@@ -176,12 +193,13 @@ export const QuizSection = React.memo(function QuizSection() {
     return (
       <section
         id="quiz"
-        aria-label="Исторический квиз — результаты"
-        className="py-20 md:py-28 scroll-mt-20"
-        style={{
-          background: getSectionGradient(),
-        }}
-      >
+      aria-label="Исторический квиз — результаты"
+      className="py-20 md:py-28 scroll-mt-20"
+      style={{
+        background: getSectionGradient(),
+      }}
+      ref={sectionRef}
+    >
         <div className="container mx-auto max-w-3xl px-4">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -315,6 +333,7 @@ export const QuizSection = React.memo(function QuizSection() {
       style={{
         background: getSectionGradient(),
       }}
+      ref={sectionRef}
     >
       <div className="container mx-auto max-w-3xl px-4">
         <SectionHeader

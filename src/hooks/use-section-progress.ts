@@ -144,7 +144,10 @@ export function useSectionProgress(sectionIds: string[]) {
   }, []);
 
   const progressPercent = React.useMemo(() => {
-    const count = Object.values(completed).filter(Boolean).length;
+    // Считаем только актуальные секции: в localStorage могут остаться ключи
+    // от прошлых версий страницы (или убранных платных секций), которые
+    // не должны раздувать процент выше 100
+    const count = sectionIds.filter((id) => completed[id]).length;
     return sectionIds.length > 0 ? Math.round((count / sectionIds.length) * 100) : 0;
   }, [completed, sectionIds]);
 

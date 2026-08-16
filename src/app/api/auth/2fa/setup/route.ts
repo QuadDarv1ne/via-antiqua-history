@@ -148,9 +148,19 @@ export async function POST(req: NextRequest) {
       randomBytes(4).toString("hex").toUpperCase(),
     );
 
-    db.prepare(
-      "UPDATE users SET totp_enabled = 1, recovery_codes = ?, totp_secret_expires_at = NULL WHERE id = ?",
-    ).run(JSON.stringify(recoveryCodes), session.userId);
+    // Включаем 2FA атомарно: условие totp_enabled = 0 защищает от гонки двух
+    // параллельных confirm (двойной клик) — иначе каждый сгенерировал бы свой
+    // набор recovery-кодов, и коды из первого ответа перестали бы действовать
+    const enabled = db
+      .prepare(
+        "UPDATE users SET totp_enabled = 1, recovery_codes = ?, totp_secret_expires_at = NULL WHERE id = ? AND totp_enabled = 0",
+      )
+      .run(JSON.stringify(recoveryCodes), session.userId);
+
+    if (enabled.changes === 0) {
+      // Параллельный запрос уже включил 2FA (с другим набором кодов)
+      return apiError("2FA уже включена. Сначала отключите её в профиле", 400);
+    }
 
     return apiOk({ recoveryCodes });
   } catch (err) {

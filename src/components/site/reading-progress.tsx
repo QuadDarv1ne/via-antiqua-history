@@ -9,41 +9,37 @@ export function ReadingProgress() {
   React.useEffect(() => {
     let rafId: number | null = null
     let ticking = false
-    let cachedScrollHeight = document.documentElement.scrollHeight - window.innerHeight
 
-    const recalcScrollHeight = () => {
-      cachedScrollHeight = document.documentElement.scrollHeight - window.innerHeight
-    }
-
-    const onScroll = () => {
-      if (!ticking) {
-        rafId = requestAnimationFrame(() => {
-          // Ленивая загрузка контента (next/dynamic, картинки) меняет высоту
-          // документа — замеряем каждый кадр, чтобы прогресс не «залипал»
-          // ниже 100% и не превышал диапазон
-          const scrollHeight = document.documentElement.scrollHeight
-          cachedScrollHeight = scrollHeight - window.innerHeight
-          if (cachedScrollHeight > 0) {
-            const next = Math.min(
-              100,
-              Math.round((window.scrollY / cachedScrollHeight) * 100),
-            )
-            if (next !== lastPercentRef.current) {
-              lastPercentRef.current = next
-              setPercentage(next)
-            }
+    // Ленивая загрузка контента (next/dynamic, картинки) меняет высоту
+    // документа — замеряем каждый кадр, чтобы прогресс не «залипал»
+    // ниже 100% и не превышал диапазон
+    const recompute = () => {
+      if (ticking) return
+      rafId = requestAnimationFrame(() => {
+        const scrollHeight = document.documentElement.scrollHeight - window.innerHeight
+        if (scrollHeight > 0) {
+          const next = Math.min(
+            100,
+            Math.round((window.scrollY / scrollHeight) * 100),
+          )
+          if (next !== lastPercentRef.current) {
+            lastPercentRef.current = next
+            setPercentage(next)
           }
-          ticking = false
-        })
-        ticking = true
-      }
+        }
+        ticking = false
+      })
+      ticking = true
     }
-    window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('resize', recalcScrollHeight, { passive: true })
-    onScroll()
+
+    window.addEventListener('scroll', recompute, { passive: true })
+    // После resize (сворачивание URL-бара мобильного, поворот экрана) процент
+    // пересчитываем сразу, а не ждём следующего скролла
+    window.addEventListener('resize', recompute, { passive: true })
+    recompute()
     return () => {
-      window.removeEventListener('scroll', onScroll)
-      window.removeEventListener('resize', recalcScrollHeight)
+      window.removeEventListener('scroll', recompute)
+      window.removeEventListener('resize', recompute)
       if (rafId) cancelAnimationFrame(rafId)
     }
   }, [])

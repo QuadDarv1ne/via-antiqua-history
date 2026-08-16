@@ -169,3 +169,10 @@ export const additionalTimelineEvents: TimelineEvent[] = [
     kuban: 'Боспорское царство входит в римскую орбиту.',
   },
 ]
+
+// Полный набор событий ленты времени (базовые + дополнительные),
+// отсортированный по году — единый источник для ленты, hero-счётчиков и поиска
+export const allTimelineEvents: TimelineEvent[] = [
+  ...timeline,
+  ...additionalTimelineEvents,
+].sort((a, b) => a.year - b.year)

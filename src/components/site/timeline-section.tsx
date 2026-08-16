@@ -3,17 +3,16 @@
 import * as React from 'react'
 import { motion } from 'framer-motion'
 import { ChevronLeft, ChevronRight, Calendar, Play, Pause } from 'lucide-react'
-import { timeline, additionalTimelineEvents } from '@/lib/history-data'
+import { allTimelineEvents } from '@/lib/history-data'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { ReadingTime } from '@/components/site/reading-time'
 import { REGION_COLORS, REGION_LABELS, REGION_SHORT, REGION_KEYS } from '@/lib/constants'
 import { SectionHeader } from '@/components/site/section-header'
 
-// Объединяем и сортируем события по году
-const allTimeline = [...timeline, ...additionalTimelineEvents].sort(
-  (a, b) => a.year - b.year,
-);
+// Полный набор событий (базовые + дополнительные), отсортированный по году —
+// единый источник, чтобы hero-счётчик и лента не расходились
+const allTimeline = allTimelineEvents;
 
 interface TimelineDotProps {
   yearLabel: string

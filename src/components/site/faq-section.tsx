@@ -10,12 +10,16 @@ import { SectionHeader } from '@/components/site/section-header'
 
 export const FaqSection = React.memo(function FaqSection() {
   const [openIndex, setOpenIndex] = React.useState<number | null>(0)
+  // Индекс кнопки, на которой сейчас фокус: стрелки двигают фокус, а не
+  // раскрытие. Отслеживаем через onFocus, а не openIndex, иначе после
+  // первого ArrowDown фокус «застревает» (openIndex не меняется)
+  const [focusedIndex, setFocusedIndex] = React.useState(0)
 
   // Клавиатурная навигация по аккордеону (ARIA APG): ↑/↓, Home/End.
   // Фокус перемещается между кнопками, раскрытие — отдельным Enter/Space.
   const handleContainerKeyDown = React.useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
-      const current = openIndex ?? 0
+      const current = focusedIndex
       let next = current
       if (e.key === 'ArrowDown') {
         next = (current + 1) % FAQ_DATA.length
@@ -31,7 +35,7 @@ export const FaqSection = React.memo(function FaqSection() {
       e.preventDefault()
       document.getElementById(`faq-button-${next}`)?.focus()
     },
-    [openIndex],
+    [focusedIndex],
   )
 
   return (
@@ -77,7 +81,13 @@ export const FaqSection = React.memo(function FaqSection() {
                 <button
                   type="button"
                   id={`faq-button-${idx}`}
-                  tabIndex={openIndex === idx ? 0 : -1}
+                  // Roving tabindex: таб-остановка следует за фокусом. Без этого при
+                  // закрытом аккордеоне (openIndex = null) весь список
+                  // был бы недоступен с клавиатуры
+                  tabIndex={focusedIndex === idx ? 0 : -1}
+                  onFocus={() => {
+                    setFocusedIndex(idx)
+                  }}
                   onClick={() => setOpenIndex(open ? null : idx)}
                   aria-expanded={open}
                   aria-controls={`faq-panel-${idx}`}

@@ -8,6 +8,11 @@ const TEST_MODE =
   (process.env.NODE_ENV !== "production" &&
     process.env.EMAIL_TEST_MODE === "true");
 
+/** Письма «отправляются» мгновенно без реальной SMTP-задержки */
+export function isEmailTestMode(): boolean {
+  return TEST_MODE;
+}
+
 export type EmailMessage = {
   to: string;
   subject: string;

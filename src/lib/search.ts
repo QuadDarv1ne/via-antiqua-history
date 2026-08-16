@@ -6,8 +6,7 @@ import {
   wonders,
   architecturalOrders,
   epochs,
-  timeline,
-  additionalTimelineEvents,
+  allTimelineEvents,
   authorAnalysis,
   FAQ_DATA,
 } from '@/lib/history-data'
@@ -172,23 +171,21 @@ export function buildSearchIndex(): SearchItem[] {
 
   // Все события ленты времени, включая дополнительные (Марафон, Коринф, Акциум)
   // — порядок как в секции ленты (по году)
-  ;[...timeline, ...additionalTimelineEvents]
-    .sort((a, b) => a.year - b.year)
-    .forEach((ev) => {
-      TIMELINE_REGIONS.forEach(([region, label]) => {
-        const text = ev[region]
-        if (!text) return
-        items.push({
-          key: `event-${ev.year}-${region}`,
-          type: 'event',
-          title: `${ev.yearLabel} · ${label}`,
-          subtitle: text,
-          region,
-          href: '#timeline',
-          iconType: 'Milestone',
-        })
+  allTimelineEvents.forEach((ev) => {
+    TIMELINE_REGIONS.forEach(([region, label]) => {
+      const text = ev[region]
+      if (!text) return
+      items.push({
+        key: `event-${ev.year}-${region}`,
+        type: 'event',
+        title: `${ev.yearLabel} · ${label}`,
+        subtitle: text,
+        region,
+        href: '#timeline',
+        iconType: 'Milestone',
       })
     })
+  })
 
   authorAnalysis.sections.forEach((s) => {
     items.push({

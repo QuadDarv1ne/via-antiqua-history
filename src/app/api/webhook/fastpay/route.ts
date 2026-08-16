@@ -230,19 +230,52 @@ async function handlePaymentCompleted(data: unknown) {
       `,
       ).run(paymentData.paymentId, now, payment.id);
 
+      const sub = db
+        .prepare(
+          "SELECT id FROM subscriptions WHERE user_id = ? AND payment_id = ?",
+        )
+        .get(payment.user_id, payment.id) as { id: string } | undefined;
+
+      if (!sub) {
+        // Подписка для этого платежа не найдена — данные рассинхронизированы,
+        // без неё активировать нечего
+        console.error(
+          `Subscription not found for payment ${payment.id} — restore skipped`,
+        );
+        return;
+      }
+
+      // Если у пользователя уже есть активная подписка (новый платёж прошёл
+      // раньше, чем пришёл late payment.completed за старый), не создаём
+      // второй активный статус: платёж помечаем оплаченным для истории,
+      // но восстановленную подписку не активируем
+      const existingActive = db
+        .prepare(
+          "SELECT id FROM subscriptions WHERE user_id = ? AND status = 'active' AND id != ?",
+        )
+        .get(payment.user_id, sub.id) as { id: string } | undefined;
+
       db.prepare(
         `
         UPDATE subscriptions
-        SET status = 'active',
+        SET status = ?,
             payment_id = ?,
             updated_at = ?,
             expires_at = ?
-        WHERE user_id = ? AND payment_id = ?
+        WHERE id = ? AND status = 'cancelled'
       `,
-      ).run(payment.id, now, expiresAt, payment.user_id, payment.id);
+      ).run(
+        existingActive ? "cancelled" : "active",
+        payment.id,
+        now,
+        expiresAt,
+        sub.id,
+      );
 
       console.warn(
-        `Payment ${payment.id} was marked failed but completed — subscription restored`,
+        existingActive
+          ? `Payment ${payment.id} was marked failed but completed — subscription kept cancelled (another one is active)`
+          : `Payment ${payment.id} was marked failed but completed — subscription restored`,
       );
       return;
     }
@@ -385,7 +418,7 @@ async function handlePaymentRefunded(data: unknown) {
       UPDATE subscriptions
       SET status = 'cancelled',
           updated_at = ?
-      WHERE payment_id = ? AND status = 'active'
+      WHERE payment_id = ? AND status IN ('active', 'pending')
     `,
     ).run(now, payment.id);
   })();

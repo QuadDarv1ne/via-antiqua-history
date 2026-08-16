@@ -1,4 +1,4 @@
-import { greece, rome, mesopotamia, kuban, timeline, persons } from '@/lib/history-data'
+import { greece, rome, mesopotamia, kuban, allTimelineEvents, persons } from '@/lib/history-data'
 import HomePageClient from './home-page-client'
 
 export default function Home() {
@@ -12,7 +12,7 @@ export default function Home() {
   const heroStats = {
     citiesCount,
     landmarksCount,
-    eventsCount: timeline.length,
+    eventsCount: allTimelineEvents.length,
     personsCount: persons.length,
   }
 

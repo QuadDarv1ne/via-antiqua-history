@@ -17,7 +17,11 @@ export function MapSection() {
   const [hovered, setHovered] = React.useState<string | null>(null)
   const [selected, setSelected] = React.useState<string | null>(null)
   const { resolvedTheme } = useTheme()
-  const isDark = resolvedTheme === 'dark'
+  // resolvedTheme неизвестен при SSR (next-themes) — рендерим светлые цвета
+  // до монтирования, чтобы не расходиться с серверным HTML (hydration mismatch)
+  const [mounted, setMounted] = React.useState(false)
+  React.useEffect(() => setMounted(true), [])
+  const isDark = mounted && resolvedTheme === 'dark'
 
   const visibleRegions = React.useMemo(
     () => mapRegions.filter((r) => filter === 'all' || r.region === filter),
