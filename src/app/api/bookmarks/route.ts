@@ -83,7 +83,10 @@ export async function GET(_req: NextRequest) {
   }
 }
 
-// Добавление/обновление одной закладки (точечная синхронизация без перезаписи чужого списка)
+// Добавление/обновление закладок (точечная синхронизация без перезаписи чужого списка).
+// Принимает одну закладку ({ item }) или пачку до 100 ({ items }) — пачка
+// нужна для первичной синхронизации после входа (миграция гостевых закладок)
+// и засчитывается как один запрос в rate limit.
 export async function POST(req: NextRequest) {
   try {
     const session = await getSession();
@@ -101,21 +104,40 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await readJsonBody(req);
-    const rawItem =
-      body && typeof body.item === "object" && body.item !== null
-        ? (body.item as Record<string, unknown>)
-        : null;
-    if (!rawItem) {
+
+    const rawItems: Record<string, unknown>[] = [];
+    if (
+      body &&
+      typeof body.item === "object" &&
+      body.item !== null &&
+      !Array.isArray(body.item)
+    ) {
+      rawItems.push(body.item as Record<string, unknown>);
+    } else if (body && Array.isArray(body.items)) {
+      rawItems.push(
+        ...(body.items as unknown[])
+          .slice(0, 100)
+          .filter(
+            (i): i is Record<string, unknown> =>
+              typeof i === "object" && i !== null && !Array.isArray(i),
+          ),
+      );
+    }
+
+    if (rawItems.length === 0) {
       return apiError("Некорректные данные", 400);
     }
 
-    const item = sanitizeBookmark(rawItem);
-    if (!item) {
+    const items = rawItems
+      .map((raw) => sanitizeBookmark(raw))
+      .filter((b): b is SanitizedBookmark => b !== null);
+
+    if (items.length === 0) {
       return apiError("Некорректные данные", 400);
     }
 
     const db = getDb();
-    db.prepare(`
+    const upsert = db.prepare(`
       INSERT INTO bookmarks (id, user_id, type, title, subtitle, href, region)
       VALUES (?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(user_id, id) DO UPDATE SET
@@ -124,17 +146,23 @@ export async function POST(req: NextRequest) {
         subtitle = excluded.subtitle,
         href = excluded.href,
         region = excluded.region
-    `).run(
-      item.id,
-      session.userId,
-      item.type,
-      item.title,
-      item.subtitle,
-      item.href,
-      item.region,
-    );
+    `);
 
-    return apiOk({ upserted: true });
+    db.transaction(() => {
+      for (const item of items) {
+        upsert.run(
+          item.id,
+          session.userId,
+          item.type,
+          item.title,
+          item.subtitle,
+          item.href,
+          item.region,
+        );
+      }
+    })();
+
+    return apiOk({ upserted: items.length });
   } catch (err) {
     console.error("Bookmarks POST error:", err);
     return apiError("Внутренняя ошибка сервера", 500);

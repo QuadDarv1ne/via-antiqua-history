@@ -110,7 +110,11 @@ export async function DELETE(req: NextRequest) {
       return apiError('Неверный пароль', 401)
     }
 
-    db.prepare('UPDATE users SET totp_secret = NULL, totp_enabled = 0, recovery_codes = ? WHERE id = ?').run('[]', session.userId)
+    // Чистим и секрет, и его срок: иначе после повторного setup-запроса
+    // переиспользовался бы старый (истёкший или «висящий») секрет
+    db.prepare(
+      "UPDATE users SET totp_secret = NULL, totp_secret_expires_at = NULL, totp_enabled = 0, recovery_codes = ? WHERE id = ?",
+    ).run('[]', session.userId)
 
     return apiOk()
   } catch (err) {

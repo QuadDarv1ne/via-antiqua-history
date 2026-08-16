@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Bookmark, BookmarkCheck, X, Trash2, BookOpen, Check, Undo2 } from 'lucide-react'
+import { Bookmark, BookmarkCheck, X, Trash2, BookOpen, Check, Undo2, Copy } from 'lucide-react'
 import { cn, withAlpha, getRegionColor } from '@/lib/utils'
 import {
   Dialog,
@@ -73,6 +73,35 @@ const serverToItem = (row: { id: string; type: string; title: string; subtitle: 
   region: row.region,
 })
 
+/** Безопасное чтение списка закладок из localStorage (повреждённые данные → []) */
+export function parseStoredBookmarks(raw: string | null): BookmarkItem[] {
+  if (!raw) return []
+  try {
+    const parsed: unknown = JSON.parse(raw)
+    return Array.isArray(parsed) ? (parsed as BookmarkItem[]) : []
+  } catch {
+    return []
+  }
+}
+
+/** Слияние списков с дедупликацией по id: элементы base имеют приоритет */
+export function mergeBookmarkLists(
+  base: BookmarkItem[],
+  ...extra: BookmarkItem[][]
+): BookmarkItem[] {
+  const seen = new Set(base.map((b) => b.id))
+  const merged = [...base]
+  for (const list of extra) {
+    for (const item of list) {
+      if (!seen.has(item.id)) {
+        seen.add(item.id)
+        merged.push(item)
+      }
+    }
+  }
+  return merged
+}
+
 export function BookmarksProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth()
   const [bookmarks, setBookmarks] = React.useState<BookmarkItem[]>([])
@@ -83,23 +112,49 @@ export function BookmarksProvider({ children }: { children: React.ReactNode }) {
     () => storageKeyFor(user?.id),
     [user?.id],
   )
+  // Отдельная переменная для деп-массива: смена объекта user (обновление
+  // данных) не должна повторно запускать загрузку/миграцию
+  const isLoggedIn = Boolean(user)
   // Ключ, из которого загружено текущее состояние bookmarks.
   // Пишем в localStorage, только если state соответствует текущему ключу.
   const [loadedForKey, setLoadedForKey] = React.useState<string>(storageKey)
   // Актуальный снимок bookmarks для логики «добавить/удалить» при быстрых кликах
   const bookmarksRef = React.useRef<BookmarkItem[]>([])
+  // Отложенные ретраи синхронизации: отменяются при размонтировании и смене
+  // пользователя, чтобы не отправлять запросы «чужому» аккаунту
+  const retryTimersRef = React.useRef<Set<ReturnType<typeof setTimeout>>>(new Set())
+
+  React.useEffect(() => {
+    const timers = retryTimersRef.current
+    return () => {
+      timers.forEach(clearTimeout)
+      timers.clear()
+    }
+  }, [])
 
   const syncRemote = React.useCallback(
     (method: 'POST' | 'DELETE', payload: unknown) => {
       // Одна ретрай-попытка при сетевой ошибке: не теряем закладку молча
       const attempt = (retry: boolean) => {
+        // Перед ретраем POST проверяем, что закладки всё ещё в списке:
+        // пользователь мог удалить их, пока попытка ждала — иначе ретрай
+        // «воскресил» бы удалённые закладки на сервере
+        if (method === 'POST' && retry) {
+          const p = payload as { item?: BookmarkItem; items?: BookmarkItem[] }
+          const items = p.items ?? (p.item ? [p.item] : [])
+          const stillPresent = items.every((it) =>
+            bookmarksRef.current.some((b) => b.id === it.id),
+          )
+          if (!stillPresent) return
+        }
         fetch('/api/bookmarks', {
           method,
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         }).catch(() => {
           if (retry) {
-            setTimeout(() => attempt(false), 1500)
+            const timer = setTimeout(() => attempt(false), 1500)
+            retryTimersRef.current.add(timer)
           } else {
             // Network error — silently ignore
           }
@@ -112,20 +167,36 @@ export function BookmarksProvider({ children }: { children: React.ReactNode }) {
 
   // Загрузка из localStorage при монтировании и при смене пользователя
   React.useEffect(() => {
+    // Отменяем отложенные ретраи прошлого пользователя/состояния
+    retryTimersRef.current.forEach(clearTimeout)
+    retryTimersRef.current.clear()
     let next: BookmarkItem[] = []
     try {
-      const raw = localStorage.getItem(storageKey)
-      if (raw) {
-        const parsed = JSON.parse(raw)
-        if (Array.isArray(parsed)) next = parsed
+      next = parseStoredBookmarks(localStorage.getItem(storageKey))
+      // Гостевые закладки (сохранённые до входа) мигрируем в аккаунт:
+      // иначе они «пропали» бы при переключении ключа хранилища.
+      // Ключ удаляем, чтобы при повторном входе не импортировать их снова.
+      if (isLoggedIn && storageKey !== GUEST_STORAGE_KEY) {
+        const guestRaw = localStorage.getItem(GUEST_STORAGE_KEY)
+        const guest = parseStoredBookmarks(guestRaw)
+        if (guest.length > 0) {
+          next = mergeBookmarkLists(next, guest)
+        }
+        localStorage.removeItem(GUEST_STORAGE_KEY)
       }
     } catch {
       // Corrupted data — start fresh
     }
-    setBookmarks(next)
+    // Если пользователь успел нажать закладку до гидрирования (клик раньше
+    // эффекта загрузки), его действие не должно затираться сохранённым
+    // списком — применяем сохранённый список поверх текущего состояния
+    setBookmarks((current) => {
+      const existingIds = new Set(current.map((b) => b.id))
+      return [...current, ...next.filter((b) => !existingIds.has(b.id))]
+    })
     setLoadedForKey(storageKey)
     setHydrated(true)
-  }, [storageKey])
+  }, [storageKey, isLoggedIn])
 
   // Первичная загрузка: объединяем локальные закладки с серверными
   React.useEffect(() => {
@@ -137,7 +208,17 @@ export function BookmarksProvider({ children }: { children: React.ReactNode }) {
         if (!res.ok) return
         const json = await res.json()
         if (json.ok && Array.isArray(json.data)) {
-          const server = json.data.map(serverToItem)
+          const server = json.data.map(serverToItem) as BookmarkItem[]
+          const serverIds = new Set(server.map((s) => s.id))
+          // Локальные закладки, которых нет на сервере (гостевые, добавленные
+          // до входа или на этом устройстве), загружаем одной пачкой —
+          // иначе они остались бы только в localStorage этого браузера
+          const toUpload = bookmarksRef.current.filter(
+            (b) => !serverIds.has(b.id),
+          )
+          if (toUpload.length > 0) {
+            syncRemote('POST', { items: toUpload })
+          }
           setBookmarks((local) => {
             const localIds = new Map(local.map((b) => [b.id, b]))
             for (const s of server) {
@@ -153,7 +234,7 @@ export function BookmarksProvider({ children }: { children: React.ReactNode }) {
       }
     }
     sync()
-  }, [user, hydrated])
+  }, [user, hydrated, syncRemote])
 
   React.useEffect(() => {
     if (!hydrated) return
@@ -344,6 +425,38 @@ export function BookmarksDialog({
   onOpenChange: (v: boolean) => void
 }) {
   const { bookmarks, remove, clear } = useBookmarks()
+  const [exported, setExported] = React.useState(false)
+  const exportTimer = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const prevBookmarksRef = React.useRef(bookmarks)
+
+  React.useEffect(() => {
+    return () => {
+      if (exportTimer.current) clearTimeout(exportTimer.current)
+    }
+  }, [])
+
+  // Сбрасываем подтверждение «Скопировано» только при изменении списка
+  React.useEffect(() => {
+    if (prevBookmarksRef.current !== bookmarks) {
+      prevBookmarksRef.current = bookmarks
+      setExported(false)
+    }
+  }, [bookmarks])
+
+  const handleExport = async () => {
+    const text = bookmarks
+      .map((b) => `${typeLabels[b.type]}: ${b.title} — ${b.subtitle}`)
+      .join('\n')
+    try {
+      await navigator.clipboard.writeText(text)
+    } catch {
+      window.prompt('Скопируйте список вручную:', text)
+      return
+    }
+    setExported(true)
+    clearTimeout(exportTimer.current)
+    exportTimer.current = setTimeout(() => setExported(false), 2000)
+  }
 
   const handleNavigate = (href: string) => {
     const id = href.slice(1)
@@ -369,16 +482,34 @@ export function BookmarksDialog({
             </span>
           </div>
           {bookmarks.length > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={clear}
-              aria-label="Очистить все закладки"
-              className="text-muted-foreground hover:text-destructive h-8 px-2 text-xs sm:text-sm"
-            >
-              <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" aria-hidden="true" />
-              <span className="hidden sm:inline">Очистить</span>
-            </Button>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleExport}
+                aria-label="Скопировать список закладок"
+                className="text-muted-foreground hover:text-foreground h-8 px-2 text-xs sm:text-sm"
+              >
+                {exported ? (
+                  <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 text-green-500" aria-hidden="true" />
+                ) : (
+                  <Copy className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" aria-hidden="true" />
+                )}
+                <span className="hidden sm:inline">
+                  {exported ? 'Скопировано' : 'Скопировать список'}
+                </span>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clear}
+                aria-label="Очистить все закладки"
+                className="text-muted-foreground hover:text-destructive h-8 px-2 text-xs sm:text-sm"
+              >
+                <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" aria-hidden="true" />
+                <span className="hidden sm:inline">Очистить</span>
+              </Button>
+            </div>
           )}
         </div>
 

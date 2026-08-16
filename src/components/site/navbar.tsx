@@ -15,12 +15,46 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSubscription } from "@/hooks/use-subscription";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { SearchDialog } from "@/components/site/search-dialog";
 import { SITE_NAV, PUBLIC_NAV, PROTECTED_NAV, SITE_NAME } from "@/lib/constants";
 import { useSectionProgress } from "@/hooks/use-section-progress";
 import { Progress } from "@/components/ui/progress";
+
+// Section progress tracking.
+// Платные секции (за ContentGate с restricted) учитываются в прогрессе,
+// только когда у пользователя есть доступ: иначе простой скролл страницы
+// без подписки засчитывал бы «Изучено: 100%»
+const BASE_SECTION_IDS = [
+  "greece",
+  "rome",
+  "mesopotamia",
+  "kuban",
+  "persons",
+  "wonders",
+  "orders",
+  "epochs",
+  "timeline",
+  "map",
+  "comparison",
+  "analysis",
+  "glossary",
+  "quiz",
+  "faq",
+  "sources",
+] as const;
+const GATED_SECTION_IDS = new Set([
+  "rome",
+  "mesopotamia",
+  "orders",
+  "epochs",
+  "timeline",
+  "map",
+  "comparison",
+  "analysis",
+]);
 
 export function Navbar() {
   const [open, setOpen] = React.useState(false);
@@ -31,27 +65,14 @@ export function Navbar() {
   const [mounted, setMounted] = React.useState(false);
   const { user, loading: authLoading } = useAuth();
 
-  // Section progress tracking
+  const { hasSubscription } = useSubscription(false);
   const SECTION_IDS = React.useMemo(
-    () => [
-      "greece",
-      "rome",
-      "mesopotamia",
-      "kuban",
-      "persons",
-      "wonders",
-      "orders",
-      "epochs",
-      "timeline",
-      "map",
-      "comparison",
-      "analysis",
-      "glossary",
-      "quiz",
-      "faq",
-      "sources",
-    ],
-    [],
+    () =>
+      BASE_SECTION_IDS.filter((id) => {
+        if (!GATED_SECTION_IDS.has(id)) return true;
+        return Boolean(user) && hasSubscription;
+      }),
+    [user, hasSubscription],
   );
   const { progressPercent } = useSectionProgress(SECTION_IDS);
 
@@ -101,6 +122,10 @@ export function Navbar() {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
         setSearchOpen(true);
+      } else if (e.key === "Escape") {
+        // Закрываем мобильное меню и поиск по Escape
+        if (open) setOpen(false);
+        if (searchOpen) setSearchOpen(false);
       } else if (
         e.key === "/" &&
         // Не перехватываем ввод в полях и при фокусе на интерактивных элементах
@@ -114,7 +139,7 @@ export function Navbar() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  }, [open, searchOpen]);
 
   const isActive = React.useCallback(
     (href: string) => {
@@ -223,7 +248,7 @@ export function Navbar() {
                 onClick={() => setOpen((v) => !v)}
                 aria-label={open ? "Закрыть меню" : "Меню"}
                 aria-expanded={open}
-                aria-controls="mobile-menu"
+                aria-controls={open ? "mobile-menu" : undefined}
               >
                 {open ? (
                   <X className="h-4 w-4" aria-hidden="true" />

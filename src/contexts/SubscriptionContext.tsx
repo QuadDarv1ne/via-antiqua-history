@@ -46,6 +46,21 @@ export function SubscriptionProvider({
     setRefreshCounter((c) => c + 1);
   }, []);
 
+  // Пользователь мог оплатить подписку в другом окне/приложении банка:
+  // при возврате на вкладку переспрашиваем статус, чтобы гейты контента
+  // открылись сразу, а не после ручной перезагрузки
+  React.useEffect(() => {
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") refresh();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("focus", onVisibility);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("focus", onVisibility);
+    };
+  }, [refresh]);
+
   React.useEffect(() => {
     if (!user || loading) {
       // При logout/смене пользователя сбрасываем данные предыдущего аккаунта,
