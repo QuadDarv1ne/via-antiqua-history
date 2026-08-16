@@ -6,7 +6,7 @@ export const wonders: Wonder[] = [
     name: 'Пирамида Хеопса',
     originalName: 'Pyramid of Khufu',
     location: 'Гиза, Египет',
-    region: 'greece', // географически в Египте, но входит в античное наследие
+    region: 'egypt', // Египет — не основной регион проекта, но входит в античное наследие
     built: 'Около 2560 до н. э.',
     destroyed: 'Сохранилась до наших дней',
     builder: 'Фараон Хуфу (Хеопс)',
