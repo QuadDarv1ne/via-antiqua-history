@@ -123,7 +123,7 @@ export const quizQuestions: QuizQuestion[] = [
     correct: 2,
     explanation:
       'После походов Александра Македонского греческое койне — разговорный греческий язык — стал lingua franca (языком-посредником) всего эллинистического мира от Сицилии до Инда.',
-    region: 'mesopotamia',
+    region: 'greece',
   },
   {
     id: 12,
@@ -220,7 +220,7 @@ export const quizQuestions: QuizQuestion[] = [
     correct: 2,
     explanation:
       'Эпоха эллинизма (323–30 гг. до н. э.) началась после завоеваний Александра Македонского, объединившего под властью Грецию, Египет, Месопотамию, Иран и долину Инда.',
-    region: 'mesopotamia',
+    region: 'greece',
   },
   {
     id: 20,
