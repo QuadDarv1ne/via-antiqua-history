@@ -94,6 +94,7 @@ function initSchema(db: Database.Database) {
     );
 
     CREATE INDEX IF NOT EXISTS idx_verification_tokens_user_id ON verification_tokens(user_id);
+    CREATE INDEX IF NOT EXISTS idx_verification_tokens_user_type ON verification_tokens(user_id, type);
     CREATE INDEX IF NOT EXISTS idx_bookmarks_user_id ON bookmarks(user_id);
     CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON subscriptions(user_id);
     CREATE INDEX IF NOT EXISTS idx_subscriptions_status ON subscriptions(status, expires_at);
@@ -122,6 +123,23 @@ function initSchema(db: Database.Database) {
       db.exec(`ALTER TABLE users ADD COLUMN ${name} ${ddl}`);
     }
   }
+}
+
+/**
+ * Переводит просроченные подписки в статус 'expired'. Статус 'active'
+ * с прошедшим expires_at в БД не появляется иначе: вебхук и confirm
+ * ставят 'active' с будущим сроком, но при продлении платёжного периода
+ * («оплатил ещё раз через месяц») старый ряд остаётся 'active' навсегда.
+ * Sweep вызывается на чтениях подписки — таблица маленькая, UPDATE по
+ * индексу (status, expires_at) дёшев.
+ */
+export function expireSubscriptions(): void {
+  getDb()
+    .prepare(
+      `UPDATE subscriptions SET status = 'expired', updated_at = datetime('now')
+       WHERE status IN ('active', 'cancelled') AND expires_at <= datetime('now')`,
+    )
+    .run();
 }
 
 function closeDb() {

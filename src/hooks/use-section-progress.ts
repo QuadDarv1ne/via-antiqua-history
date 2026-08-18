@@ -101,6 +101,7 @@ export function useSectionProgress(sectionIds: string[]) {
     let scheduled = false;
     let mutationObserver: MutationObserver | null = null;
     let retryTimer: ReturnType<typeof setTimeout> | null = null;
+    let rescanTimer: ReturnType<typeof setInterval> | null = null;
     let disposed = false;
     if (observed.size < sectionIds.length) {
       mutationObserver = new MutationObserver(() => {
@@ -112,6 +113,7 @@ export function useSectionProgress(sectionIds: string[]) {
           observeMissing();
           if (observed.size === sectionIds.length) {
             mutationObserver?.disconnect();
+            if (rescanTimer) clearInterval(rescanTimer);
           }
         }, 200);
       });
@@ -121,21 +123,27 @@ export function useSectionProgress(sectionIds: string[]) {
       });
     }
 
-    // Страховка: через 30 секунд прекращаем искать секции, которых нет в DOM
-    // (лентяй-загрузка не сработала или секция убрана). Основной
-    // IntersectionObserver продолжает работать — иначе прогресс «замирал» бы
-    // у медленных читателей, которые скроллят позже 30-й секунды
-    const stopTimer = setTimeout(() => {
-      mutationObserver?.disconnect();
-      if (retryTimer) clearTimeout(retryTimer);
-    }, 30000);
+    // Страховка для секций, смонтированных позже 30-й секунды (медленная
+    // сеть, тяжёлый чанк): MutationObserver мог не заметить подгрузку, а
+    // полное отключение сканирования «заморозило» бы прогресс навсегда.
+    // Редкий интервальный перескан работает, пока не найдены все секции.
+    rescanTimer = setInterval(() => {
+      if (disposed) return;
+      const foundAllBefore = observed.size === sectionIds.length;
+      observeMissing();
+      if (!foundAllBefore && observed.size === sectionIds.length) {
+        mutationObserver?.disconnect();
+        if (retryTimer) clearTimeout(retryTimer);
+        if (rescanTimer) clearInterval(rescanTimer);
+      }
+    }, 10000);
 
     return () => {
       disposed = true;
       if (retryTimer) clearTimeout(retryTimer);
+      if (rescanTimer) clearInterval(rescanTimer);
       mutationObserver?.disconnect();
       observer.disconnect();
-      clearTimeout(stopTimer);
     };
   }, [sectionIds, sectionIdSet, initialized]);
 

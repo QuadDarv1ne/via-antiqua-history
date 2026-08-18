@@ -42,6 +42,12 @@ export const EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-z
 export function validatePassword(password: string): string | null {
   if (password.length < 8) return 'Пароль должен содержать минимум 8 символов'
   if (password.length > 128) return 'Пароль не должен превышать 128 символов'
+  // bcrypt использует только первые 72 байта пароля: два пароля, совпадающие
+  // в первых 72 байтах, эквивалентны для входа. Проверяем байты, а не
+  // символы — кириллица в UTF-8 занимает 2 байта
+  if (new TextEncoder().encode(password).length > 72) {
+    return 'Пароль не должен превышать 72 байта'
+  }
   if (!/[a-z]/.test(password)) return 'Пароль должен содержать хотя бы одну строчную букву'
   if (!/[A-Z]/.test(password)) return 'Пароль должен содержать хотя бы одну заглавную букву'
   if (!/\d/.test(password)) return 'Пароль должен содержать хотя бы одну цифру'
@@ -52,6 +58,19 @@ export function validatePassword(password: string): string | null {
 export function validateEmail(email: string): string | null {
   if (!EMAIL_REGEX.test(email)) return 'Укажите корректный email'
   return null
+}
+
+/** Русское склонение существительного по числу: pluralRu(2, ['день','дня','дней']) → 'дня' */
+export function pluralRu(
+  n: number,
+  labels: readonly [string, string, string],
+): string {
+  const abs = Math.abs(Math.trunc(n))
+  const mod10 = abs % 10
+  const mod100 = abs % 100
+  if (mod10 === 1 && mod100 !== 11) return labels[0]
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return labels[1]
+  return labels[2]
 }
 
 export function getSectionGradient(opacity = 0.04): string {

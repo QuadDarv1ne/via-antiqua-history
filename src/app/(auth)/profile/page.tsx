@@ -9,7 +9,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useSubscriptionContext } from '@/contexts/SubscriptionContext'
 import { useBookmarks } from '@/components/site/bookmarks'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
-import { passwordStrength, validatePassword, parseSqliteDateTime } from '@/lib/utils'
+import { passwordStrength, validatePassword, parseSqliteDateTime, pluralRu } from '@/lib/utils'
 import { SUBSCRIPTION_PRICE, SITE_NAME } from '@/lib/constants'
 import { PasswordStrengthBar } from '@/components/ui/password-strength'
 import { PasswordToggle } from '@/components/ui/password-toggle'
@@ -446,7 +446,7 @@ export default function ProfilePage() {
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <Clock className="h-4 w-4" />
-                      <span>Осталось {subscription.daysLeft} дн.</span>
+                      <span>Осталось {subscription.daysLeft} {pluralRu(subscription.daysLeft, ['день', 'дня', 'дней'])}</span>
                     </div>
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <CreditCard className="h-4 w-4" />

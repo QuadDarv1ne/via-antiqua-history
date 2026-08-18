@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { getDb } from "@/lib/auth/db";
+import { getDb, expireSubscriptions } from "@/lib/auth/db";
 import { getSession } from "@/lib/auth/utils";
 import { SUBSCRIPTION_PRICE, SITE_NAME } from "@/lib/constants";
 import { apiOk, apiError } from "@/lib/auth/api-response";
@@ -83,6 +83,11 @@ export async function POST(_request: NextRequest) {
 
     const db = getDb();
     const expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString();
+
+    // Просроченные 'active' помечаем 'expired' до проверки «уже есть
+    // активная подписка»: иначе старая истёкшая подписка вечно блокировала
+    // бы покупку новой
+    expireSubscriptions();
 
     const existingSub = db
       .prepare(

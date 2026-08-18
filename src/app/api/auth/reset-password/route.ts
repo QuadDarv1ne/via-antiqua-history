@@ -7,6 +7,7 @@ import { checkRateLimit, rateLimitResponse } from '@/lib/auth/rate-limit'
 import { validateCsrf } from '@/lib/auth/csrf'
 import { getClientIp } from '@/lib/auth/get-ip'
 import { readJsonBody } from '@/lib/auth/request'
+import { hashCode, safeEqual } from '@/lib/auth/two-factor'
 
 const RATE_LIMIT = { windowMs: 15 * 60 * 1000, max: 5 }
 // Привязан к IP+email (не глобально к email): иначе 3 запроса с неверным
@@ -63,12 +64,19 @@ export async function POST(req: NextRequest) {
     }
 
     const token = db.prepare(
-      `SELECT id FROM verification_tokens
-       WHERE user_id = ? AND type = 'password_reset' AND code = ? AND used = 0 AND expires_at > datetime('now')
+      `SELECT id, code FROM verification_tokens
+       WHERE user_id = ? AND type = 'password_reset' AND used = 0 AND expires_at > datetime('now')
        ORDER BY created_at DESC LIMIT 1`
-    ).get(user.id, code) as Record<string, unknown> | undefined
+    ).get(user.id) as { id: string; code: string } | undefined
 
-    if (!token) {
+    // Код хранится хэшем (sha256:) — сравниваем по хэшу, не по SQL-равенству.
+    // Fallback на plaintext покрывает токены, созданные до перехода на хэши
+    const codeMatches = token
+      ? safeEqual(token.code, hashCode(code)) ||
+        (!token.code.startsWith('sha256:') && safeEqual(token.code, code))
+      : false
+
+    if (!token || !codeMatches) {
       // Единое сообщение для неизвестного email и неверного кода — без перечисления аккаунтов
       return apiError('Неверный код или email', 400)
     }
@@ -77,11 +85,26 @@ export async function POST(req: NextRequest) {
     const now = new Date().toISOString()
 
     const updateTransactions = db.transaction(() => {
+      // Условное поглощение токена: два параллельных запроса с одним кодом
+      // не могут оба пройти — второй получит changes === 0 (код уже
+      // использован первым) и не перезапишет свежий пароль
+      const consumed = db.prepare(
+        'UPDATE verification_tokens SET used = 1 WHERE id = ? AND used = 0'
+      ).run(token.id)
+
+      if (consumed.changes === 0) {
+        return false
+      }
+
       db.prepare('UPDATE users SET password_hash = ?, password_changed_at = ?, updated_at = ? WHERE id = ?').run(passwordHash, now, now, user.id)
-      db.prepare('UPDATE verification_tokens SET used = 1 WHERE id = ?').run(token.id)
       db.prepare("UPDATE verification_tokens SET used = 1 WHERE user_id = ? AND type = 'password_reset' AND used = 0").run(user.id)
+      return true
     })
-    updateTransactions()
+    const applied = updateTransactions()
+
+    if (!applied) {
+      return apiError('Неверный код или email', 400)
+    }
 
     return apiOk({ message: 'Пароль успешно изменён' })
   } catch (err) {

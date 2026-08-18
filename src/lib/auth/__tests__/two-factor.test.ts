@@ -6,6 +6,8 @@ import {
   hashRecoveryCodes,
   verifySecondFactorCode,
   consumeRecoveryCode,
+  hashCode,
+  safeEqual,
 } from '../two-factor'
 
 describe('getRecoveryCodes', () => {
@@ -168,5 +170,28 @@ describe('hashed recovery codes (sha256 storage)', () => {
       .prepare('SELECT recovery_codes FROM users WHERE id = ?')
       .get('u1') as { recovery_codes: string }
     expect(JSON.parse(stored.recovery_codes)).toEqual([hashRecoveryCodes(['ABCD1234'])[0]])
+  })
+})
+
+describe('safeEqual', () => {
+  it('returns true for identical strings', () => {
+    expect(safeEqual('abc123', 'abc123')).toBe(true)
+  })
+
+  it('returns false for different strings of equal length', () => {
+    expect(safeEqual('abc123', 'abc124')).toBe(false)
+  })
+
+  it('returns false for different lengths (no crash)', () => {
+    expect(safeEqual('abc', 'abcd')).toBe(false)
+    expect(safeEqual('', 'a')).toBe(false)
+  })
+
+  it('works with sha256 hex digests (reset-code comparison path)', () => {
+    const a = hashCode('483920')
+    const b = hashCode('483920')
+    const c = hashCode('483921')
+    expect(safeEqual(a, b)).toBe(true)
+    expect(safeEqual(a, c)).toBe(false)
   })
 })

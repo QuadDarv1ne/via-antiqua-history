@@ -75,8 +75,6 @@ export const ContentGate = React.memo(function ContentGate({
           </div>
           <div
             className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-b from-card/70 via-card/85 to-card/95 backdrop-blur-[2px]"
-            aria-hidden="true"
-            inert
           >
             <span className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 mb-5">
               {restricted ? <Crown className="h-7 w-7 text-primary" aria-hidden="true" /> : <Lock className="h-7 w-7 text-primary" aria-hidden="true" />}

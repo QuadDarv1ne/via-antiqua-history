@@ -324,6 +324,52 @@ describe('POST /api/webhook/fastpay', () => {
     expect(paymentRow(paymentId).status).toBe('refunded')
   })
 
+  it('activates a new subscription when a previous one has expired', async () => {
+    // Сценарий «заплатил второй раз через месяц»: старая подписка осталась
+    // status='active' (срок прошёл, sweep не успел или ещё не вызван).
+    // Она НЕ должна считаться конкурентом — иначе новая оплата гасилась бы
+    // в 'cancelled' и пользователь платил бы без доступа
+    const userId = randomUUID()
+    const db = getDb()
+    // seedPayment создаёт пользователя + новый pending-платёж и подписку
+    const { paymentId, subId } = await seedPayment(userId)
+    // Затем добавляем «старую» истёкшую подписку того же пользователя:
+    // статус 'active', но срок давно прошёл (sweep ещё не выполнялся)
+    const oldSubId = randomUUID()
+    const oldPaymentId = randomUUID()
+    db.prepare(
+      `INSERT INTO payments (id, user_id, amount, currency, status, payment_method)
+       VALUES (?, ?, 999, 'RUB', 'paid', 'sbp')`,
+    ).run(oldPaymentId, userId)
+    db.prepare(
+      `INSERT INTO subscriptions (id, user_id, status, payment_id, amount, started_at, expires_at)
+       VALUES (?, ?, 'active', ?, 999, datetime('now', '-40 days'), datetime('now', '-10 days'))`,
+    ).run(oldSubId, userId, oldPaymentId)
+
+    const payload = {
+      event: 'payment.completed',
+      data: {
+        paymentId: 'expired-renewal-1',
+        externalPaymentId: paymentId,
+        amount: 999,
+        currency: 'RUB',
+      },
+    }
+    const res = await POST(buildRequest(payload, sign(JSON.stringify(payload))))
+    expect(res.status).toBe(200)
+    expect(paymentRow(paymentId).status).toBe('paid')
+    // Новая подписка АКТИВНА, несмотря на «висящую» старую
+    expect(subscriptionRow(subId).status).toBe('active')
+    // Активная подписка ровно одна (с будущим сроком действия)
+    const activeCount = db
+      .prepare(
+        `SELECT COUNT(*) as n FROM subscriptions
+         WHERE user_id = ? AND status = 'active' AND expires_at > datetime('now')`,
+      )
+      .get(userId) as { n: number }
+    expect(activeCount.n).toBe(1)
+  })
+
   it('returns 200 for unknown events without changing state', async () => {
     const payload = { event: 'unknown.event', data: {} }
     const res = await POST(buildRequest(payload, sign(JSON.stringify(payload))))

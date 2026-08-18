@@ -28,7 +28,10 @@ export const QuizSection = React.memo(function QuizSection() {
   const [hydrated, setHydrated] = React.useState(false)
 
   React.useEffect(() => {
-    const saved = loadQuizState(quizQuestions.length)
+    const saved = loadQuizState(
+      quizQuestions.length,
+      quizQuestions.map((q) => q.options.length),
+    )
     if (saved) {
       setCurrent(saved.current)
       setAnswers(saved.answers)

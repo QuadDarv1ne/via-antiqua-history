@@ -87,4 +87,39 @@ describe("quiz-storage", () => {
     clearQuizState();
     expect(loadQuizState(1)).toBeNull();
   });
+
+  it("sanitizes answers beyond the per-question option count", () => {
+    // Ответ 3 валиден по общему числу вопросов (4), но в вопросе 0 только
+    // 2 варианта — повреждённый/устаревший localStorage не должен выглядеть
+    // «отвеченным» без выделенного варианта
+    localStorage.setItem(
+      QUIZ_STORAGE_KEY,
+      JSON.stringify({
+        current: 0,
+        answers: [3, 1, 2, 0],
+        finished: false,
+      }),
+    );
+    expect(loadQuizState(4, [2, 3, 4, 1])).toEqual({
+      current: 0,
+      answers: [null, 1, 2, 0],
+      finished: false,
+    });
+  });
+
+  it("keeps legacy behavior when option counts are omitted", () => {
+    localStorage.setItem(
+      QUIZ_STORAGE_KEY,
+      JSON.stringify({
+        current: 0,
+        answers: [3, 1, 0, 2],
+        finished: false,
+      }),
+    );
+    expect(loadQuizState(4)).toEqual({
+      current: 0,
+      answers: [3, 1, 0, 2],
+      finished: false,
+    });
+  });
 });

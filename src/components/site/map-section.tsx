@@ -187,7 +187,10 @@ export function MapSection() {
                     className="absolute group flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-full"
                     style={{
                       left: `${r.x}%`,
-                      top: `${r.y}%`,
+                      // viewBox карты — 0..100 × 0..75 при preserveAspectRatio="none":
+                      // координаты y нормируются на высоту контейнера (иначе точки
+                      // «плавают» над своей сушей на ~1/3 выше)
+                      top: `${(r.y / 75) * 100}%`,
                       width: '48px',
                       height: '48px',
                       transform: 'translate(-50%, -50%)',

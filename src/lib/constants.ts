@@ -12,6 +12,7 @@ export const REGION_COLORS: Record<string, string> = {
   rome: 'oklch(0.55 0.13 35)',
   mesopotamia: 'oklch(0.55 0.13 50)',
   kuban: 'oklch(0.5 0.11 145)',
+  egypt: 'oklch(0.55 0.13 85)',
   general: 'oklch(0.5 0.05 60)',
 }
 
@@ -20,6 +21,7 @@ export const REGION_LABELS: Record<string, string> = {
   rome: 'Рим',
   mesopotamia: 'Месопотамия',
   kuban: 'Кубань',
+  egypt: 'Египет',
   general: 'Общее',
 }
 
@@ -28,6 +30,7 @@ export const REGION_SHORT: Record<string, string> = {
   rome: 'РИ',
   mesopotamia: 'МЕ',
   kuban: 'КУ',
+  egypt: 'ЕГ',
   general: 'ОБ',
 }
 

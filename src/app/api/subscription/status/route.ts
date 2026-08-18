@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { getDb } from "@/lib/auth/db";
+import { getDb, expireSubscriptions } from "@/lib/auth/db";
 import { getSession } from "@/lib/auth/utils";
 import { apiOk, apiError } from "@/lib/auth/api-response";
 import { SubscriptionSchema, safeParse } from "@/lib/auth/schemas";
@@ -25,6 +25,9 @@ export async function GET(request: NextRequest) {
     }
 
     const db = getDb();
+    // Просроченные 'active'/'cancelled' честно помечаем 'expired': статус
+    // в ответе и платёжная логика видят реальное состояние
+    expireSubscriptions();
 
     const rawSub = db
       .prepare(

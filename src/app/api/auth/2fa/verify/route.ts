@@ -12,6 +12,9 @@ import {
 } from '@/lib/auth/two-factor'
 
 const RATE_LIMIT = { windowMs: 15 * 60 * 1000, max: 5 }
+// Аккаунт-лимит (ключ по userId без IP): неудачные попытки со всех IP
+// суммируются — распределённый перебор 6-значного TOTP не проходит
+const ACCOUNT_RATE_LIMIT = { windowMs: 15 * 60 * 1000, max: 10 }
 
 export async function POST(req: NextRequest) {
   try {
@@ -27,6 +30,13 @@ export async function POST(req: NextRequest) {
     const rl = checkRateLimit(`2fa-verify:${ip}:${session.userId}`, RATE_LIMIT)
     if (!rl.allowed) {
       return rateLimitResponse(rl.resetMs)
+    }
+    const accountRl = checkRateLimit(
+      `2fa-verify-account:${session.userId}`,
+      ACCOUNT_RATE_LIMIT,
+    )
+    if (!accountRl.allowed) {
+      return rateLimitResponse(accountRl.resetMs)
     }
 
     const body = await readJsonBody(req)

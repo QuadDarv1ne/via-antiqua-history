@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { cn, withAlpha, passwordStrength, validateEmail, validatePassword, getSectionGradient, getRegionColor, toSqliteDateTime, parseSqliteDateTime } from '../utils'
+import { cn, withAlpha, passwordStrength, validateEmail, validatePassword, pluralRu, getSectionGradient, getRegionColor, toSqliteDateTime, parseSqliteDateTime } from '../utils'
 
 describe('cn', () => {
   it('merges class names', () => {
@@ -103,6 +103,53 @@ describe('validatePassword', () => {
 
   it('rejects passwords longer than 128 characters', () => {
     expect(validatePassword('A'.repeat(130) + '1')).toContain('128 символов')
+  })
+
+  it('rejects passwords exceeding 72 bytes (bcrypt truncation)', () => {
+    // 73 символа «а» в UTF-8 = 146 байт — bcrypt молча обрезал бы пароль,
+    // сделав эквивалентными пароли с одинаковыми первыми 72 байтами
+    const multibyte = 'А'.repeat(37) + 'b1' // 74 байта
+    expect(new TextEncoder().encode(multibyte).length).toBeGreaterThan(72)
+    expect(validatePassword(multibyte)).toContain('72 байта')
+  })
+
+  it('allows passwords up to 72 bytes', () => {
+    const ascii = 'Ab1'.repeat(10) + 'B1' // 32 байта, без троек подряд
+    expect(validatePassword(ascii)).toBeNull()
+    // 71 байт без троек подряд: 'Ab1' * 23 (69 байт) + 'Xy'
+    const boundary = 'Ab1'.repeat(23) + 'Xy'
+    expect(boundary.length).toBe(71)
+    expect(new TextEncoder().encode(boundary).length).toBe(71)
+    expect(validatePassword(boundary)).toBeNull()
+  })
+})
+
+describe('pluralRu', () => {
+  const DAYS = ['день', 'дня', 'дней'] as const
+
+  it('picks the one form', () => {
+    expect(pluralRu(1, DAYS)).toBe('день')
+    expect(pluralRu(21, DAYS)).toBe('день')
+    expect(pluralRu(101, DAYS)).toBe('день')
+  })
+
+  it('picks the few form', () => {
+    expect(pluralRu(2, DAYS)).toBe('дня')
+    expect(pluralRu(3, DAYS)).toBe('дня')
+    expect(pluralRu(24, DAYS)).toBe('дня')
+  })
+
+  it('picks the many form', () => {
+    expect(pluralRu(5, DAYS)).toBe('дней')
+    expect(pluralRu(11, DAYS)).toBe('дней')
+    expect(pluralRu(12, DAYS)).toBe('дней')
+    expect(pluralRu(25, DAYS)).toBe('дней')
+    expect(pluralRu(100, DAYS)).toBe('дней')
+  })
+
+  it('handles zero and fractional values', () => {
+    expect(pluralRu(0, DAYS)).toBe('дней')
+    expect(pluralRu(1.4, DAYS)).toBe('день')
   })
 })
 

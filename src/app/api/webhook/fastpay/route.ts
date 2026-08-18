@@ -249,10 +249,12 @@ async function handlePaymentCompleted(data: unknown) {
       // раньше, чем пришёл late payment.completed за старый), не создаём
       // второй активный статус: платёж помечаем оплаченным для истории,
       // но восстановленную подписку не активируем. Учитываем и 'pending' —
-      // она вот-вот станет активной, и две подписки не должны пересечься
+      // она вот-вот станет активной, и две подписки не должны пересечься.
+      // Истёкшая подписка (status='active', но срок прошёл) конкурентом не
+      // считается: она не даёт доступа, и новая оплата должна активироваться
       const existingActive = db
         .prepare(
-          "SELECT id FROM subscriptions WHERE user_id = ? AND status IN ('active', 'pending') AND id != ?",
+          "SELECT id FROM subscriptions WHERE user_id = ? AND status IN ('active', 'pending') AND expires_at > datetime('now') AND id != ?",
         )
         .get(payment.user_id, sub.id) as { id: string } | undefined;
 
@@ -284,10 +286,13 @@ async function handlePaymentCompleted(data: unknown) {
     // Та же защита от гонки, что в restore-path: если у пользователя уже
     // активна другая подписка (оплачен параллельный платёж чуть раньше),
     // этот платёж не создаёт вторую активную подписку — иначе после двух
-    // оплат было бы два активных статуса
+    // оплат было бы два активных статуса. Истёкшая подписка (срок прошёл,
+    // но статус остался 'active' — см. expireSubscriptions) конкурентом не
+    // считается: иначе повторная оплата после истечения «гасила» бы новую
+    // подписку, и пользователь платил бы без доступа
     const otherActive = db
       .prepare(
-        "SELECT id FROM subscriptions WHERE user_id = ? AND status = 'active' AND payment_id != ?",
+        "SELECT id FROM subscriptions WHERE user_id = ? AND status = 'active' AND expires_at > datetime('now') AND payment_id != ?",
       )
       .get(payment.user_id, payment.id) as { id: string } | undefined;
 

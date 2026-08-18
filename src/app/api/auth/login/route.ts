@@ -16,6 +16,11 @@ import {
 const RATE_LIMIT = { windowMs: 15 * 60 * 1000, max: 10 };
 // Дополнительный лимит на IP — защита от перебора аккаунтов с одного адреса
 const IP_RATE_LIMIT = { windowMs: 15 * 60 * 1000, max: 40 };
+// Глобальный лимит неудачных попыток 2FA на аккаунт (ключ по email БЕЗ IP):
+// TOTP — 6 цифр, и распределённый перебор с ботнета по per-IP лимитам
+// (10 попыток на IP) практически не ограничен. Аккаунт-лимит суммирует
+// попытки со всех IP
+const ACCOUNT_2FA_RATE_LIMIT = { windowMs: 15 * 60 * 1000, max: 10 };
 
 // Фейковый bcrypt-хэш для несуществующих аккаунтов: сравнение занимает
 // столько же времени, сколько для реального пользователя, чтобы нельзя
@@ -47,6 +52,11 @@ export async function POST(req: NextRequest) {
     }
     if (typeof password !== "string" || password.length > 128) {
       return apiError("Некорректный пароль", 400);
+    }
+    // bcrypt молча обрезает пароль на 72 байтах — два «разных» пароля с
+    // одинаковыми первыми 72 байтами эквивалентны; такие не принимаем
+    if (new TextEncoder().encode(password).length > 72) {
+      return apiError("Пароль не должен превышать 72 байта", 400);
     }
     if (password.length < 8) {
       return apiError("Пароль должен содержать минимум 8 символов", 400);
@@ -90,6 +100,16 @@ export async function POST(req: NextRequest) {
     if (user.totp_enabled) {
       if (!totpCode) {
         return apiOk({ require2fa: true });
+      }
+
+      // Аккаунт-лимит ПОСЛЕ успешного пароля: попытки TOTP со всех IP
+      // суммируются, чтобы ботнет не перебирал 6-значный код распределённо
+      const accountRl = checkRateLimit(
+        `login-2fa-account:${user.email}`,
+        ACCOUNT_2FA_RATE_LIMIT,
+      );
+      if (!accountRl.allowed) {
+        return rateLimitResponse(accountRl.resetMs);
       }
 
       const result = await verifySecondFactorCode(

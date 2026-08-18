@@ -31,8 +31,15 @@ export function clearQuizState(): void {
  * или несовместимых данных (другое число вопросов, некорректные типы).
  * Некорректные отдельные ответы/current аккуратно заменяются безопасными
  * значениями, чтобы не уронить квиз.
+ *
+ * @param optionCounts Количество вариантов ответа на каждый вопрос — ответы
+ *   вне диапазона конкретного вопроса (повреждённый/устаревший localStorage)
+ *   заменяются null, чтобы вопрос не выглядел «отвеченным без выбора».
  */
-export function loadQuizState(questionCount: number): QuizState | null {
+export function loadQuizState(
+  questionCount: number,
+  optionCounts?: number[],
+): QuizState | null {
   if (!Number.isInteger(questionCount) || questionCount <= 0) return null
   try {
     const raw = localStorage.getItem(QUIZ_STORAGE_KEY)
@@ -51,13 +58,19 @@ export function loadQuizState(questionCount: number): QuizState | null {
     }
     if (p.answers.length !== questionCount) return null
 
-    const answers = p.answers.map((a) => {
+    const answers = p.answers.map((a, i) => {
       if (a === null) return null
+      // Число вариантов конкретного вопроса (если доступно) — надёжнее, чем
+      // общее число вопросов: индекс 7 в вопросе с 4 вариантами — мусор
+      const max =
+        optionCounts && Number.isInteger(optionCounts[i]) && optionCounts[i] > 0
+          ? optionCounts[i]
+          : questionCount
       if (
         typeof a === 'number' &&
         Number.isInteger(a) &&
         a >= 0 &&
-        a < questionCount
+        a < max
       ) {
         return a
       }

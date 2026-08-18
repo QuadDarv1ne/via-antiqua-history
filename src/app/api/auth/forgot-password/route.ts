@@ -9,6 +9,7 @@ import { validateCsrf } from "@/lib/auth/csrf";
 import { getClientIp } from "@/lib/auth/get-ip";
 import { readJsonBody } from "@/lib/auth/request";
 import { createHash } from "crypto";
+import { hashCode } from "@/lib/auth/two-factor";
 
 const RATE_LIMIT = { windowMs: 15 * 60 * 1000, max: 3 };
 // Лимит привязан к IP+email, а не к глобальному email: глобальный ключ
@@ -26,10 +27,16 @@ function hashForLog(id: string): string {
 const GENERIC_MESSAGE =
   "Если пользователь с таким email существует, код отправлен";
 
-// Выравнивание времени ответа между существующим и несуществующим email
-function dummyDelay(): Promise<void> {
-  return new Promise((resolve) =>
-    setTimeout(resolve, 300 + Math.random() * 300),
+// Реальное SMTP-письмо идёт сотни миллисекунд — выравниваем время ответа
+// до фиксированного минимума на обоих путях (существующий/несуществующий
+// email), чтобы по задержке нельзя было перечислить аккаунты
+const MIN_RESPONSE_MS = 800;
+
+async function alignResponseTime(startedAt: number): Promise<void> {
+  const elapsed = Date.now() - startedAt;
+  if (elapsed >= MIN_RESPONSE_MS) return;
+  await new Promise((resolve) =>
+    setTimeout(resolve, MIN_RESPONSE_MS - elapsed),
   );
 }
 
@@ -37,6 +44,7 @@ export async function POST(req: NextRequest) {
   try {
     const csrfError = validateCsrf(req);
     if (csrfError) return csrfError;
+    const startedAt = Date.now();
 
     const body = await readJsonBody(req);
     if (!body) {
@@ -83,10 +91,11 @@ export async function POST(req: NextRequest) {
 
     if (!user) {
       // Выравниваем время ответа: для несуществующего email выполняем
-      // сопоставимую по длительности «dummy» работу (как dummy-bcrypt в login),
-      // чтобы нельзя было перечислить зарегистрированные адреса по задержке.
-      // Письмо НЕ отправляем — иначе любой мог бы бомбить чужие ящики.
-      await dummyDelay();
+      // сопоставимую по длительности работу, чтобы нельзя было перечислить
+      // зарегистрированные адреса по задержке (реальное SMTP-письмо внизу
+      // идёт сотни миллисекунд). Письмо НЕ отправляем — иначе любой мог бы
+      // бомбить чужие ящики.
+      await alignResponseTime(startedAt);
       return apiOk({ message: GENERIC_MESSAGE });
     }
 
@@ -97,7 +106,9 @@ export async function POST(req: NextRequest) {
     const tokenId = generateToken(16);
 
     // Сначала создаём новый токен, но НЕ инвалидируем старые:
-    // если отправка письма упадёт, пользователь не потеряет действующий код
+    // если отправка письма упадёт, пользователь не потеряет действующий код.
+    // Код хранится хэшированным (sha256:) — при утечке БД коды сброса
+    // пароля не читаются напрямую (как recovery-коды 2FA)
     db.transaction(() => {
       // Ленивая чистка истёкших токенов — таблица не разрастается бесконечно
       db.prepare(
@@ -105,7 +116,7 @@ export async function POST(req: NextRequest) {
       ).run();
       db.prepare(
         `INSERT INTO verification_tokens (id, user_id, type, code, expires_at) VALUES (?, ?, 'password_reset', ?, ?)`,
-      ).run(tokenId, user.id, code, expiresAt);
+      ).run(tokenId, user.id, hashCode(code), expiresAt);
     })();
 
     const sent = await sendPasswordResetEmail(email.toLowerCase(), code);
@@ -128,10 +139,11 @@ export async function POST(req: NextRequest) {
       "UPDATE verification_tokens SET used = 1 WHERE user_id = ? AND type = 'password_reset' AND used = 0 AND id != ?",
     ).run(user.id, tokenId);
 
-    // В test-режиме отправка мгновенная — добавляем ту же задержку, что
-    // и для несуществующего email, чтобы время ответа не раскрывало аккаунт
+    // В test-режиме отправка мгновенная — выравниваем время ответа до того же
+    // минимума, что и для несуществующего email, чтобы задержка не
+    // раскрывала факт существования аккаунта
     if (isEmailTestMode()) {
-      await dummyDelay();
+      await alignResponseTime(startedAt);
     }
 
     return apiOk({ message: GENERIC_MESSAGE });

@@ -9,11 +9,22 @@ export interface SecondFactorResult {
 
 // Recovery-коды хранятся в виде SHA-256 хэшей (префикс 'sha256:') — при
 // утечке БД коды не читаются напрямую. Plaintext-значения из старых баз
-// продолжают приниматься (fallback в проверке), пока не израсходованы
+// продолжают приниматься (fallback в проверке), пока не израсходованы.
+// Тот же формат используется для кодов сброса пароля (verification_tokens)
 const HASH_PREFIX = "sha256:";
 
-function hashCode(code: string): string {
+export function hashCode(code: string): string {
   return `${HASH_PREFIX}${createHash("sha256").update(code).digest("hex")}`;
+}
+
+/** Константное по времени сравнение двух строк (защита от timing-атак) */
+export function safeEqual(a: string, b: string): boolean {
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  if (bufA.length !== bufB.length) return false;
+  let diff = 0;
+  for (let i = 0; i < bufA.length; i++) diff |= bufA[i] ^ bufB[i];
+  return diff === 0;
 }
 
 /** Хэширование списка recovery-кодов для хранения в БД */
@@ -85,9 +96,14 @@ export function consumeRecoveryCode(
   const idx = codes.findIndex((c) => c === hashed || c === normalized);
   if (idx === -1) return false;
   codes.splice(idx, 1);
-  db.prepare("UPDATE users SET recovery_codes = ? WHERE id = ?").run(
-    JSON.stringify(codes),
-    userId,
-  );
-  return true;
+  const next = JSON.stringify(codes);
+  // Условный UPDATE: если параллельный запрос (другой инстанс) уже
+  // поглотил код, исходная строка не совпадёт, changes === 0 — и код
+  // не будет израсходован дважды
+  const res = db
+    .prepare(
+      "UPDATE users SET recovery_codes = ? WHERE id = ? AND recovery_codes = ?",
+    )
+    .run(next, userId, user?.recovery_codes ?? null);
+  return res.changes > 0;
 }
