@@ -8,6 +8,7 @@ import { checkRateLimit, rateLimitResponse } from "@/lib/auth/rate-limit";
 import { validateCsrf } from "@/lib/auth/csrf";
 import { getClientIp } from "@/lib/auth/get-ip";
 import { readJsonBody } from "@/lib/auth/request";
+import { hashRecoveryCodes } from "@/lib/auth/two-factor";
 import { SITE_NAME } from "@/lib/constants";
 
 const RATE_LIMIT = { windowMs: 15 * 60 * 1000, max: 3 };
@@ -150,12 +151,13 @@ export async function POST(req: NextRequest) {
 
     // Включаем 2FA атомарно: условие totp_enabled = 0 защищает от гонки двух
     // параллельных confirm (двойной клик) — иначе каждый сгенерировал бы свой
-    // набор recovery-кодов, и коды из первого ответа перестали бы действовать
+    // набор recovery-кодов, и коды из первого ответа перестали бы действовать.
+    // В БД хранятся хэши кодов (не plaintext): при утечке БД коды недоступны
     const enabled = db
       .prepare(
         "UPDATE users SET totp_enabled = 1, recovery_codes = ?, totp_secret_expires_at = NULL WHERE id = ? AND totp_enabled = 0",
       )
-      .run(JSON.stringify(recoveryCodes), session.userId);
+      .run(JSON.stringify(hashRecoveryCodes(recoveryCodes)), session.userId);
 
     if (enabled.changes === 0) {
       // Параллельный запрос уже включил 2FA (с другим набором кодов)

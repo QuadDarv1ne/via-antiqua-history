@@ -59,6 +59,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Rate limit на /api/auth/me — не разлогиниваем пользователя
         return;
       }
+      if (res!.status >= 500) {
+        // Транзиентный сбой сервера (перезапуск, деплой) — это не «нет
+        // сессии»: разлогинивать пользователя нельзя, иначе после каждого
+        // перезапуска все пользователи массово вылетали бы из аккаунтов
+        if (refreshVersionRef.current === version) setLoading(false);
+        return;
+      }
       const json = await res!.json();
       if (refreshVersionRef.current !== version) return;
       if (json.ok && json.data) {
@@ -137,9 +144,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = React.useCallback(async () => {
     try {
       refreshAbortRef.current?.abort();
-      await fetch("/api/auth/logout", { method: "POST" });
-    } finally {
+      const res = await fetch("/api/auth/logout", { method: "POST" });
+      if (!res.ok) {
+        // Сервер не подтвердил инвалидацию сессии (5xx, rate limit) —
+        // состояние не сбрасываем: cookie с сессией ещё жив, а молчаливый
+        // «логаут» привёл бы к рассинхрону (пользователь «вернётся»
+        // при следующем refresh)
+        throw new Error(`HTTP ${res.status}`);
+      }
       setUser(null);
+    } catch {
+      // Сетевая ошибка или сбой сервера: сессия не инвалидирована на
+      // сервере, поэтому пользователя оставляем в системе — повторная
+      // попытка выхода при следующем клике корректно завершит сессию
     }
   }, []);
 

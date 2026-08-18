@@ -104,4 +104,42 @@ describe("SubscriptionContext", () => {
     expect(result.current.subscriptionLoading).toBe(false);
     expect(result.current.hasSubscription).toBe(false);
   });
+
+  it("отменённая, но не истёкшая подписка даёт доступ (до конца периода)", async () => {
+    const fetchMock = mockFetchStatus({
+      status: "cancelled",
+      isCancelled: true,
+      amount: 999,
+      startedAt: "2026-08-01 00:00:00",
+      expiresAt: "2026-09-01 00:00:00",
+      daysLeft: 20,
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { result } = renderHook(() => useSubscriptionContext(), { wrapper });
+
+    await act(async () => {});
+
+    expect(result.current.hasSubscription).toBe(true);
+    expect(result.current.isCancelled).toBe(true);
+  });
+
+  it("действующая подписка не помечена как отменённая", async () => {
+    const fetchMock = mockFetchStatus({
+      status: "active",
+      isCancelled: false,
+      amount: 999,
+      startedAt: "2026-08-01 00:00:00",
+      expiresAt: "2026-09-01 00:00:00",
+      daysLeft: 20,
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { result } = renderHook(() => useSubscriptionContext(), { wrapper });
+
+    await act(async () => {});
+
+    expect(result.current.hasSubscription).toBe(true);
+    expect(result.current.isCancelled).toBe(false);
+  });
 });

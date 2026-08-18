@@ -72,7 +72,13 @@ export function MapSection() {
         <FilterBar
           options={filterOptions}
           active={filter}
-          onChange={(key) => setFilter(key as FilterKey)}
+          onChange={(key) => {
+            setFilter(key as FilterKey)
+            // Сброс выбора: панель не должна показывать город, точка
+            // которого скрыта новым фильтром
+            setSelected(null)
+            setHovered(null)
+          }}
           className="justify-center mb-6"
           label="Фильтр по регионам"
         />

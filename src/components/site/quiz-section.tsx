@@ -70,16 +70,21 @@ export const QuizSection = React.memo(function QuizSection() {
         updated[current] = i
         return updated
       })
+      // Фокус на «Далее» только при свежем ответе на текущий вопрос:
+      // при навигации по точкам прогресса к уже отвеченному вопросу
+      // фокус не должен уходить с точки. rAF — чтобы кнопка успела
+      // стать активной после коммита рендера
+      requestAnimationFrame(() => nextButtonRef.current?.focus())
     },
     [selected, current],
   )
 
   const goNext = React.useCallback(() => {
-    if (current + 1 >= quizQuestions.length) {
-      setFinished(true)
-    } else {
-      setCurrent((c) => c + 1)
-    }
+    // Функциональный updater защищает от гонки двойного Enter: current
+    // не перескочит через вопрос, даже если два вызова пришли до коммита
+    const isLast = current + 1 >= quizQuestions.length
+    setCurrent((c) => (c + 1 >= quizQuestions.length ? c : c + 1))
+    if (isLast) setFinished(true)
   }, [current])
 
   const goPrev = React.useCallback(() => {
@@ -110,37 +115,42 @@ export const QuizSection = React.memo(function QuizSection() {
   }, [finished])
 
   React.useEffect(() => {
-    if (isAnswered) {
-      nextButtonRef.current?.focus()
-    }
-  }, [isAnswered])
-
-  React.useEffect(() => {
     if (finished || !inView) return
     const onKey = (e: KeyboardEvent) => {
+      // Авто-повтор клавиши (зажатый Enter) не должен давать двойные переходы
+      if (e.repeat) return
       const active = document.activeElement
+      // В текстовых полях шорткаты не перехватываем вовсе
       if (
         active &&
         (active.tagName === 'INPUT' ||
           active.tagName === 'TEXTAREA' ||
-          active.tagName === 'BUTTON' ||
-          active.tagName === 'A' ||
-          active.tagName === 'SELECT')
+          active.tagName === 'SELECT' ||
+          (active as HTMLElement).isContentEditable)
       )
         return
+      // На кнопке/ссылке Enter и стрелки кликнут сам элемент / навигируют
+      // между кнопками — их не перехватываем, но цифры 1–4 работают всегда
+      const isButtonOrLink =
+        active && (active.tagName === 'BUTTON' || active.tagName === 'A')
       if (e.key >= '1' && e.key <= '4') {
         const idx = parseInt(e.key, 10) - 1
         if (idx < q.options.length && !isAnswered) {
           e.preventDefault()
           select(idx)
         }
-      } else if (e.key === 'Enter' || e.key === 'ArrowRight') {
-        if (isAnswered) {
+      } else if (e.key === 'Enter') {
+        if (!isButtonOrLink && isAnswered) {
+          e.preventDefault()
+          goNext()
+        }
+      } else if (e.key === 'ArrowRight') {
+        if (!isButtonOrLink && isAnswered) {
           e.preventDefault()
           goNext()
         }
       } else if (e.key === 'ArrowLeft') {
-        if (current > 0) {
+        if (!isButtonOrLink && current > 0) {
           e.preventDefault()
           goPrev()
         }

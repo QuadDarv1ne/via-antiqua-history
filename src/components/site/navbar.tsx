@@ -119,7 +119,13 @@ export function Navbar() {
 
   React.useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      const isTyping = ["INPUT", "TEXTAREA", "SELECT"].includes(
+        document.activeElement?.tagName ?? "",
+      );
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        // В полях ввода не перехватываем Ctrl+K — там стандартное
+        // поведение браузера (например, адресная строка в Firefox)
+        if (isTyping) return;
         e.preventDefault();
         setSearchOpen(true);
       } else if (e.key === "Escape") {
@@ -129,9 +135,8 @@ export function Navbar() {
       } else if (
         e.key === "/" &&
         // Не перехватываем ввод в полях и при фокусе на интерактивных элементах
-        !["INPUT", "TEXTAREA", "SELECT", "BUTTON"].includes(
-          document.activeElement?.tagName ?? "",
-        )
+        !isTyping &&
+        !["BUTTON", "A"].includes(document.activeElement?.tagName ?? "")
       ) {
         e.preventDefault();
         setSearchOpen(true);

@@ -5,6 +5,7 @@ import { Search, MapPin, Landmark, BookMarked, Users, Building2, Columns3, Calen
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
@@ -61,6 +62,8 @@ export function SearchDialog({
   const [query, setQuery] = React.useState('')
   const [activeIdx, setActiveIdx] = React.useState(0)
   const [index, setIndex] = React.useState<SearchItem[]>([])
+  // Уведомление о недоступном разделе (результат ведёт за гейт подписки)
+  const [blockedNotice, setBlockedNotice] = React.useState<string | null>(null)
 
   // Build search index lazily when dialog first opens
   React.useEffect(() => {
@@ -119,7 +122,10 @@ export function SearchDialog({
 
   // Clear query when dialog closes
   React.useEffect(() => {
-    if (!open) setQuery('')
+    if (!open) {
+      setQuery('')
+      setBlockedNotice(null)
+    }
   }, [open])
 
   const handleSelect = React.useCallback((r: SearchItem) => {
@@ -128,10 +134,21 @@ export function SearchDialog({
       const el = document.getElementById(id)
       if (el) {
         el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        onOpenChange(false)
+        setQuery('')
+        setBlockedNotice(null)
+        return
       }
+      // Секция не найдена в DOM: контент за гейтом (требуется вход/подписка).
+      // Не закрываем диалог молча — показываем, почему переход не сработал
+      setBlockedNotice(
+        'Этот раздел доступен после входа в аккаунт или оформления подписки',
+      )
+      return
     }
     onOpenChange(false)
     setQuery('')
+    setBlockedNotice(null)
   }, [onOpenChange])
 
   const onKeyDown = React.useCallback((e: React.KeyboardEvent) => {
@@ -153,6 +170,9 @@ export function SearchDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[80vh] p-0 gap-0 overflow-hidden mx-4 sm:mx-auto">
         <DialogTitle className="sr-only">Поиск по сайту</DialogTitle>
+        <DialogDescription className="sr-only">
+          Мгновенный поиск по городам, памятникам, терминам и событиям сайта
+        </DialogDescription>
         <div className="flex items-center gap-2 px-3 sm:px-4 border-b border-border">
           <Search className="h-5 w-5 text-muted-foreground shrink-0" aria-hidden="true" />
           <Input
@@ -174,6 +194,16 @@ export function SearchDialog({
             ESC
           </kbd>
         </div>
+
+        {blockedNotice && (
+          <div
+            className="px-3 sm:px-4 py-2.5 text-xs sm:text-sm text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 border-b border-amber-500/30"
+            role="status"
+            aria-live="polite"
+          >
+            {blockedNotice}
+          </div>
+        )}
 
         <ScrollArea className="max-h-[60vh]">
           <div className="p-2">

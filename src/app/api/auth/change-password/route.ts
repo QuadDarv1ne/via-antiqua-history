@@ -68,9 +68,16 @@ export async function POST(req: NextRequest) {
 
     db.prepare('UPDATE users SET password_hash = ?, password_changed_at = ?, updated_at = ? WHERE id = ?').run(passwordHash, now, now, session.userId)
 
-    await createSession(session.userId, user.email as string, now)
-
-    return apiOk({ message: 'Пароль успешно изменён' })
+    // Пароль уже изменён в БД — если установка нового cookie упадёт, клиент
+    // не должен получать 500 (повторный submit вернёт «Неверный текущий
+    // пароль»). Сообщаем об успехе: пользователю достаточно войти заново
+    try {
+      await createSession(session.userId, user.email as string, now)
+      return apiOk({ message: 'Пароль успешно изменён' })
+    } catch (sessionErr) {
+      console.error('Change password: session refresh failed:', sessionErr)
+      return apiOk({ message: 'Пароль изменён. Войдите в аккаунт заново' })
+    }
   } catch (err) {
     console.error('Change password error:', err)
     return apiError('Внутренняя ошибка сервера', 500)

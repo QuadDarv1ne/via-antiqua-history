@@ -76,7 +76,10 @@ export function useSectionProgress(sectionIds: string[]) {
           return updated;
         });
       },
-      { threshold: 0.5 },
+      // threshold: 0 — секция считается просмотренной, как только любая её
+      // часть попадает в вьюпорт. Значение 0.5 не работало для высоких секций
+      // (регионы ~3000px): их видимая доля не достигала 50% на обычном экране
+      { threshold: 0 },
     );
 
     const observed = new Set<string>();
@@ -118,10 +121,13 @@ export function useSectionProgress(sectionIds: string[]) {
       });
     }
 
-    // Страховка: прекращаем наблюдение через 30 секунд, даже если не все секции найдены
+    // Страховка: через 30 секунд прекращаем искать секции, которых нет в DOM
+    // (лентяй-загрузка не сработала или секция убрана). Основной
+    // IntersectionObserver продолжает работать — иначе прогресс «замирал» бы
+    // у медленных читателей, которые скроллят позже 30-й секунды
     const stopTimer = setTimeout(() => {
       mutationObserver?.disconnect();
-      observer.disconnect();
+      if (retryTimer) clearTimeout(retryTimer);
     }, 30000);
 
     return () => {

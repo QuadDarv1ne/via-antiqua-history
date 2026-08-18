@@ -3,6 +3,7 @@ import Database from 'better-sqlite3'
 import { totp } from '../totp'
 import {
   getRecoveryCodes,
+  hashRecoveryCodes,
   verifySecondFactorCode,
   consumeRecoveryCode,
 } from '../two-factor'
@@ -127,5 +128,45 @@ describe('consumeRecoveryCode', () => {
 
     expect(consumeRecoveryCode(db, 'u1', 'AAAA1111')).toBe(true)
     expect(consumeRecoveryCode(db, 'u1', 'AAAA1111')).toBe(false)
+  })
+})
+
+describe('hashed recovery codes (sha256 storage)', () => {
+  const codes = ['ABCD1234', 'WXYZ9876']
+  const hashedRaw = JSON.stringify(hashRecoveryCodes(codes))
+
+  it('hashRecoveryCodes не возвращает plaintext-значения', () => {
+    const hashed = hashRecoveryCodes(codes)
+    expect(hashed).not.toContain('ABCD1234')
+    expect(hashed[0]).toMatch(/^sha256:[0-9a-f]{64}$/)
+    // Детерминированность: тот же код → тот же хэш
+    expect(hashRecoveryCodes(codes)).toEqual(hashed)
+  })
+
+  it('verify принимает код из хэшированного хранилища', async () => {
+    const result = await verifySecondFactorCode('abcd1234', null, hashedRaw)
+    expect(result.ok).toBe(true)
+    expect(result.reason).toBe('recovery')
+  })
+
+  it('verify отклоняет неизвестный код из хэшированного хранилища', async () => {
+    const result = await verifySecondFactorCode('ZZZZ9999', null, hashedRaw)
+    expect(result.ok).toBe(false)
+  })
+
+  it('consume находит и удаляет хэшированный код', () => {
+    const db = new Database(':memory:')
+    db.exec('CREATE TABLE users (id TEXT PRIMARY KEY, recovery_codes TEXT)')
+    db.prepare('INSERT INTO users (id, recovery_codes) VALUES (?, ?)').run(
+      'u1',
+      hashedRaw,
+    )
+
+    expect(consumeRecoveryCode(db, 'u1', 'WXYZ9876')).toBe(true)
+
+    const stored = db
+      .prepare('SELECT recovery_codes FROM users WHERE id = ?')
+      .get('u1') as { recovery_codes: string }
+    expect(JSON.parse(stored.recovery_codes)).toEqual([hashRecoveryCodes(['ABCD1234'])[0]])
   })
 })

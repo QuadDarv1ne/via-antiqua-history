@@ -1,9 +1,24 @@
 import type Database from "better-sqlite3";
+import { createHash } from "crypto";
 import { totp } from "./totp";
 
 export interface SecondFactorResult {
   ok: boolean;
   reason?: "totp" | "recovery";
+}
+
+// Recovery-коды хранятся в виде SHA-256 хэшей (префикс 'sha256:') — при
+// утечке БД коды не читаются напрямую. Plaintext-значения из старых баз
+// продолжают приниматься (fallback в проверке), пока не израсходованы
+const HASH_PREFIX = "sha256:";
+
+function hashCode(code: string): string {
+  return `${HASH_PREFIX}${createHash("sha256").update(code).digest("hex")}`;
+}
+
+/** Хэширование списка recovery-кодов для хранения в БД */
+export function hashRecoveryCodes(codes: string[]): string[] {
+  return codes.map(hashCode);
 }
 
 export function getRecoveryCodes(raw: string | null | undefined): string[] {
@@ -41,11 +56,15 @@ export async function verifySecondFactorCode(
     }
   }
 
-  if (
-    /^[A-Z0-9]{8}$/.test(normalized) &&
-    getRecoveryCodes(recoveryCodesRaw).includes(normalized)
-  ) {
-    return { ok: true, reason: "recovery" };
+  if (/^[A-Z0-9]{8}$/.test(normalized)) {
+    const stored = getRecoveryCodes(recoveryCodesRaw);
+    // Хэш текущего формата + plaintext-коды из старых баз
+    if (
+      stored.includes(hashCode(normalized)) ||
+      stored.includes(normalized)
+    ) {
+      return { ok: true, reason: "recovery" };
+    }
   }
 
   return { ok: false };
@@ -62,7 +81,8 @@ export function consumeRecoveryCode(
     .get(userId) as { recovery_codes?: string | null } | undefined;
   const codes = getRecoveryCodes(user?.recovery_codes);
   const normalized = code.trim().toUpperCase();
-  const idx = codes.indexOf(normalized);
+  const hashed = hashCode(normalized);
+  const idx = codes.findIndex((c) => c === hashed || c === normalized);
   if (idx === -1) return false;
   codes.splice(idx, 1);
   db.prepare("UPDATE users SET recovery_codes = ? WHERE id = ?").run(

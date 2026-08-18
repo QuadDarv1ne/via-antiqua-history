@@ -135,9 +135,11 @@ export async function getSession(): Promise<SessionPayload | null> {
     .get(payload.userId) as Record<string, unknown> | undefined;
   if (!user) return null;
   // Сессии, инвалидированные logout'ом (token_version выше значения в токене),
-  // отклоняются, даже если сам JWT ещё не истёк
+  // отклоняются, даже если сам JWT ещё не истёк. Токен БЕЗ claim tokenVersion
+  // (выпущенный до внедрения версий сессий) тоже отклоняем: иначе такой
+  // токен «переживал» бы logout и продолжал работать до истечения
   if (
-    payload.tokenVersion !== undefined &&
+    payload.tokenVersion === undefined ||
     payload.tokenVersion !== user.token_version
   ) {
     return null;

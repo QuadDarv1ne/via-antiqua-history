@@ -7,6 +7,7 @@ import { cn, withAlpha, getRegionColor } from '@/lib/utils'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogTitle,
 } from '@/components/ui/dialog'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -118,6 +119,9 @@ export function BookmarksProvider({ children }: { children: React.ReactNode }) {
   // Ключ, из которого загружено текущее состояние bookmarks.
   // Пишем в localStorage, только если state соответствует текущему ключу.
   const [loadedForKey, setLoadedForKey] = React.useState<string>(storageKey)
+  // Ключ, для которого выполнено гидрирование: при смене пользователя
+  // состояние в памяти заменяется данными из нового хранилища, а не сливается
+  const didHydrateForKey = React.useRef<string | null>(null)
   // Актуальный снимок bookmarks для логики «добавить/удалить» при быстрых кликах
   const bookmarksRef = React.useRef<BookmarkItem[]>([])
   // Отложенные ретраи синхронизации: отменяются при размонтировании и смене
@@ -153,7 +157,12 @@ export function BookmarksProvider({ children }: { children: React.ReactNode }) {
           body: JSON.stringify(payload),
         }).catch(() => {
           if (retry) {
-            const timer = setTimeout(() => attempt(false), 1500)
+            const timer = setTimeout(() => {
+              // Удаляем сработавший таймер из Set — иначе при повторных
+              // сетевых ошибках Set неограниченно растёт
+              retryTimersRef.current.delete(timer)
+              attempt(false)
+            }, 1500)
             retryTimersRef.current.add(timer)
           } else {
             // Network error — silently ignore
@@ -187,13 +196,21 @@ export function BookmarksProvider({ children }: { children: React.ReactNode }) {
     } catch {
       // Corrupted data — start fresh
     }
-    // Если пользователь успел нажать закладку до гидрирования (клик раньше
-    // эффекта загрузки), его действие не должно затираться сохранённым
-    // списком — применяем сохранённый список поверх текущего состояния
-    setBookmarks((current) => {
-      const existingIds = new Set(current.map((b) => b.id))
-      return [...current, ...next.filter((b) => !existingIds.has(b.id))]
-    })
+    // При смене ключа (другой пользователь / выход в гостя) состояние в
+    // памяти принадлежит прошлому аккаунту — его нужно ЗАМЕНИТЬ данными из
+    // хранилища, а не сливать, иначе закладки «протекут» между аккаунтами.
+    // Слияние с текущим состоянием оставляем только для повторного запуска
+    // эффекта при том же ключе — там клики до гидрирования не затираются.
+    if (didHydrateForKey.current !== storageKey) {
+      setBookmarks(next)
+      bookmarksRef.current = next
+    } else {
+      setBookmarks((current) => {
+        const existingIds = new Set(current.map((b) => b.id))
+        return [...current, ...next.filter((b) => !existingIds.has(b.id))]
+      })
+    }
+    didHydrateForKey.current = storageKey
     setLoadedForKey(storageKey)
     setHydrated(true)
   }, [storageKey, isLoggedIn])
@@ -471,6 +488,9 @@ export function BookmarksDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xl max-h-[80vh] p-0 gap-0 overflow-hidden mx-4 sm:mx-auto">
         <DialogTitle className="sr-only">Сохранённые закладки</DialogTitle>
+        <DialogDescription className="sr-only">
+          Список сохранённых закладок с переходом к разделам сайта
+        </DialogDescription>
         <div className="flex items-center justify-between px-3 sm:px-4 h-12 sm:h-14 border-b border-border">
           <div className="flex items-center gap-2">
             <Bookmark className="h-4.5 w-4.5 sm:h-5 sm:w-5 text-primary" aria-hidden="true" />
@@ -570,7 +590,7 @@ export function BookmarksDialog({
                         type="button"
                         onClick={() => remove(b.id)}
                         aria-label="Удалить"
-                        className="shrink-0 p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+                        className="shrink-0 p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-opacity"
                       >
                         <X className="h-4 w-4" />
                       </button>

@@ -14,9 +14,9 @@ describe("useInView", () => {
     expect(result.current.inView).toBe(false);
   });
 
-  it("returns a valid ref object", () => {
+  it("returns a ref callback (может привязываться позже монтирования)", () => {
     const { result } = renderHook(() => useInView());
     expect(result.current.ref).toBeDefined();
-    expect(typeof result.current.ref).toBe("object");
+    expect(typeof result.current.ref).toBe("function");
   });
 });

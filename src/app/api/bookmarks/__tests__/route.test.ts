@@ -71,7 +71,7 @@ async function loginAs(userId: string) {
   ).run(userId, `${userId}@test.local`, 'hash', 'Test User')
   cookieStore.set(
     SESSION_COOKIE,
-    signJwt({ userId, email: `${userId}@test.local` }),
+    signJwt({ userId, email: `${userId}@test.local`, tokenVersion: 0 }),
   )
 }
 

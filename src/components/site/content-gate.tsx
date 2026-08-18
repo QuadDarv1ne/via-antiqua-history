@@ -62,14 +62,22 @@ export const ContentGate = React.memo(function ContentGate({
         <div className="relative rounded-xl border border-border bg-card overflow-hidden min-h-[420px] md:min-h-[480px]">
           <div className="absolute top-0 left-0 right-0 h-0.5 bg-primary/40" />
           <div
-            className="blur-sm opacity-30 pointer-events-none overflow-hidden"
+            className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-6 opacity-25 select-none"
             aria-hidden="true"
             inert
           >
-            {children}
+            {[0, 1, 2].map((i) => (
+              <div
+                key={i}
+                className="h-36 rounded-lg border border-border/40 bg-muted/20"
+              />
+            ))}
           </div>
-
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-b from-card/70 via-card/85 to-card/95 backdrop-blur-[2px]">
+          <div
+            className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-b from-card/70 via-card/85 to-card/95 backdrop-blur-[2px]"
+            aria-hidden="true"
+            inert
+          >
             <span className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 mb-5">
               {restricted ? <Crown className="h-7 w-7 text-primary" aria-hidden="true" /> : <Lock className="h-7 w-7 text-primary" aria-hidden="true" />}
             </span>

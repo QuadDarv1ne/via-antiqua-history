@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 type SubscriptionStatus = {
   id: string;
   status: string;
+  isCancelled?: boolean;
   amount: number;
   startedAt: string;
   expiresAt: string;
@@ -16,6 +17,7 @@ type SubscriptionContextType = {
   hasSubscription: boolean;
   subscriptionLoading: boolean;
   subscription: SubscriptionStatus;
+  isCancelled: boolean;
   refresh: () => void;
 };
 
@@ -110,9 +112,12 @@ export function SubscriptionProvider({
 
   const value = React.useMemo(
     () => ({
-      hasSubscription: subscription?.status === "active",
+      // Отменённая подписка с неистёкшим сроком тоже даёт доступ —
+      // «до конца оплаченного периода» (см. /api/subscription/status)
+      hasSubscription: subscription !== null,
       subscriptionLoading,
       subscription,
+      isCancelled: subscription?.isCancelled === true,
       refresh,
     }),
     [subscription, subscriptionLoading, refresh],

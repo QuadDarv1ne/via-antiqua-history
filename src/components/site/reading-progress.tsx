@@ -36,10 +36,19 @@ export function ReadingProgress() {
     // После resize (сворачивание URL-бара мобильного, поворот экрана) процент
     // пересчитываем сразу, а не ждём следующего скролла
     window.addEventListener('resize', recompute, { passive: true })
+    // Ленивая загрузка секций (next/dynamic) и картинок меняет высоту
+    // документа без события scroll — без этого процент «залипал» на старом
+    // значении до следующего скролла
+    const resizeObserver =
+      typeof ResizeObserver !== 'undefined'
+        ? new ResizeObserver(recompute)
+        : null
+    resizeObserver?.observe(document.documentElement)
     recompute()
     return () => {
       window.removeEventListener('scroll', recompute)
       window.removeEventListener('resize', recompute)
+      resizeObserver?.disconnect()
       if (rafId) cancelAnimationFrame(rafId)
     }
   }, [])

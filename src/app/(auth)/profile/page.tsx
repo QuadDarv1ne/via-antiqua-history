@@ -52,6 +52,7 @@ export default function ProfilePage() {
   const [subscription, setSubscription] = React.useState<{
     id: string
     status: string
+    isCancelled?: boolean
     amount: number
     startedAt: string
     expiresAt: string
@@ -402,12 +403,12 @@ export default function ProfilePage() {
                 <span className={`text-xs font-medium px-2.5 py-1 rounded-full flex items-center gap-1.5 ${
                   subscription.status === 'active'
                     ? 'bg-green-500/10 text-green-600 dark:text-green-400'
-                    : 'bg-muted text-muted-foreground'
+                    : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
                 }`}>
                   {subscription.status === 'active' ? (
                     <><CheckCircle2 className="h-3 w-3" /> Активна</>
                   ) : (
-                    <><XCircle className="h-3 w-3" /> Неактивна</>
+                    <><XCircle className="h-3 w-3" /> Отменена</>
                   )}
                 </span>
               )}
@@ -421,7 +422,7 @@ export default function ProfilePage() {
               <div className="flex items-center justify-center py-6">
                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
               </div>
-            ) : subscription?.status === 'active' ? (
+            ) : subscription ? (
               <div className="space-y-4">
                 <div className="p-4 rounded-lg bg-gradient-to-br from-amber-50/50 to-yellow-50/50 dark:from-amber-500/5 dark:to-yellow-500/5 border border-amber-200/30 dark:border-amber-500/20">
                   <div className="flex items-center gap-3 mb-3">
@@ -429,8 +430,17 @@ export default function ProfilePage() {
                       <Crown className="h-5 w-5" />
                     </div>
                     <div>
-                      <p className="font-semibold text-foreground">Полный доступ</p>
-                      <p className="text-xs text-muted-foreground">Действует до {parseSqliteDateTime(subscription.expiresAt).toLocaleDateString('ru-RU')}</p>
+                      <p className="font-semibold text-foreground">
+                        {subscription.isCancelled
+                          ? 'Подписка отменена'
+                          : 'Полный доступ'}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {subscription.isCancelled
+                          ? 'Доступ сохраняется до '
+                          : 'Действует до '}
+                        {parseSqliteDateTime(subscription.expiresAt).toLocaleDateString('ru-RU')}
+                      </p>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-3 text-sm">
@@ -445,7 +455,16 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
-                {confirmCancel ? (
+                {subscription.isCancelled ? (
+                  <button type="button"
+                    onClick={handleCreateSubscription}
+                    disabled={createLoading}
+                    className="inline-flex items-center justify-center gap-2 h-10 px-5 rounded-lg bg-gradient-to-r from-amber-500 to-yellow-500 text-white text-sm font-medium hover:from-amber-600 hover:to-yellow-600 disabled:opacity-50 transition-colors"
+                  >
+                    <CreditCard className="h-4 w-4" />
+                    Возобновить подписку
+                  </button>
+                ) : confirmCancel ? (
                   <div className="space-y-3 p-3 rounded-lg border border-destructive/30 bg-destructive/5">
                     <p className="text-sm font-medium text-destructive flex items-center gap-2">
                       <AlertTriangle className="h-4 w-4 shrink-0" />

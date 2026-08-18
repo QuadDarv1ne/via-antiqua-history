@@ -9,7 +9,12 @@ import { readJsonBody } from "@/lib/auth/request";
 import { BookmarkRowSchema, type ValidatedBookmarkRow } from "@/lib/auth/schemas";
 
 const RATE_LIMIT = { windowMs: 60 * 1000, max: 20 };
-const CACHE_HEADERS = { "Cache-Control": "private, max-age=10, stale-while-revalidate=30" };
+// Vary: Cookie — ответ персональный: без него браузер мог бы отдать
+// закладки пользователя A пользователю B с того же URL (утечка данных)
+const CACHE_HEADERS = {
+  "Cache-Control": "private, max-age=10, stale-while-revalidate=30",
+  "Vary": "Cookie",
+};
 
 const VALID_TYPES = [
   "city",

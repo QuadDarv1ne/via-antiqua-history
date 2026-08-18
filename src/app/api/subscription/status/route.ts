@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
       .prepare(
         `
       SELECT * FROM subscriptions
-      WHERE user_id = ? AND status = 'active' AND expires_at > datetime('now')
+      WHERE user_id = ? AND status IN ('active', 'cancelled') AND expires_at > datetime('now')
       ORDER BY started_at DESC
       LIMIT 1
     `,
@@ -45,10 +45,14 @@ export async function GET(request: NextRequest) {
     const expiresAt = sub ? parseSqliteDateTime(sub.expires_at) : null;
     const isExpired = !expiresAt || expiresAt.getTime() <= Date.now();
 
+    // Отменённая подписка с неистёкшим сроком по-прежнему даёт доступ
+    // («Доступ сохранится до конца оплаченного периода») — возвращаем её
+    // с флагом isCancelled, чтобы UI показал статус отмены
     const data = sub && !isExpired
       ? {
           id: sub.id,
           status: sub.status,
+          isCancelled: sub.status === 'cancelled',
           amount: sub.amount,
           // Единый формат с остальными API: ISO-8601 с Z вместо «сырого»
           // SQLite-значения, которое клиент мог бы распарсить как локальное время

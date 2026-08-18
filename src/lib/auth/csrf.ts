@@ -1,16 +1,17 @@
 import { NextRequest } from 'next/server'
 
-const BASE_TRUSTED = new Set([
-  'http://localhost:3000',
-  'http://localhost:3001',
-])
-
 // Доверенные origin'ы берутся ИСКЛЮЧИТЕЛЬНО из явной конфигурации:
 // NEXT_PUBLIC_SITE_URL + CSRF_TRUSTED_ORIGINS (через запятую).
 // Никаких суффикс-матчингов домена — иначе любой поддомен с XSS
 // сможет выполнять CSRF-запросы.
+// localhost доверяется только вне production — в проде это лишняя
+// поверхность атаки при локальном проксировании/SSRF-сценариях
 function getTrustedOrigins(): Set<string> {
-  const origins = new Set(BASE_TRUSTED)
+  const origins = new Set<string>()
+  if (process.env.NODE_ENV !== "production") {
+    origins.add("http://localhost:3000")
+    origins.add("http://localhost:3001")
+  }
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
   if (siteUrl) {
     try {

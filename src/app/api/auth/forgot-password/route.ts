@@ -8,9 +8,18 @@ import { validateEmail, toSqliteDateTime } from "@/lib/utils";
 import { validateCsrf } from "@/lib/auth/csrf";
 import { getClientIp } from "@/lib/auth/get-ip";
 import { readJsonBody } from "@/lib/auth/request";
+import { createHash } from "crypto";
 
 const RATE_LIMIT = { windowMs: 15 * 60 * 1000, max: 3 };
+// Лимит привязан к IP+email, а не к глобальному email: глобальный ключ
+// позволял бы атакующему с одного IP заблокировать сброс пароля жертве
+// (3-5 запросов с неверным кодом — и она не может получить код час)
 const USER_RATE_LIMIT = { windowMs: 60 * 60 * 1000, max: 5 };
+
+// Хэш для логов: user_id в логах — не перечисление аккаунтов
+function hashForLog(id: string): string {
+  return createHash("sha256").update(id).digest("hex").slice(0, 12);
+}
 
 // Ответ одинаков для существующего и несуществующего email: сообщение об
 // ошибке (или иное отличие) позволило бы перечислить зарегистрированные адреса
@@ -60,7 +69,7 @@ export async function POST(req: NextRequest) {
     }
 
     const userRl = checkRateLimit(
-      `forgot-user:${email.toLowerCase()}`,
+      `forgot-user:${ip}:${email.toLowerCase()}`,
       USER_RATE_LIMIT,
     );
     if (!userRl.allowed) {
@@ -106,8 +115,11 @@ export async function POST(req: NextRequest) {
       // логируем, но отвечаем тем же общим сообщением: иначе сбой SMTP
       // раскрывал бы, какие адреса зарегистрированы
       db.prepare("DELETE FROM verification_tokens WHERE id = ?").run(tokenId);
+      // Email в лог не пишем: перечисление адресов через логи — такой же
+      // вектор, как и через ответы (зарегистрированные адреса, которым
+      // отправка «успешна», в логи не попадают)
       console.error(
-        `Password reset email send failed for ${email.toLowerCase()}`,
+        `Password reset email send failed (user: ${hashForLog(user.id as string)})`,
       );
       return apiOk({ message: GENERIC_MESSAGE });
     }

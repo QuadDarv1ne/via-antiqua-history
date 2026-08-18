@@ -331,6 +331,55 @@ describe('POST /api/webhook/fastpay', () => {
     const json = await res.json()
     expect(json.ok).toBe(true)
   })
+
+  it('does not create two active subscriptions when two payments complete', async () => {
+    // Реальный сценарий: платёж A задерживается банком, пользователь создаёт
+    // платёж B, оба в итоге оплачиваются. Активной должна остаться одна
+    // подписка — иначе доступ «покупается дважды»
+    const userId = randomUUID()
+    const db = getDb()
+    const { paymentId: payA } = await seedPayment(userId)
+    const payB = randomUUID()
+    const subB = randomUUID()
+    db.prepare(
+      `INSERT INTO payments (id, user_id, amount, currency, status, payment_method)
+       VALUES (?, ?, 999, 'RUB', 'pending', 'sbp')`,
+    ).run(payB, userId)
+    db.prepare(
+      `INSERT INTO subscriptions (id, user_id, status, payment_id, amount, expires_at)
+       VALUES (?, ?, 'pending', ?, 999, datetime('now', '+30 days'))`,
+    ).run(subB, userId, payB)
+
+    const completeA = {
+      event: 'payment.completed',
+      data: {
+        paymentId: 'race-A',
+        externalPaymentId: payA,
+        amount: 999,
+        currency: 'RUB',
+      },
+    }
+    const completeB = {
+      event: 'payment.completed',
+      data: {
+        paymentId: 'race-B',
+        externalPaymentId: payB,
+        amount: 999,
+        currency: 'RUB',
+      },
+    }
+    await POST(buildRequest(completeA, sign(JSON.stringify(completeA))))
+    await POST(buildRequest(completeB, sign(JSON.stringify(completeB))))
+
+    expect(paymentRow(payA).status).toBe('paid')
+    expect(paymentRow(payB).status).toBe('paid')
+    const activeCount = db
+      .prepare(
+        `SELECT COUNT(*) as n FROM subscriptions WHERE user_id = ? AND status = 'active'`,
+      )
+      .get(userId) as { n: number }
+    expect(activeCount.n).toBe(1)
+  })
 })
 
 describe('verifyWebhookSignature edge cases', () => {

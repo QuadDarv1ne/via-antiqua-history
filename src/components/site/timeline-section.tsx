@@ -33,6 +33,7 @@ const TimelineDot = React.memo(function TimelineDot({
       onClick={onClick}
       aria-label={`Событие: ${yearLabel}`}
       aria-pressed={isActive}
+      data-active-dot={isActive || undefined}
       className={cn(
         'group relative flex flex-col items-stretch transition-all',
         'min-w-[110px] sm:min-w-[150px] md:min-w-[190px]',
@@ -137,6 +138,23 @@ export function TimelineSection() {
     }
   }, [activeIdx, autoPlay])
 
+  // Активная точка на дорожке всегда должна быть в зоне видимости:
+  // дорожка прокручиваемая, и при навигации кнопками/стрелками/автоплеем
+  // точка без подскролла уезжала бы за край
+  const trackRef = React.useRef<HTMLDivElement>(null)
+  React.useEffect(() => {
+    const track = trackRef.current
+    if (!track) return
+    const activeEl = track.querySelector('[data-active-dot="true"]')
+    if (activeEl) {
+      activeEl.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'nearest',
+      })
+    }
+  }, [activeIdx])
+
   // Keyboard navigation — только когда фокус находится внутри секции
   React.useEffect(() => {
     if (!isInView) return
@@ -197,7 +215,7 @@ export function TimelineSection() {
 
         {/* Лента снизу — дорожка с событиями */}
         <div className="mb-8">
-          <div className="relative overflow-x-auto custom-scroll pb-4">
+          <div ref={trackRef} className="relative overflow-x-auto custom-scroll pb-4">
             <div className="flex items-stretch gap-0 min-w-max px-2">
               {allTimeline.map((ev, i) => (
                 <TimelineDot
@@ -221,6 +239,10 @@ export function TimelineSection() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
+          // Скринридер анонсирует смену события; при автоплее анонсы
+          // каждые 4 секунды были бы шумом — там live отключаем
+          role="status"
+          aria-live={autoPlay ? 'off' : 'polite'}
           className="grid md:grid-cols-12 gap-4 sm:gap-6 items-stretch"
         >
           {/* Левая колонка: год и навигация */}

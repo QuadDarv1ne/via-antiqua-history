@@ -4,7 +4,7 @@ import * as React from "react";
 import { useInView } from "@/hooks/use-in-view";
 
 export const SectionDivider = React.memo(function SectionDivider() {
-  const { ref, inView } = useInView({ threshold: 0.3 });
+  const { ref, inView } = useInView<HTMLSpanElement>({ threshold: 0.3 });
 
   return (
     <div

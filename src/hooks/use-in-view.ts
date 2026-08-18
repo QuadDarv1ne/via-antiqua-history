@@ -8,13 +8,12 @@ interface UseInViewOptions {
   triggerOnce?: boolean
 }
 
-export function useInView({ threshold = 0, rootMargin = '0px', triggerOnce = true }: UseInViewOptions = {}) {
-  const ref = React.useRef<HTMLDivElement | null>(null)
+export function useInView<T extends HTMLElement = HTMLDivElement>({ threshold = 0, rootMargin = '0px', triggerOnce = true }: UseInViewOptions = {}) {
+  const [ref, setRef] = React.useState<T | null>(null)
   const [inView, setInView] = React.useState(false)
 
   React.useEffect(() => {
-    const el = ref.current
-    if (!el) return
+    if (!ref) return
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -28,9 +27,9 @@ export function useInView({ threshold = 0, rootMargin = '0px', triggerOnce = tru
       { threshold, rootMargin }
     )
 
-    observer.observe(el)
+    observer.observe(ref)
     return () => observer.disconnect()
-  }, [threshold, rootMargin, triggerOnce])
+  }, [ref, threshold, rootMargin, triggerOnce])
 
-  return { ref, inView }
+  return { ref: setRef, inView }
 }

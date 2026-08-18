@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server'
 import { getDb } from '@/lib/auth/db'
 import { hashPassword } from '@/lib/auth/utils'
-import { validatePassword } from '@/lib/utils'
+import { validatePassword, validateEmail } from '@/lib/utils'
 import { apiOk, apiError } from '@/lib/auth/api-response'
 import { checkRateLimit, rateLimitResponse } from '@/lib/auth/rate-limit'
 import { validateCsrf } from '@/lib/auth/csrf'
@@ -9,6 +9,8 @@ import { getClientIp } from '@/lib/auth/get-ip'
 import { readJsonBody } from '@/lib/auth/request'
 
 const RATE_LIMIT = { windowMs: 15 * 60 * 1000, max: 5 }
+// Привязан к IP+email (не глобально к email): иначе 3 запроса с неверным
+// кодом с любого IP блокировали бы жертве смену пароля на 15 минут
 const USER_RATE_LIMIT = { windowMs: 15 * 60 * 1000, max: 3 }
 
 export async function POST(req: NextRequest) {
@@ -32,6 +34,11 @@ export async function POST(req: NextRequest) {
       return apiError('Некорректные данные', 400)
     }
 
+    const emailError = validateEmail(email)
+    if (emailError) {
+      return apiError(emailError, 400)
+    }
+
     const passwordError = validatePassword(password)
     if (passwordError) {
       return apiError(passwordError, 400)
@@ -43,7 +50,7 @@ export async function POST(req: NextRequest) {
       return rateLimitResponse(rl.resetMs)
     }
 
-    const userRl = checkRateLimit(`reset-user:${email.toLowerCase()}`, USER_RATE_LIMIT)
+    const userRl = checkRateLimit(`reset-user:${ip}:${email.toLowerCase()}`, USER_RATE_LIMIT)
     if (!userRl.allowed) {
       return rateLimitResponse(userRl.resetMs)
     }

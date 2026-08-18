@@ -101,15 +101,26 @@ function initSchema(db: Database.Database) {
     CREATE INDEX IF NOT EXISTS idx_payments_status ON payments(status);
   `);
 
-  // Миграция существующих баз: token_version появился после публикации
-  // схемы, CREATE TABLE IF NOT EXISTS не добавит колонку в старую таблицу
+  // Миграция существующих баз: CREATE TABLE IF NOT EXISTS не добавит колонку
+  // в старую таблицу. Перечисляем колонки, добавленные после публикации
+  // первоначальной схемы — без них SELECT/UPDATE упадут с «no such column»
   const userColumns = db
     .prepare("PRAGMA table_info(users)")
     .all() as Array<{ name: string }>;
-  if (!userColumns.some((c) => c.name === "token_version")) {
-    db.exec(
-      "ALTER TABLE users ADD COLUMN token_version INTEGER NOT NULL DEFAULT 0",
-    );
+  const userColumnNames = new Set(userColumns.map((c) => c.name));
+  const userMigrations: Array<[string, string]> = [
+    ["token_version", "INTEGER NOT NULL DEFAULT 0"],
+    ["totp_secret", "TEXT"],
+    ["totp_secret_expires_at", "INTEGER"],
+    ["totp_enabled", "INTEGER NOT NULL DEFAULT 0"],
+    ["recovery_codes", "TEXT DEFAULT '[]'"],
+    ["password_changed_at", "TEXT"],
+    ["email_verified", "INTEGER NOT NULL DEFAULT 0"],
+  ];
+  for (const [name, ddl] of userMigrations) {
+    if (!userColumnNames.has(name)) {
+      db.exec(`ALTER TABLE users ADD COLUMN ${name} ${ddl}`);
+    }
   }
 }
 
