@@ -1,12 +1,19 @@
 import { NextRequest } from "next/server";
 import { getDb } from "@/lib/auth/db";
-import { hashPassword, generateToken, createSession } from "@/lib/auth/utils";
-import { validateEmail, validatePassword, parseSqliteDateTime } from "@/lib/utils";
+import {
+  hashPassword,
+  generateToken,
+  generateNumericCode,
+  createSession,
+} from "@/lib/auth/utils";
+import { sendEmailVerificationCode } from "@/lib/auth/email";
+import { validateEmail, validatePassword, parseSqliteDateTime, toSqliteDateTime } from "@/lib/utils";
 import { apiOk, apiError } from "@/lib/auth/api-response";
 import { checkRateLimit, rateLimitResponse } from "@/lib/auth/rate-limit";
 import { validateCsrf } from "@/lib/auth/csrf";
 import { getClientIp } from "@/lib/auth/get-ip";
 import { readJsonBody } from "@/lib/auth/request";
+import { hashCode } from "@/lib/auth/two-factor";
 
 const RATE_LIMIT = { windowMs: 60 * 60 * 1000, max: 5 };
 
@@ -89,6 +96,31 @@ export async function POST(req: NextRequest) {
     }
 
     await createSession(id, email.toLowerCase());
+
+    // Код подтверждения email: присылаем сразу после регистрации, чтобы
+    // подтверждение стало первым делом, а не скрытой функцией профиля.
+    // Сбой отправки не ломает регистрацию — пользователь сможет запросить
+    // код повторно в профиле («Подтвердить email»)
+    try {
+      const verifyCode = generateNumericCode(6);
+      db.transaction(() => {
+        db.prepare(
+          "UPDATE verification_tokens SET used = 1 WHERE user_id = ? AND type = 'email_verify' AND used = 0",
+        ).run(id);
+        db.prepare(
+          `INSERT INTO verification_tokens (id, user_id, type, code, expires_at) VALUES (?, ?, 'email_verify', ?, ?)`,
+        ).run(
+          generateToken(16),
+          id,
+          hashCode(verifyCode),
+          toSqliteDateTime(new Date(Date.now() + 15 * 60 * 1000)),
+        );
+      })();
+      await sendEmailVerificationCode(email.toLowerCase(), verifyCode);
+    } catch (err) {
+      // Отправка не удалась — аккаунт создан, код можно запросить из профиля
+      console.error("Register: verification email send failed:", err);
+    }
 
     // createdAt берём из БД (datetime('now')), а не из системных часов процесса —
     // чтобы ответ совпадал со значением, которое вернут /api/auth/me и /api/auth/login
