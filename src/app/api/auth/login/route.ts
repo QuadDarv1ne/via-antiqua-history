@@ -21,6 +21,11 @@ const IP_RATE_LIMIT = { windowMs: 15 * 60 * 1000, max: 40 };
 // (10 попыток на IP) практически не ограничен. Аккаунт-лимит суммирует
 // попытки со всех IP
 const ACCOUNT_2FA_RATE_LIMIT = { windowMs: 15 * 60 * 1000, max: 10 };
+// Глобальный лимит НЕВЕРНЫХ паролей на аккаунт (ключ по email БЕЗ IP):
+// пароль перебирается распределённо с ботнета так же, как TOTP. Лимит
+// начисляется только за неудачную проверку пароля — легитимный вход
+// с правильным паролем его не расходует
+const ACCOUNT_PASSWORD_RATE_LIMIT = { windowMs: 15 * 60 * 1000, max: 10 };
 
 // Фейковый bcrypt-хэш для несуществующих аккаунтов: сравнение занимает
 // столько же времени, сколько для реального пользователя, чтобы нельзя
@@ -94,6 +99,16 @@ export async function POST(req: NextRequest) {
       user ? user.password_hash : DUMMY_PASSWORD_HASH,
     );
     if (!user || !valid) {
+      // Аккаунт-лимит начисляется только за неверный пароль (или несуществующий
+      // email — тот же путь, чтобы не перечислять аккаунты): распределённый
+      // перебор пароля ограничивается 10 попытками на 15 минут со всех IP
+      const accountRl = checkRateLimit(
+        `login-account:${email.toLowerCase()}`,
+        ACCOUNT_PASSWORD_RATE_LIMIT,
+      );
+      if (!accountRl.allowed) {
+        return rateLimitResponse(accountRl.resetMs);
+      }
       return apiError("Неверный email или пароль", 401);
     }
 

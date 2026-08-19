@@ -173,33 +173,22 @@ export const RegionSection = React.memo(function RegionSection({
                 {region.name}
               </p>
               <p className="text-xs sm:text-sm md:text-base text-muted-foreground mb-5 sm:mb-6 max-w-sm text-center">
-                {user
-                  ? 'Раздел доступен при активной подписке'
-                  : 'Города, памятники и исторический контекст доступны авторизованным пользователям'}
+                Раздел доступен при активной подписке
               </p>
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full max-w-xs sm:max-w-sm">
-                {user ? (
+                <Link
+                  href="/profile"
+                  className="inline-flex items-center justify-center gap-2 h-10 sm:h-11 px-5 sm:px-7 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors text-sm sm:text-base flex-1 sm:flex-none"
+                >
+                  Оформить подписку
+                </Link>
+                {!user && (
                   <Link
-                    href="/profile"
-                    className="inline-flex items-center justify-center gap-2 h-10 sm:h-11 px-5 sm:px-7 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors text-sm sm:text-base flex-1 sm:flex-none"
+                    href="/login"
+                    className="inline-flex items-center justify-center gap-2 h-10 sm:h-11 px-5 sm:px-7 rounded-lg border border-border bg-card/60 font-medium hover:bg-accent/10 transition-colors text-sm sm:text-base flex-1 sm:flex-none"
                   >
-                    Оформить подписку
+                    Войти
                   </Link>
-                ) : (
-                  <>
-                    <Link
-                      href="/login"
-                      className="inline-flex items-center justify-center gap-2 h-10 sm:h-11 px-5 sm:px-7 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors text-sm sm:text-base flex-1 sm:flex-none"
-                    >
-                      Войти
-                    </Link>
-                    <Link
-                      href="/register"
-                      className="inline-flex items-center justify-center gap-2 h-10 sm:h-11 px-5 sm:px-7 rounded-lg border border-border bg-card/60 font-medium hover:bg-accent/10 transition-colors text-sm sm:text-base flex-1 sm:flex-none"
-                    >
-                      Зарегистрироваться
-                    </Link>
-                  </>
                 )}
               </div>
             </div>

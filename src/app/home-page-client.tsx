@@ -167,6 +167,7 @@ export default function HomePageClient({
           {/* Архитектурные ордера */}
           <ErrorBoundary>
             <ContentGate
+              id="orders"
               title="Архитектурные ордера"
               subtitle="Дорийский, ионический и коринфский — система пропорций, определившая облик античной архитектуры."
               restricted
@@ -181,6 +182,7 @@ export default function HomePageClient({
           {/* Исторические эпохи */}
           <ErrorBoundary>
             <ContentGate
+              id="epochs"
               title="Исторические эпохи"
               subtitle="Восемь ключевых эпох — от шумерских городов до падения Константинополя."
               restricted
@@ -195,6 +197,7 @@ export default function HomePageClient({
           {/* Интерактивная лента времени */}
           <ErrorBoundary>
             <ContentGate
+              id="timeline"
               title="Интерактивная лента времени"
               subtitle="Хронология античных цивилизаций от Древнего Египта до поздней Римской империи."
               restricted
@@ -209,6 +212,7 @@ export default function HomePageClient({
           {/* Интерактивная карта */}
           <ErrorBoundary>
             <ContentGate
+              id="map"
               title="Интерактивная карта"
               subtitle="Нажмите на город, чтобы узнать о нём больше. Используйте фильтры для подсветки регионов."
               restricted
@@ -223,6 +227,7 @@ export default function HomePageClient({
           {/* Сравнительная таблица цивилизаций */}
           <ErrorBoundary>
             <ContentGate
+              id="comparison"
               title="Сравнение цивилизаций"
               subtitle="Сопоставление Древней Греции, Рима, Месопотамии и Кубани по восьми ключевым параметрам."
               restricted
@@ -237,6 +242,7 @@ export default function HomePageClient({
           {/* Авторский раздел: исторический анализ */}
           <ErrorBoundary>
             <ContentGate
+              id="analysis"
               title="Исторический анализ"
               subtitle="Авторские размышления о связях между цивилизациями и их влиянии на современный мир."
               restricted

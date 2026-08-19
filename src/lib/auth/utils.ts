@@ -154,7 +154,10 @@ export async function getSession(): Promise<SessionPayload | null> {
     const changedSec = Math.floor(
       parseSqliteDateTime(user.password_changed_at as string).getTime() / 1000,
     );
-    if (changedSec > payload.iat) {
+    // >=, а не >: смена пароля в ту же секунду, что и выпуск токена, —
+    // это смена ПОСЛЕ выпуска (или в один момент с ним), токен не должен
+    // переживать её
+    if (changedSec >= payload.iat) {
       return null;
     }
   }

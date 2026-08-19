@@ -89,6 +89,8 @@ export function SubscriptionProvider({
         return r.json();
       })
       .then((data) => {
+        // Только окончательный ответ сервера меняет состояние: успешный
+        // ответ с пустыми данными — подписки действительно нет
         if (data.ok && data.data) {
           setSubscription(data.data as NonNullable<SubscriptionStatus>);
         } else {
@@ -96,8 +98,13 @@ export function SubscriptionProvider({
         }
       })
       .catch((err) => {
+        // Транзиентные сбои (обрыв сети, 5xx при перезапуске сервера)
+        // НЕ сбрасывают подписку: иначе подписчик при возврате на вкладку
+        // во время сетевой ошибки увидел бы, как все премиум-секции
+        // «закрываются» гейтом (refresh на focus/visibilitychange снова
+        // запросит статус — и при восстановлении сети доступ вернётся).
+        // AbortError — запрос отменён при смене пользователя, это не ошибка
         if (err.name === "AbortError") return;
-        setSubscription(null);
       })
       .finally(() => {
         // finally срабатывает и для aborted-запроса предыдущего пользователя;

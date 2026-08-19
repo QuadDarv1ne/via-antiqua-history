@@ -4,7 +4,7 @@ import * as React from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { Shield, ShieldOff, LogOut, Loader2, Copy, Check, Smartphone, Bookmark, AlertTriangle, Crown, CreditCard, QrCode, Clock, CheckCircle2, XCircle, Lock } from 'lucide-react'
+import { Shield, ShieldOff, LogOut, Loader2, Copy, Check, Smartphone, Bookmark, AlertTriangle, Crown, CreditCard, QrCode, Clock, CheckCircle2, XCircle, Lock, Mail, BadgeCheck } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useSubscriptionContext } from '@/contexts/SubscriptionContext'
 import { useBookmarks } from '@/components/site/bookmarks'
@@ -33,6 +33,14 @@ export default function ProfilePage() {
   const [totpPassword, setTotpPassword] = React.useState('')
   const [paymentQrError, setPaymentQrError] = React.useState(false)
   const timerRef = React.useRef<ReturnType<typeof setTimeout>[]>([])
+
+  // Email verification state
+  const [verifyCode, setVerifyCode] = React.useState('')
+  const [verifySent, setVerifySent] = React.useState(false)
+  const [verifyLoading, setVerifyLoading] = React.useState(false)
+  const [verifyConfirmLoading, setVerifyConfirmLoading] = React.useState(false)
+  const [verifyError, setVerifyError] = React.useState('')
+  const [verifySuccess, setVerifySuccess] = React.useState(false)
 
   React.useEffect(() => {
     return () => {
@@ -187,9 +195,11 @@ export default function ProfilePage() {
       const res = await fetch('/api/subscription/cancel', { method: 'POST' })
       const json = await res.json()
       if (json.ok) {
-        setSubscription(null)
+        // Сервер вернул обновлённую подписку (отменена, доступ до конца
+        // оплаченного периода) — показываем её, а не «нет подписки»:
+        // иначе между ответом и рефетчем мигало бы предложение купить
+        setSubscription(json.data ?? null)
         setConfirmCancel(false)
-        refresh()
         refreshSubscription()
       } else {
         setErrorSub(json.error || 'Ошибка отмены')
@@ -355,6 +365,56 @@ export default function ProfilePage() {
     }
     setCopiedIdx(idx)
     scheduleReset(2000, () => setCopiedIdx(-1))
+  }
+
+  const handleSendVerifyCode = async () => {
+    setVerifyError('')
+    setVerifySuccess(false)
+    setVerifyLoading(true)
+    try {
+      const res = await fetch('/api/auth/email-verify/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      })
+      const json = await res.json()
+      if (json.ok) {
+        setVerifySent(true)
+        setVerifyCode('')
+      } else {
+        setVerifyError(json.error || 'Ошибка отправки кода')
+      }
+    } catch {
+      setVerifyError('Ошибка при отправке кода')
+    } finally {
+      setVerifyLoading(false)
+    }
+  }
+
+  const handleConfirmEmail = async () => {
+    setVerifyError('')
+    setVerifyConfirmLoading(true)
+    try {
+      const res = await fetch('/api/auth/email-verify/confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: verifyCode }),
+      })
+      const json = await res.json()
+      if (json.ok) {
+        setVerifySuccess(true)
+        setVerifySent(false)
+        setVerifyCode('')
+        await refresh()
+        scheduleReset(3000, () => setVerifySuccess(false))
+      } else {
+        setVerifyError(json.error || 'Неверный код')
+      }
+    } catch {
+      setVerifyError('Ошибка при подтверждении email')
+    } finally {
+      setVerifyConfirmLoading(false)
+    }
   }
 
   return (
@@ -613,6 +673,97 @@ export default function ProfilePage() {
                 >
                   {createLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <QrCode className="h-4 w-4" />}
                   Оформить подписку
+                </button>
+              </div>
+            )}
+          </motion.div>
+
+          {/* Email verification секция */}
+          <motion.div
+            variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } }}
+            className="relative rounded-xl border border-border bg-card p-4 sm:p-6"
+          >
+            <div className="absolute top-0 left-0 right-0 h-0.5 rounded-t-xl bg-primary/40" />
+            <div className="flex items-center justify-between gap-2 mb-3 sm:mb-4">
+              <div className="flex items-center gap-2 min-w-0">
+                <Mail className="h-4 w-4 sm:h-5 sm:w-5 text-primary shrink-0" aria-hidden="true" />
+                <h2 className="font-display text-base sm:text-lg font-semibold truncate">Email</h2>
+              </div>
+              <span className={`text-xs font-medium px-2 py-0.5 rounded-full flex items-center gap-1 ${user.emailVerified ? 'bg-green-500/10 text-green-600 dark:text-green-400' : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'}`}>
+                {user.emailVerified ? (
+                  <><BadgeCheck className="h-3 w-3" /> Подтверждён</>
+                ) : (
+                  <><AlertTriangle className="h-3 w-3" /> Не подтверждён</>
+                )}
+              </span>
+            </div>
+
+            {verifyError && (
+              <p role="alert" className="text-sm text-destructive mb-3">{verifyError}</p>
+            )}
+            {verifySuccess && (
+              <div className="mb-3 p-3 rounded-lg border border-green-500/30 bg-green-500/5 text-sm text-green-600 dark:text-green-400">
+                Email подтверждён
+              </div>
+            )}
+
+            {user.emailVerified ? (
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Адрес подтверждён — на него приходят коды восстановления пароля.
+              </p>
+            ) : verifySent ? (
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Мы отправили 6-значный код на {user.email}. Код действителен 15 минут.
+                </p>
+                <div>
+                  <label htmlFor="verify-code" className="block text-xs font-medium mb-1 text-foreground/80">
+                    Код из письма
+                  </label>
+                  <input
+                    id="verify-code"
+                    type="text"
+                    value={verifyCode}
+                    onChange={(e) => setVerifyCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    placeholder="000000"
+                    maxLength={6}
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    className="w-full h-11 px-4 rounded-lg border border-border bg-background text-sm text-center tracking-[8px] font-mono focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
+                  />
+                </div>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <button type="button"
+                    onClick={handleConfirmEmail}
+                    disabled={verifyConfirmLoading || verifyCode.length !== 6}
+                    className="inline-flex items-center justify-center gap-2 h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors flex-1"
+                  >
+                    {verifyConfirmLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <BadgeCheck className="h-4 w-4" />}
+                    Подтвердить
+                  </button>
+                  <button type="button"
+                    onClick={handleSendVerifyCode}
+                    disabled={verifyLoading}
+                    className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-lg border border-border text-sm font-medium hover:bg-accent/10 disabled:opacity-50 transition-colors"
+                  >
+                    {verifyLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
+                    Отправить ещё раз
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Подтверждение адреса защищает аккаунт: код восстановления пароля
+                  придёт только на подтверждённую почту.
+                </p>
+                <button type="button"
+                  onClick={handleSendVerifyCode}
+                  disabled={verifyLoading}
+                  className="inline-flex items-center gap-2 h-10 px-5 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                >
+                  {verifyLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
+                  Подтвердить email
                 </button>
               </div>
             )}

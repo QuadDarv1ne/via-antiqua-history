@@ -239,6 +239,87 @@ describe('POST /api/webhook/fastpay', () => {
     expect(paymentRow(paymentId).status).toBe('paid')
   })
 
+  it('keeps a paid subscription active when a stale payment.failed arrives', async () => {
+    // Регрессия: changes===0 в payment.failed не должен отменять активную
+    // подписку (раньше платёж помечался failed, а подписка — cancelled,
+    // если событие приходило с опозданием после оплаты)
+    const userId = randomUUID()
+    const { paymentId, subId } = await seedPayment(userId)
+    const completed = {
+      event: 'payment.completed',
+      data: {
+        paymentId: 'stale-failed-1',
+        externalPaymentId: paymentId,
+        amount: 999,
+        currency: 'RUB',
+      },
+    }
+    await POST(buildRequest(completed, sign(JSON.stringify(completed))))
+    const failed = {
+      event: 'payment.failed',
+      data: { paymentId: 'stale-failed-1', externalPaymentId: paymentId },
+    }
+    const res = await POST(buildRequest(failed, sign(JSON.stringify(failed))))
+    expect(res.status).toBe(200)
+    expect(subscriptionRow(subId).status).toBe('active')
+  })
+
+  it('restores a subscription that was swept to expired when payment completed late', async () => {
+    // Сценарий: платёж помечен failed, подписка отменена и успела пройти
+    // через expireSubscriptions() в 'expired', а затем приходит запоздавший
+    // payment.completed. Подписка должна активироваться, а не «застрять»
+    const userId = randomUUID()
+    const { paymentId, subId } = await seedPayment(userId)
+    const db = getDb()
+    db.prepare(
+      `UPDATE payments SET status = 'failed', updated_at = datetime('now') WHERE id = ?`,
+    ).run(paymentId)
+    db.prepare(
+      `UPDATE subscriptions SET status = 'expired', updated_at = datetime('now') WHERE id = ?`,
+    ).run(subId)
+
+    const payload = {
+      event: 'payment.completed',
+      data: {
+        paymentId: 'expired-restore-1',
+        externalPaymentId: paymentId,
+        amount: 999,
+        currency: 'RUB',
+      },
+    }
+    const res = await POST(buildRequest(payload, sign(JSON.stringify(payload))))
+    expect(res.status).toBe(200)
+    expect(paymentRow(paymentId).status).toBe('paid')
+    expect(subscriptionRow(subId).status).toBe('active')
+  })
+
+  it('restores a pending subscription when payment completed late', async () => {
+    // Сценарий: payment.failed успел пометить платёж failed, но подписка
+    // осталась pending (гонка) — запоздавший payment.completed должен
+    // активировать её, а не оставить пользователя без доступа
+    const userId = randomUUID()
+    const { paymentId, subId } = await seedPayment(userId)
+    const db = getDb()
+    db.prepare(
+      `UPDATE payments SET status = 'failed', updated_at = datetime('now') WHERE id = ?`,
+    ).run(paymentId)
+    // Подписка остаётся 'pending'
+
+    const payload = {
+      event: 'payment.completed',
+      data: {
+        paymentId: 'pending-restore-1',
+        externalPaymentId: paymentId,
+        amount: 999,
+        currency: 'RUB',
+      },
+    }
+    const res = await POST(buildRequest(payload, sign(JSON.stringify(payload))))
+    expect(res.status).toBe(200)
+    expect(paymentRow(paymentId).status).toBe('paid')
+    expect(subscriptionRow(subId).status).toBe('active')
+  })
+
   it('throws on payment.failed for an unknown payment (500, retry)', async () => {
     const payload = {
       event: 'payment.failed',

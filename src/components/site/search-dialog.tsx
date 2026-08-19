@@ -134,19 +134,35 @@ export function SearchDialog({
   const handleSelect = React.useCallback((r: SearchItem) => {
     if (r.href) {
       const id = r.href.slice(1)
-      const el = document.getElementById(id)
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-        onOpenChange(false)
-        setQuery('')
-        setBlockedNotice(null)
-        return
+      const scrollTo = () => {
+        const el = document.getElementById(id)
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          onOpenChange(false)
+          setQuery('')
+          setBlockedNotice(null)
+          return true
+        }
+        return false
       }
-      // Секция не найдена в DOM: контент за гейтом (требуется вход/подписка).
-      // Не закрываем диалог молча — показываем, почему переход не сработал
-      setBlockedNotice(
-        'Этот раздел доступен после входа в аккаунт или оформления подписки',
-      )
+      if (scrollTo()) return
+
+      // Секции за гейтом подгружаются лениво (next/dynamic) — элемент
+      // может просто ещё не успеть смонтироваться, даже если доступ есть.
+      // Пробуем ещё пару раз с короткой задержкой, и только потом решаем,
+      // что секция недоступна
+      let attempts = 0
+      const retry = window.setInterval(() => {
+        attempts++
+        if (scrollTo() || attempts >= 3) {
+          window.clearInterval(retry)
+          if (attempts >= 3 && !document.getElementById(id)) {
+            setBlockedNotice(
+              'Этот раздел доступен после входа в аккаунт или оформления подписки',
+            )
+          }
+        }
+      }, 300)
       return
     }
     onOpenChange(false)

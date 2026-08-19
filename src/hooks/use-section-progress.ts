@@ -103,6 +103,23 @@ export function useSectionProgress(sectionIds: string[]) {
     let retryTimer: ReturnType<typeof setTimeout> | null = null;
     let rescanTimer: ReturnType<typeof setInterval> | null = null;
     let disposed = false;
+
+    // Страховка для секций, смонтированных позже 30-й секунды (медленная
+    // сеть, тяжёлый чанк): MutationObserver мог не заметить подгрузку, а
+    // полное отключение сканирования «заморозило» бы прогресс навсегда.
+    // Редкий интервальный перескан работает, пока не найдены все секции.
+    const stopRescan = () => {
+      mutationObserver?.disconnect();
+      mutationObserver = null;
+      if (retryTimer) clearTimeout(retryTimer);
+      retryTimer = null;
+      if (rescanTimer) clearInterval(rescanTimer);
+      rescanTimer = null;
+    };
+
+    // Запускаем резканы только если не все секции нашлись сразу — иначе
+    // интервал жил бы вечно: эффект перезапускается (смена user → новый
+    // массив sectionIds), все секции уже в DOM, и таймер некому остановить
     if (observed.size < sectionIds.length) {
       mutationObserver = new MutationObserver(() => {
         if (scheduled || disposed) return;
@@ -111,38 +128,26 @@ export function useSectionProgress(sectionIds: string[]) {
           scheduled = false;
           if (disposed) return;
           observeMissing();
-          if (observed.size === sectionIds.length) {
-            mutationObserver?.disconnect();
-            if (rescanTimer) clearInterval(rescanTimer);
-          }
+          if (observed.size === sectionIds.length) stopRescan();
         }, 200);
       });
       mutationObserver.observe(document.body, {
         childList: true,
         subtree: true,
       });
-    }
 
-    // Страховка для секций, смонтированных позже 30-й секунды (медленная
-    // сеть, тяжёлый чанк): MutationObserver мог не заметить подгрузку, а
-    // полное отключение сканирования «заморозило» бы прогресс навсегда.
-    // Редкий интервальный перескан работает, пока не найдены все секции.
-    rescanTimer = setInterval(() => {
-      if (disposed) return;
-      const foundAllBefore = observed.size === sectionIds.length;
-      observeMissing();
-      if (!foundAllBefore && observed.size === sectionIds.length) {
-        mutationObserver?.disconnect();
-        if (retryTimer) clearTimeout(retryTimer);
-        if (rescanTimer) clearInterval(rescanTimer);
-      }
-    }, 10000);
+      rescanTimer = setInterval(() => {
+        if (disposed) return;
+        observeMissing();
+        // Останавливаемся в любом случае, когда нашли все секции —
+        // независимо от того, нашлись ли они в этом тике или раньше
+        if (observed.size === sectionIds.length) stopRescan();
+      }, 10000);
+    }
 
     return () => {
       disposed = true;
-      if (retryTimer) clearTimeout(retryTimer);
-      if (rescanTimer) clearInterval(rescanTimer);
-      mutationObserver?.disconnect();
+      stopRescan();
       observer.disconnect();
     };
   }, [sectionIds, sectionIdSet, initialized]);

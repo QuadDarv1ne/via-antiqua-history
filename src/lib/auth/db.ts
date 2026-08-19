@@ -95,11 +95,19 @@ function initSchema(db: Database.Database) {
 
     CREATE INDEX IF NOT EXISTS idx_verification_tokens_user_id ON verification_tokens(user_id);
     CREATE INDEX IF NOT EXISTS idx_verification_tokens_user_type ON verification_tokens(user_id, type);
+    CREATE INDEX IF NOT EXISTS idx_verification_tokens_expires_at ON verification_tokens(expires_at);
     CREATE INDEX IF NOT EXISTS idx_bookmarks_user_id ON bookmarks(user_id);
     CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON subscriptions(user_id);
     CREATE INDEX IF NOT EXISTS idx_subscriptions_status ON subscriptions(status, expires_at);
+    CREATE INDEX IF NOT EXISTS idx_subscriptions_payment_id ON subscriptions(payment_id);
     CREATE INDEX IF NOT EXISTS idx_payments_user_id ON payments(user_id);
     CREATE INDEX IF NOT EXISTS idx_payments_status ON payments(status);
+    CREATE INDEX IF NOT EXISTS idx_payments_user_status_created ON payments(user_id, status, created_at);
+    -- Частичный UNIQUE-индекс: один внешний ID платежа не может быть
+    -- назначен двум строкам payments (вебхук ищет платеж по этому полю,
+    -- неоднозначность соответствия означала бы рассинхрон данных)
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_payments_external_payment_id
+      ON payments(external_payment_id) WHERE external_payment_id IS NOT NULL;
   `);
 
   // Миграция существующих баз: CREATE TABLE IF NOT EXISTS не добавит колонку

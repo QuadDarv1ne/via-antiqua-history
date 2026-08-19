@@ -30,7 +30,9 @@ export async function GET(request: NextRequest) {
       .get(session.userId) as Record<string, unknown> | undefined;
 
     if (!user) {
-      return apiError("Пользователь не найден", 404);
+      // Единый код для отсутствующей сессии и отсутствующего пользователя:
+      // различие (404 vs 401) позволило бы проверять существование userId
+      return apiError("Не авторизован", 401);
     }
 
     return apiOk<User>({

@@ -13,6 +13,12 @@ const RATE_LIMIT = { windowMs: 15 * 60 * 1000, max: 5 }
 // Привязан к IP+email (не глобально к email): иначе 3 запроса с неверным
 // кодом с любого IP блокировали бы жертве смену пароля на 15 минут
 const USER_RATE_LIMIT = { windowMs: 15 * 60 * 1000, max: 3 }
+// Глобальный лимит НЕВЕРНЫХ кодов на аккаунт (ключ по email БЕЗ IP):
+// 6-значный код и распределённый перебор с ботнета по per-IP лимитам
+// почти не ограничен (как и TOTP в login). Лимит списывается ТОЛЬКО за
+// неверные коды — правильный код легитимного пользователя никогда не
+// упирается в него, поэтому жертва не блокируется своими же попытками
+const ACCOUNT_RATE_LIMIT = { windowMs: 15 * 60 * 1000, max: 10 }
 
 export async function POST(req: NextRequest) {
   try {
@@ -78,6 +84,13 @@ export async function POST(req: NextRequest) {
 
     if (!token || !codeMatches) {
       // Единое сообщение для неизвестного email и неверного кода — без перечисления аккаунтов
+      // Аккаунт-лимит начисляется только за неудачные попытки: распределённый
+      // перебор 6-значного кода ограничивается 10 попытками на 15 минут,
+      // а легитимный пользователь с правильным кодом лимит не расходует
+      const accountRl = checkRateLimit(`reset-account:${email.toLowerCase()}`, ACCOUNT_RATE_LIMIT)
+      if (!accountRl.allowed) {
+        return rateLimitResponse(accountRl.resetMs)
+      }
       return apiError('Неверный код или email', 400)
     }
 

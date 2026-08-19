@@ -220,15 +220,26 @@ async function handlePaymentCompleted(data: unknown) {
         return;
       }
 
-      db.prepare(
-        `
+      const restoredPayment = db
+        .prepare(
+          `
         UPDATE payments 
         SET status = 'paid', 
             external_payment_id = ?, 
             updated_at = ? 
-        WHERE id = ?
+        WHERE id = ? AND status = 'failed'
       `,
-      ).run(paymentData.paymentId, now, payment.id);
+        )
+        .run(paymentData.paymentId, now, payment.id);
+
+      if (restoredPayment.changes === 0) {
+        // Между проверкой статуса и транзакцией платёж успел сменить
+        // состояние (например, payment.refunded) — восстановление отменяем
+        console.warn(
+          `Payment ${payment.id} restore: no longer failed — skipped`,
+        );
+        return;
+      }
 
       const sub = db
         .prepare(
@@ -258,22 +269,38 @@ async function handlePaymentCompleted(data: unknown) {
         )
         .get(payment.user_id, sub.id) as { id: string } | undefined;
 
-      db.prepare(
-        `
+      // Восстановление может понадобиться для трёх статусов подписки:
+      // - 'cancelled' — событие payment.failed или 30-минутная очистка
+      //   отменили подписку после реальной оплаты;
+      // - 'pending' — подписка ещё ждёт активации (гонка событий);
+      // - 'expired' — очистка успела перевести истёкший/отменённый ряд
+      //   в 'expired' до прихода запоздавшего payment.completed.
+      // Если ряд в ином состоянии (уже 'active') — changes === 0, доступа
+      // пользователь и так не потерял, пропускаем молча.
+      const restored = db
+        .prepare(
+          `
         UPDATE subscriptions
         SET status = ?,
             payment_id = ?,
             updated_at = ?,
             expires_at = ?
-        WHERE id = ? AND status = 'cancelled'
+        WHERE id = ? AND status IN ('cancelled', 'pending', 'expired')
       `,
-      ).run(
-        existingActive ? "cancelled" : "active",
-        payment.id,
-        now,
-        expiresAt,
-        sub.id,
-      );
+        )
+        .run(
+          existingActive ? "cancelled" : "active",
+          payment.id,
+          now,
+          expiresAt,
+          sub.id,
+        );
+
+      if (restored.changes === 0) {
+        console.warn(
+          `Payment ${payment.id} restore: subscription ${sub.id} already in a different state — left untouched`,
+        );
+      }
 
       console.warn(
         existingActive
@@ -361,14 +388,23 @@ async function handlePaymentFailed(data: unknown) {
   }
 
   db.transaction(() => {
-    db.prepare(
-      `
+    // Условный UPDATE: если между чтением статуса и транзакцией платёж
+    // успел стать paid (гонка с payment.completed), изменения не происходит —
+    // и подписку отменять нельзя, иначе оплаченный доступ пропадёт
+    const failed = db
+      .prepare(
+        `
       UPDATE payments 
       SET status = 'failed', 
           updated_at = ? 
       WHERE id = ? AND status = 'pending'
     `,
-    ).run(now, payment.id);
+      )
+      .run(now, payment.id);
+
+    if (failed.changes === 0) {
+      return;
+    }
 
     db.prepare(
       `

@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { getDb } from "@/lib/auth/db";
 import { generateNumericCode, generateToken } from "@/lib/auth/utils";
-import { sendPasswordResetEmail, isEmailTestMode } from "@/lib/auth/email";
+import { sendPasswordResetEmail } from "@/lib/auth/email";
 import { apiOk, apiError } from "@/lib/auth/api-response";
 import { checkRateLimit, rateLimitResponse } from "@/lib/auth/rate-limit";
 import { validateEmail, toSqliteDateTime } from "@/lib/utils";
@@ -16,6 +16,13 @@ const RATE_LIMIT = { windowMs: 15 * 60 * 1000, max: 3 };
 // позволял бы атакующему с одного IP заблокировать сброс пароля жертве
 // (3-5 запросов с неверным кодом — и она не может получить код час)
 const USER_RATE_LIMIT = { windowMs: 60 * 60 * 1000, max: 5 };
+// Глобальный лимит на email (ключ БЕЗ IP): без него ботнет с N адресов
+// мог бы бесконечно бомбить чужие ящики письмами сброса и убивать
+// действующие коды жертвы (каждый запрос инвалидирует предыдущие).
+// Обратная сторона — атакующий может сам израсходовать лимит и лишить
+// жертву сброса на час, но это всё же ограниченный ущерб по сравнению
+// с неограниченным флудом
+const ACCOUNT_RATE_LIMIT = { windowMs: 60 * 60 * 1000, max: 3 };
 
 // Хэш для логов: user_id в логах — не перечисление аккаунтов
 function hashForLog(id: string): string {
@@ -84,6 +91,14 @@ export async function POST(req: NextRequest) {
       return rateLimitResponse(userRl.resetMs);
     }
 
+    const accountRl = checkRateLimit(
+      `forgot-account:${email.toLowerCase()}`,
+      ACCOUNT_RATE_LIMIT,
+    );
+    if (!accountRl.allowed) {
+      return rateLimitResponse(accountRl.resetMs);
+    }
+
     const db = getDb();
     const user = db
       .prepare("SELECT id FROM users WHERE email = ?")
@@ -105,8 +120,16 @@ export async function POST(req: NextRequest) {
     );
     const tokenId = generateToken(16);
 
-    // Сначала создаём новый токен, но НЕ инвалидируем старые:
-    // если отправка письма упадёт, пользователь не потеряет действующий код.
+    // Создание токена и инвалидация старых — в ОДНОЙ транзакции: при
+    // параллельных запросах (двойной клик, атакующий + жертва) иначе
+    // был бы промежуток, когда первый токен уже создан, а его инвалидация
+    // ещё не выполнена — и второй запрос пометил бы его used, после чего
+    // первая инвалидация «добила» бы токен второго. Оба кода стали бы
+    // мёртвыми. В транзакции запросы сериализуются: последний побеждает,
+    // но хотя бы один код всегда остаётся валидным.
+    // Плата за атомарность: при сбое SMTP старые коды уже помечены used
+    // (новый токен откатывается ниже) — пользователь просто запросит код
+    // ещё раз, рассинхронизации «письмо есть, код мёртв» не возникает.
     // Код хранится хэшированным (sha256:) — при утечке БД коды сброса
     // пароля не читаются напрямую (как recovery-коды 2FA)
     db.transaction(() => {
@@ -115,6 +138,9 @@ export async function POST(req: NextRequest) {
         "DELETE FROM verification_tokens WHERE expires_at <= datetime('now')",
       ).run();
       db.prepare(
+        "UPDATE verification_tokens SET used = 1 WHERE user_id = ? AND type = 'password_reset' AND used = 0",
+      ).run(user.id);
+      db.prepare(
         `INSERT INTO verification_tokens (id, user_id, type, code, expires_at) VALUES (?, ?, 'password_reset', ?, ?)`,
       ).run(tokenId, user.id, hashCode(code), expiresAt);
     })();
@@ -122,9 +148,10 @@ export async function POST(req: NextRequest) {
     const sent = await sendPasswordResetEmail(email.toLowerCase(), code);
 
     if (!sent) {
-      // Откатываем новый токен — старые коды остаются валидными. Ошибку
-      // логируем, но отвечаем тем же общим сообщением: иначе сбой SMTP
-      // раскрывал бы, какие адреса зарегистрированы
+      // Откатываем новый токен (старые коды в этой транзакции уже помечены
+      // used — при сбое SMTP пользователь просто запросит код ещё раз).
+      // Ошибку логируем, но отвечаем тем же общим сообщением: иначе сбой
+      // SMTP раскрывал бы, какие адреса зарегистрированы
       db.prepare("DELETE FROM verification_tokens WHERE id = ?").run(tokenId);
       // Email в лог не пишем: перечисление адресов через логи — такой же
       // вектор, как и через ответы (зарегистрированные адреса, которым
@@ -132,19 +159,17 @@ export async function POST(req: NextRequest) {
       console.error(
         `Password reset email send failed (user: ${hashForLog(user.id as string)})`,
       );
+      // Выравниваем время ответа: путь сбоя не должен отличаться по
+      // задержке от успешной отправки/несуществующего email
+      await alignResponseTime(startedAt);
       return apiOk({ message: GENERIC_MESSAGE });
     }
 
-    db.prepare(
-      "UPDATE verification_tokens SET used = 1 WHERE user_id = ? AND type = 'password_reset' AND used = 0 AND id != ?",
-    ).run(user.id, tokenId);
-
-    // В test-режиме отправка мгновенная — выравниваем время ответа до того же
-    // минимума, что и для несуществующего email, чтобы задержка не
-    // раскрывала факт существования аккаунта
-    if (isEmailTestMode()) {
-      await alignResponseTime(startedAt);
-    }
+    // Реальное SMTP-письмо может идти быстрее фиксированного минимума —
+    // выравниваем время ответа на ВСЕХ путях, чтобы задержка не
+    // раскрывала факт существования аккаунта (в test-режиме отправка
+    // мгновенная, поэтому здесь выравнивание нужно всегда)
+    await alignResponseTime(startedAt);
 
     return apiOk({ message: GENERIC_MESSAGE });
   } catch (err) {

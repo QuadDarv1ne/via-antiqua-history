@@ -12,6 +12,8 @@ interface ContentGateProps {
   subtitle: string
   children: React.ReactNode
   restricted?: boolean // Если true, требуется подписка, а не просто авторизация
+  id?: string // Якорь секции: навигация (#map, #timeline и т.п.) должна вести
+  // на гейт, пока контент скрыт — иначе ссылки молча «не работают»
 }
 
 export const ContentGate = React.memo(function ContentGate({
@@ -19,6 +21,7 @@ export const ContentGate = React.memo(function ContentGate({
   subtitle,
   children,
   restricted = false,
+  id,
 }: ContentGateProps) {
   const { user, loading } = useAuth()
   const { hasSubscription, subscriptionLoading } = useSubscription(restricted)
@@ -27,7 +30,7 @@ export const ContentGate = React.memo(function ContentGate({
 
   if (isLoading) {
     return (
-      <section className="py-20 md:py-28 scroll-mt-20">
+      <section id={id} className="py-20 md:py-28 scroll-mt-20">
         <div className="container mx-auto max-w-7xl px-4">
           <div className="mb-10 md:mb-14">
             <div className="h-0.5 w-12 rounded-full bg-primary/30 mb-4" />
@@ -51,7 +54,7 @@ export const ContentGate = React.memo(function ContentGate({
   }
 
   return (
-    <section className="py-20 md:py-28 scroll-mt-20">
+    <section id={id} className="py-20 md:py-28 scroll-mt-20">
       <div className="container mx-auto max-w-7xl px-4">
         <div className="mb-10 md:mb-14">
             <div className="h-0.5 w-12 rounded-full bg-primary/30 mb-4" />
